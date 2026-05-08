@@ -558,9 +558,14 @@ Here is the complete end-to-end journey of a user on this platform:
 │       → Resume auto-attached                                │
 │       → **Instant AI-Based Shortlisting**                   │
 │              ↓                                              │
-│  [9] TRACK APPLICATION STATUS                               │
-│       → Direct "Accepted" status for high AI scores         │
-│       → Real-time updates from dashboard                    │
+│  [9] PREPARE WITH AI MOCK INTERVIEW (10-15 Min)             │
+│       → Test confidence & response quality before real meet │
+│              ↓                                              │
+│  [10] CHAT & ATTEND GOOGLE MEET                             │
+│       → Direct messaging with recruiter & Real interview    │
+│              ↓                                              │
+│  [11] TRACK FINAL STATUS & FEEDBACK                         │
+│       → See Hired/Rejected status with detailed feedback    │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -620,6 +625,7 @@ We use an ultra-secure, bank-level encrypted payment gateway (Stripe/Razorpay) t
 | 18 | Real-time AI Mock Interview   | Live voice/video interview practice with AI feedback | ✅ OpenAI  |
 | 19 | Unified Mode Switching        | One-click toggle between Candidate (Blue) & Hiring (Purple) Modes | ❌          |
 | 20 | Management Portal (RBAC)      | Unified dashboard for Admin/Super Admin (Revenue/Users/Jobs)| ❌          |
+| 21 | Real-time Direct Messaging    | Instant chat between Candidates and Recruiters      | ✅ Socket.io|
 
 ---
 
@@ -667,8 +673,14 @@ Socket.io ka connection user ke **`userId`** par based hoga, na ki uske mode par
 
 Are you a hiring manager? Our AI-powered ecosystem helps you find top talent without the manual headache of screening thousands of resumes.
 
-### Step 1: Create Your Company Brand
-Register your company, upload your logo, and add your mission statement. A professional company page attracts better talent.
+### Step 1: Create Your Company Brand (Hiring Mode Onboarding)
+Jab aap pehli baar "Switch to Hiring Mode" button par click karenge, toh ek onboarding form open hoga. Aapko apni company ki basics details bharni hongi:
+*   **Company Name & Logo:** Professional identity ke liye.
+*   **Website & Location:** Taaki candidates aapki validity check kar saken.
+*   **Industry Category:** AI ko batane ke liye ki aap kis tarah ka talent dhoond rahe hain.
+*   **About Company:** Aapka mission aur vision statement.
+
+Ek baar profile save ho jaane ke baad, aapka dashboard hamesha ke liye unlock ho jayega.
 
 ### Step 2: Post a Job with AI Assistance
 Add the job title and let our **AI Job Description Generator** write the full requirements, responsibilities, and "About the Role" section for you.
@@ -679,8 +691,8 @@ Manage your candidates on a **Drag & Drop board**. Move talent from *Applied* to
 *   **1-Click Resume View:** Peek at resumes instantly without leaving the board.
 *   **Face-to-Face Interview Scheduler:** Send exact Date/Time and a **Google Meet Link** for the real face-to-face interview directly from the candidate card.
 
-### Step 4: Real Face-to-Face Interview
-AI handles the pre-screening, but the final interview is done by you face-to-face via Google Meet. 
+### Step 4: Real Face-to-Face Interview (Google Meet)
+AI handles the pre-screening, but the final interview is done by you face-to-face via Google Meet. Scheduled meetings automatically appear on your candidate's dashboard and your own recruitment calendar.
 
 ### Step 5: Post-Interview Feedback
 After the Google Meet, return to the Kanban board, fill out a quick "Submit Feedback" form (e.g., Tech Skills: 8/10), and drop the candidate in the "Hired" or "Rejected" column. The candidate receives this transparent feedback instantly via Socket.io.
@@ -689,6 +701,9 @@ After the Google Meet, return to the Kanban board, fill out a quick "Submit Feed
 When candidates apply, you will get instant alerts in your **Dashboard Notification Center**. You must reply to them quickly (ideally on the same day). 
 *   **Why it matters:** Candidates can rate their interview and feedback experience with your company.
 *   **The Benefit:** A fast response time and good feedback generate a public **Company Profile Rating (e.g., ⭐ 4.8/5)** visible to all users. High ratings build trust and attract the absolute best talent to your future job posts!
+
+### Step 7: Real-time Direct Messaging (Chat)
+Communication gap ko khatam karne ke liye, recruiters aur candidates ke beech ek **Real-time Chat Box** available hai. Recruiter candidate ki application profile se hi conversation shuru kar sakta hai taaki interview se pehle zaroori sawal puche ja sakein ya updates diye ja sakein.
 
 ### ✅ Recruiter Benefit:
 > Save **80% of your time**. Our AI does the manual reading; you only spend time talking to the highest-qualified "A-Players."

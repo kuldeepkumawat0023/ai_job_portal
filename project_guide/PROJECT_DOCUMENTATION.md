@@ -12,15 +12,15 @@
 2. [Project Vision & Objectives](#2-project-vision--objectives)
 3. [User Roles & Permissions](#3-user-roles--permissions)
 4. [System Architecture](#4-system-architecture)
-5. [Complete Workflow](#5-complete-workflow)
-6. [AI Matching Engine](#6-ai-matching-engine)
-7. [Database Design](#7-database-design)
-8. [User Facilities — What You Get](#8-user-facilities--what-you-get)
-9. [Recruiter Facilities](#9-recruiter-facilities)
-10. [Security Features](#10-security-features)
-11. [UI/UX Pages](#11-uiux-pages)
-12. [Advanced Features (Future Scope)](#12-advanced-features-future-scope)
-13. [Development Roadmap](#13-development-roadmap)
+5. [Software Requirements Specification (SRS)](#5-software-requirements-specification-srs)
+6. [Visual System Flow Diagram](#6-visual-system-flow-diagram)
+7. [AI Matching Engine](#7-ai-matching-engine)
+8. [Database Design](#8-database-design)
+9. [User Facilities — What You Get](#9-user-facilities--what-you-get)
+10. [Recruiter Facilities](#10-recruiter-facilities)
+11. [Security Features](#11-security-features)
+12. [UI/UX Pages](#12-uiux-pages)
+13. [Admin Management & Bulk Job Import (CSV)](#13-admin-management--bulk-job-import-csv)
 14. [Challenges & Solutions](#14-challenges--solutions)
 15. [Conclusion](#15-conclusion)
 
@@ -155,7 +155,36 @@ Step 6: Dashboard Entry & Instant Acceptance
 
 ---
 
-## 5.1 📊 Visual System Flow Diagram
+## 5. 📜 Software Requirements Specification (SRS)
+
+### 5.1 Candidate Dashboard & Resume Flow
+*   **7-Step AI Resume Form:** If resume is incomplete, a guided 7-step form opens:
+    1.  **Personal Info** (Name, Email, Location)
+    2.  **Education** (Degree, University, CGPA)
+    3.  **Work Experience** (Role, Duration, Bullets)
+    4.  **Skills** (Technical & Soft Skills)
+    5.  **Projects** (Stack & Description)
+    6.  **Template Style** (ATS-Friendly / Modern)
+    7.  **Preview & Download** (PDF)
+*   **AI Diagnostics:** After form completion, AI runs a diagnostic check (ATS score, keyword match, formatting check, and gap analysis).
+
+### 5.2 AI Mock Interview (Practice + Official)
+*   **Practice Mode (Warm-up):** Unlimited sessions with instant AI feedback on confidence and accuracy without saving to profile.
+*   **Official Mode:** A strict 10-15 min session. AI records final score and confidence level (Low/Medium/High) used for job matching.
+
+### 5.3 Interview Decision & Feedback System
+For every candidate interviewed via Google Meet, the Employer must select a status:
+*   ✅ **Approved (Hire):** Generates offer details (Salary, Joining Date).
+*   ❌ **Rejected:** Opens a feedback form with a **Reasons Dropdown** (Skills Gap, Cultural Fit, etc.). System converts this into professional feedback text for the candidate.
+*   ⏳ **In Progress:** Details for the next round (Date, Time, Preparation Tips).
+
+### 5.4 Admin Job Management
+*   **Manual Posting:** Admin can manually add single jobs.
+*   **Bulk Import (CSV):** Admin can download a CSV template, fill multiple jobs, and import them in one go (Campus/Internship/Govt jobs).
+
+---
+
+## 6. 📊 Visual System Flow Diagram
 
 ```mermaid
 graph TD
@@ -660,6 +689,7 @@ You can find jobs in any field of your choice:
 | **10**| **Instant Filters**     | Instantly filter candidate pool by AI Score, Experience, or Category. |
 | **11**| **Live Notification Center** | Dedicated panel in the dashboard for real-time alerts when candidates apply. |
 | **12**| **Company Rating & Response SLA** | Recruiters must reply to candidates quickly (same-day SLA). Candidates rate the interview experience, generating a public **Company Rating (e.g. ⭐ 4.8/5)**. |
+| **13**| **Direct Messaging (Chat)** | Real-time chat system using Socket.io to communicate directly with candidates before or after interviews. |
 
 **✅ Recruiter Benefit:** Save **80% of screening time**. AI does the manual reading; you only talk to the best-fit candidates. Your fast responses and high ratings build a powerful employer brand.
 
@@ -685,8 +715,15 @@ Ye section detail mein samjhata hai ki ek hi frontend application ke andar User 
     *   **Candidate Mode:** Blue / Professional Theme.
     *   **Hiring Mode:** Dark Purple / Executive Theme.
 *   **Database Level:** User ke database model mein `hasCompanyProfile` (boolean) check hoga.
-    *   Agar user pehli baar "Hiring Mode" par click karta hai, toh ek pop-up aayega: *"Please create your Company Profile to start hiring."*
-    *   Agar profile bani hui hai, toh click karte hi URL `/dashboard` se redirect hokar `/company-dashboard` par chala jayega, aur pura UI naye theme ke sath Recruiter ATS mein badal jayega.
+    *   **Onboarding Flow (The Form):** Agar user pehli baar "Hiring Mode" par click karta hai, toh ek **"Create Your Company Profile"** modal/form open hoga. Jab tak ye form submit nahi hota, recruiter dashboard access nahi kiya ja sakta.
+    *   **Form Fields:** 
+        1. **Company Name** (Text)
+        2. **Company Logo** (Image Upload to Cloudinary)
+        3. **Website URL** (Link)
+        4. **Industry Category** (Dropdown: IT, Healthcare, Finance, etc.)
+        5. **Location** (City/Country)
+        6. **About Company** (Textarea)
+    *   Agar profile bani hui hai, toh click karte hi URL `/dashboard` se redirect hokar `/company-dashboard` par chala jayega.
 
 ### 11.2 Real-Time Notification & Response Scenarios (Socket.io)
 Socket.io ka connection user ke **`userId`** par based hoga, na ki uske mode par. Iska fayda ye hai ki user kisi bhi screen par ho, use notification zaroor aayegi.
