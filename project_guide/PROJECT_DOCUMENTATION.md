@@ -354,6 +354,8 @@ Final Match Score = OpenAI Compatibility Score (0–100%)
 {
   name: String,
   email: String (unique),
+  countryCode: String,
+  phoneNumber: String,
   password: String (hashed),
   role: ["candidate", "recruiter"],
   skills: [String],
@@ -748,6 +750,11 @@ Socket.io ka connection user ke **`userId`** par based hoga, na ki uske mode par
 3.  **Backend Logic:** Backend database update karta hai aur Candidate ko ek detailed feedback card bhejta hai.
 4.  **Frontend Response (Candidate):** Candidate ko notification milti hai. Wo apne dashboard mein jaa kar company ka exact feedback aur apna final result (Hired/Rejected) dekh sakta hai. Ye transparency trust build karti hai.
 
+### 11.3 Data Fetching & State Synchronization (React Query)
+Pura frontend project data fetching ke liye **TanStack Query (React Query)** ka use karega. Axios ko React Query ke mutations aur queries ke sath wrap kiya jayega.
+*   **Why React Query?** Isse API requests efficient hongi, caching automatic manage hogi, aur "Loading..." states manual handle nahi karni padengi.
+*   **Flow:** Frontend se sari API requests React Query ke `useQuery` aur `useMutation` hooks ke through jayengi backend me. Jab bhi database me kuch update hoga (e.g. status change), React Query cache ko invalidate karke automatically UI ko sync kar dega bina page refresh kiye.
+
 ---
 
 ## 12. 🔐 Security Features
@@ -947,59 +954,121 @@ This project is a **next-generation intelligent job portal** that outperforms tr
 
 ---
 
-## 📁 Project Folder Structure
+## 📁 16. Full Backend Folder Structure & Data Flow Plan
+
+This project uses a highly modular `src/` based backend architecture for clean separation of concerns.
 
 ```
-AllJob/
-├── backend/
-│   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── jobController.js
-│   │   ├── applicationController.js
-│   │   └── aiController.js
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── Job.js
-│   │   ├── Company.js
-│   │   └── Application.js
-│   ├── routes/
-│   │   ├── authRoutes.js
-│   │   ├── jobRoutes.js
-│   │   └── applicationRoutes.js
-│   ├── middleware/
-│   │   ├── authMiddleware.js
-│   │   └── upload.js
-│   └── server.js
-│
-├── frontend/  (Next.js App Router - Unified App)
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── (candidate)/             # Candidate Mode Routes
-│   │   │   │   ├── dashboard/page.tsx
-│   │   │   │   ├── jobs/page.tsx
-│   │   │   │   └── profile/page.tsx
-│   │   │   ├── (recruiter)/             # Hiring Mode Routes
-│   │   │   │   ├── company-dashboard/page.tsx
-│   │   │   │   └── post-job/page.tsx
-│   │   │   ├── layout.tsx               # Root Layout with Mode Switcher
-│   │   │   └── globals.css              # Tailwind CSS & Theme Variables
-│   │   ├── components/
-│   │   │   └── Navbar.tsx               # Contains Toggle Button
-│   │   └── store/
-│   │       └── useAppStore.ts           # Zustand Global State
-│   └── package.json
-│
-├── super-admin/ (Management Portal)
-│   ├── src/
-│   │   ├── app/
-│   │   ├── components/
-│   │   │   ├── Sidebar.tsx
-│   │   │   └── DashboardStats.tsx
-│   │   └── lib/
-│   └── package.json
-│
-└── PROJECT_DOCUMENTATION.md   ← (You are here)
+backend/
+├── server.js                        # Root entry point
+└── src/
+    ├── app.js                       # Express app setup (CORS, helmet, morgan, routes)
+    ├── config/
+    │   ├── db.js                    # MongoDB Atlas connection via Mongoose
+    │   ├── email.js                 # Nodemailer + otp-generator setup
+    │   └── cloudinary.js            # Cloudinary config for image/PDF uploads
+    ├── models/
+    │   ├── User.js                  # Unified User (Candidate + Recruiter)
+    │   ├── Company.js               # Recruiter's Hiring Mode profile
+    │   ├── Job.js                   # Job postings by recruiters
+    │   ├── Application.js           # Candidate job applications + AI score + ATS status
+    │   ├── Resume.js                # Resume upload history + AI analysis scores
+    │   ├── Message.js               # Real-time chat messages (Socket.io)
+    │   ├── MockInterview.js         # AI Mock Interview results (Confidence/Technical score)
+    │   ├── Transaction.js           # Platform payment transactions (Admin view)
+    │   ├── Subscription.js          # User plan details (Enterprise Pro, Monthly Basic)
+    │   └── Billing.js               # Company billing & invoice records
+    ├── controllers/
+    │   ├── authController.js        # Register, Login, Google OAuth, OTP Reset
+    │   ├── userController.js        # Profile read & update
+    │   ├── companyController.js     # Company profile (Hiring Mode onboarding)
+    │   ├── jobController.js         # Post, fetch, filter jobs
+    │   ├── applicationController.js # Apply, Kanban pipeline, ATS status updates
+    │   ├── dashboardController.js   # Candidate & Recruiter dashboard stat aggregations
+    │   ├── resumeController.js      # Upload PDF, extract text, call AI for score
+    │   ├── aiController.js          # OpenAI GPT-4o integration, coaching tips
+    │   ├── chatController.js        # Fetch message history for DMs
+    │   ├── mockInterviewController.js # AI Mock Interview sessions
+    │   ├── adminController.js       # Super Admin: platform stats, revenue, users
+    │   └── paymentController.js     # Stripe/Razorpay payment processing
+    ├── middleware/
+    │   ├── auth.js                  # JWT verification & route protection
+    │   ├── errorHandler.js          # Global error catcher (prevents server crash)
+    │   └── upload.js                # Multer config for image/PDF memory storage
+    └── routes/
+        ├── index.js                 # Central hub — mounts all routes under /api/v1/
+        ├── authRoutes.js            # /user/register, /login, /forgot-password, etc.
+        ├── userRoutes.js            # /user/profile
+        ├── companyRoutes.js         # /company/setup, /company/update
+        ├── jobRoutes.js             # /job/post, /job/all, /job/:id
+        ├── applicationRoutes.js     # /application/apply, /application/pipeline
+        ├── dashboardRoutes.js       # /dashboard/candidate, /dashboard/recruiter
+        ├── resumeRoutes.js          # /resume/analyze, /resume/history
+        ├── chatRoutes.js            # /chat/messages
+        ├── interviewRoutes.js       # /interview/start, /interview/result
+        ├── adminRoutes.js           # /admin/stats, /admin/users, /admin/transactions
+        └── paymentRoutes.js         # /payment/checkout, /payment/webhook
 ```
+
+---
+
+### 1. Configuration Layer (`backend/src/config/`)
+*   `db.js`: Connects the application to MongoDB Atlas using Mongoose.
+*   `email.js`: Configures Nodemailer to send 6-digit OTPs using `otp-generator` for password resets.
+*   `cloudinary.js`: Connects to Cloudinary for secure resume (PDF) and profile picture storage.
+
+### 2. Database Layer — 10 Models (`backend/src/models/`)
+| Model | Purpose |
+|---|---|
+| `User.js` | Unified user — Candidate & Recruiter both in one model |
+| `Company.js` | Recruiter's Hiring Mode company profile |
+| `Job.js` | Job postings with AI-generated descriptions |
+| `Application.js` | Job applications + AI compatibility score + ATS Kanban status |
+| `Resume.js` | AI Resume Analysis history (score, skills, weaknesses) |
+| `Message.js` | Real-time chat messages between Recruiter & Candidate |
+| `MockInterview.js` | AI Mock Interview sessions (confidence score, technical score, feedback) |
+| `Transaction.js` | Platform-wide payment transaction history (for Admin) |
+| `Subscription.js` | User plan details (Enterprise Pro / Monthly Basic) |
+| `Billing.js` | Company billing invoices & payment records |
+
+### 3. Business Logic Layer — 12 Controllers (`backend/src/controllers/`)
+*   `authController.js`: Registration, Login, Google OAuth, OTP-based Password Reset.
+*   `userController.js`: Profile read and update.
+*   `companyController.js`: Hiring Mode company onboarding form.
+*   `jobController.js`: Post, fetch, search, and filter jobs.
+*   `applicationController.js`: Apply to jobs, Kanban pipeline, status updates.
+*   `dashboardController.js`: Aggregates stats for both Candidate and Recruiter dashboards.
+*   `resumeController.js`: PDF upload, text extraction, OpenAI analysis.
+*   `aiController.js`: GPT-4o integration for job matching and coaching tips.
+*   `chatController.js`: Fetch message history for direct messages.
+*   `mockInterviewController.js`: Start, submit, and grade AI Mock Interviews.
+*   `adminController.js`: Super Admin platform stats, revenue graphs, user management.
+*   `paymentController.js`: Stripe/Razorpay payment processing and webhooks.
+
+### 4. Security & Utility Layer (`backend/src/middleware/`)
+*   `auth.js`: Verifies JWT tokens and role permissions.
+*   `errorHandler.js`: Global error catcher — sends clean JSON errors, prevents crashes.
+*   `upload.js`: Multer in-memory storage before Cloudinary upload.
+
+### 5. API Endpoints Layer — 12 Route Files (`backend/src/routes/`)
+*   All routes are mounted under `/api/v1/` via `routes/index.js`.
+*   Each domain (auth, job, company, admin, payment) has its own dedicated route file.
+
+### 6. Application Setup & Entry Point
+*   `src/app.js`: Express + CORS + helmet + morgan + all routes + errorHandler.
+*   `server.js` (root): Connects DB and starts the server.
+
+---
+
+### 🔄 Data Flow Example: Registration with Profile Picture
+
+1. **Request:** Frontend (React Query) sends `POST /api/v1/user/register` with `multipart/form-data`.
+2. **Routing:** `server.js` → `app.js` → `routes/index.js` → `routes/authRoutes.js`.
+3. **Middleware (Upload):** `upload.js` grabs the image, saves to Cloudinary, attaches URL to request.
+4. **Logic (Controller):** `authController.js` uses user details + image URL to create the user.
+5. **Database Check:** Checks `User.js` — if email exists, throws error.
+6. **Error Handling:** `errorHandler.js` catches it and returns a clean `400 Bad Request` JSON.
+7. **Success:** User saved to DB → JWT generated → HTTP-only cookie set → success response sent.
 
 ---
 
@@ -1013,13 +1082,15 @@ AllJob/
 
 ### 🔐 Auth Routes — `/api/v1/user`
 
-| Method | Endpoint          | Description              | Auth Required |
-|--------|-------------------|--------------------------|---------------|
-| POST   | `/register`       | New user register        | ❌            |
-| POST   | `/login`          | User login + JWT token   | ❌            |
-| POST   | `/google-login`   | Continue with Google     | ❌            |
-| POST   | `/logout`         | Logout / clear cookie    | ✅            |
-| PUT    | `/profile/update` | Update profile & skills  | ✅            |
+| Method | Endpoint             | Description                 | Auth Required |
+|--------|----------------------|-----------------------------|---------------|
+| POST   | `/register`          | New user register           | ❌            |
+| POST   | `/login`             | User login + JWT token      | ❌            |
+| POST   | `/google-login`      | Continue with Google        | ❌            |
+| POST   | `/forgot-password`   | Send OTP via Email          | ❌            |
+| POST   | `/reset-password`    | Verify OTP & Set New Pass   | ❌            |
+| POST   | `/logout`            | Logout / clear cookie       | ✅            |
+| PUT    | `/profile/update`    | Update profile & skills     | ✅            |
 
 **Example — Register API:**
 ```js
@@ -1028,8 +1099,10 @@ AllJob/
 {
   "fullname": "Rahul Sharma",
   "email": "rahul@gmail.com",
+  "countryCode": "+91",
   "phoneNumber": "9876543210",
-  "password": "rahul@123"
+  "password": "rahul@123",
+  "confirmPassword": "rahul@123"
 }
 
 // Response:
@@ -1052,6 +1125,40 @@ AllJob/
 {
   "message": "Welcome back Rahul Sharma",
   "user": { "_id": "...", "fullname": "Rahul Sharma", "hasCompanyProfile": false },
+  "success": true
+}
+```
+
+**Example — Forgot Password (OTP Generation using `otp-generator`):**
+> **Logic:** The backend will use the `otp-generator` library to create a random, secure 6-digit OTP and `nodemailer` to send it to the user's email.
+```js
+// POST /api/v1/user/forgot-password
+// Request Body:
+{
+  "email": "rahul@gmail.com"
+}
+
+// Response:
+{
+  "message": "OTP sent successfully to your email.",
+  "success": true
+}
+```
+
+**Example — Reset Password:**
+```js
+// POST /api/v1/user/reset-password
+// Request Body:
+{
+  "email": "rahul@gmail.com",
+  "otp": "481516",
+  "newPassword": "rahul@newpass",
+  "confirmPassword": "rahul@newpass"
+}
+
+// Response:
+{
+  "message": "Password reset successfully. You can now login.",
   "success": true
 }
 ```
@@ -1297,13 +1404,13 @@ Relationships:
 
 ### ❓ Improvement / Future Questions
 
-**Q15. How can this project be improved further?**
-> **A:** In future versions, we can add:
-> - Real-time chat system (Socket.io)
-> - In-platform Video interview tools (currently using Google Meet)
-> - AI resume builder and suggestions
-> - Email notifications (Nodemailer)
-> - Interview preparation chatbot
+**Q15. What are some advanced features you implemented in this project?**
+> **A:** Apart from the core AI matching, we have implemented:
+> - Real-time direct messaging between candidates and recruiters using Socket.io
+> - 10-15 minute AI Mock Interviews for practice
+> - Live notification center for application updates
+> - Google Meet integration for scheduling face-to-face interviews
+> - Company Profile Rating and Response SLAs
 
 ---
 
@@ -1402,22 +1509,26 @@ npm run dev
 
 ### Backend Packages
 
-| Package          | Purpose                                             |
-|------------------|-----------------------------------------------------|
-| `express`        | Web server framework                                |
-| `mongoose`       | MongoDB ODM                                         |
-| `jsonwebtoken`   | JWT token generation & verification                 |
-| `bcryptjs`       | Password hashing                                    |
-| `multer`         | File upload middleware                              |
-| `cloudinary`     | Cloud file storage                                  |
-| `dotenv`         | Environment variable management                     |
-| `cookie-parser`  | Cookie parsing middleware                           |
-| `cors`           | Cross-Origin Resource Sharing                       |
-| `helmet`         | Secure HTTP headers for API protection              |
-| `morgan`         | HTTP request logger middleware                      |
-| `openai`         | **OpenAI API SDK** — Resume analysis & job matching |
-| `pdf-parse`      | Extract plain text from uploaded PDF resumes        |
-| `google-auth-library` | Verify Google OAuth ID tokens on the backend |
+| Package               | Purpose                                             |
+|-----------------------|-----------------------------------------------------|
+| `express`             | Web server framework                                |
+| `mongoose`            | MongoDB ODM                                         |
+| `jsonwebtoken`        | JWT token generation & verification                 |
+| `bcryptjs`            | Password hashing                                    |
+| `multer`              | File upload middleware                              |
+| `cloudinary`          | Cloud file storage                                  |
+| `dotenv`              | Environment variable management                     |
+| `cookie-parser`       | Cookie parsing middleware                           |
+| `cors`                | Cross-Origin Resource Sharing                       |
+| `helmet`              | Secure HTTP headers for API protection              |
+| `morgan`              | HTTP request logger middleware                      |
+| `openai`              | **OpenAI API SDK** — Resume analysis & job matching |
+| `pdf-parse`           | Extract plain text from uploaded PDF resumes        |
+| `google-auth-library` | Verify Google OAuth ID tokens on the backend        |
+| `socket.io`           | Real-time WebSocket communication for Chat/Alerts   |
+| `nodemailer`          | Send automated Emails (e.g. Password Reset OTPs)    |
+| `otp-generator`       | Generate secure 6-digit OTPs for password resets    |
+| `stripe`              | Payment processing (Subscriptions & Transactions)   |
 
 ### Frontend Packages
 
@@ -1431,9 +1542,206 @@ npm run dev
 | `socket.io-client`   | Real-time events & notifications |
 | `@react-oauth/google`| Google Login button & OAuth flow |
 | `axios`              | HTTP requests                    |
+| `@tanstack/react-query`| Data fetching, caching & state sync|
 | `lucide-react`       | Icon library                     |
 | `sonner`             | Toast notifications              |
 
+
 ---
 
-*📅 Documentation Version: 1.0 (SEO Optimized) | Last Updated: 2026 | Status: Complete ✅*
+*📅 Documentation Version: 2.0 (SEO Optimized) | Last Updated: 2026 | Status: Complete ✅*
+
+---
+
+## 23. 🔐 Environment Variables (`.env` Setup)
+
+Create a `.env` file in the `backend/` root. **Never commit this file to Git.**
+
+```env
+# ─── Server ──────────────────────────────────────────
+PORT=5000
+NODE_ENV=development
+
+# ─── Database ────────────────────────────────────────
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/ai_job_portal
+
+# ─── JWT Auth ────────────────────────────────────────
+JWT_SECRET=your_super_secret_jwt_key_here
+JWT_EXPIRES_IN=7d
+
+# ─── Email (Nodemailer + OTP) ────────────────────────
+EMAIL_USER=your_gmail@gmail.com
+EMAIL_PASS=your_gmail_app_password
+
+# ─── Cloudinary (Image/PDF Upload) ───────────────────
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# ─── OpenAI (AI Features) ────────────────────────────
+OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# ─── Google OAuth ────────────────────────────────────
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+
+# ─── Stripe (Payments) ───────────────────────────────
+STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxxx
+
+# ─── Frontend URLs (CORS) ────────────────────────────
+FRONTEND_URL=http://localhost:3000
+ADMIN_URL=http://localhost:3001
+```
+
+> [!IMPORTANT]
+> Add `.env` to your `.gitignore` file before the very first commit to keep secrets safe.
+
+---
+
+## 24. ⚡ Socket.io Real-Time Events
+
+All real-time events use `userId` as the room identifier. Connection is established on login.
+
+### Event Reference Table
+
+| Event Name             | Direction                  | Payload                                               | Description                              |
+|------------------------|----------------------------|-------------------------------------------------------|------------------------------------------|
+| `connection`           | Client → Server            | `{ userId }`                                          | User joins their personal room on login  |
+| `disconnect`           | Client → Server            | —                                                     | User leaves when browser closes          |
+| `new_applicant`        | Server → Recruiter         | `{ jobId, jobTitle, candidateName, candidateId }`     | New candidate applied to a job           |
+| `application_status`   | Server → Candidate         | `{ jobId, jobTitle, newStatus }`                      | Application status changed (ATS Kanban)  |
+| `interview_scheduled`  | Server → Candidate         | `{ jobTitle, companyName, dateTime, meetLink }`       | Recruiter scheduled an interview         |
+| `new_message`          | Server → User              | `{ senderId, senderName, content, timestamp }`        | New direct message received              |
+| `send_message`         | Client → Server            | `{ receiverId, content }`                             | User sends a message                     |
+| `interview_feedback`   | Server → Candidate         | `{ companyName, technicalScore, finalStatus }`        | Post-interview feedback from recruiter   |
+| `job_posted`           | Server → All Candidates    | `{ jobId, jobTitle, companyName, location }`          | New job posted matching candidate skills |
+
+### Socket.io Flow Example (New Applicant)
+```
+Candidate applies (REST API)
+    → applicationController.js saves to DB
+    → emits "new_applicant" event to Recruiter's room
+        → If Recruiter online: Kanban card appears instantly + "Ting" sound
+        → If Recruiter offline: Notification stored in DB, shown on next login
+```
+
+---
+
+## 25. 📐 API Standard Response Format
+
+Every API in this project returns a **consistent JSON structure** to make frontend handling predictable.
+
+### ✅ Success Response
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "User registered successfully.",
+  "data": {
+    "user": {
+      "_id": "664f...",
+      "fullname": "Rahul Sharma",
+      "email": "rahul@gmail.com"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+### ❌ Error Response
+```json
+{
+  "success": false,
+  "statusCode": 400,
+  "message": "User with this email already exists.",
+  "data": null
+}
+```
+
+### 📋 Standard HTTP Status Codes Used
+
+| Code | Meaning                    | When Used                                    |
+|------|----------------------------|----------------------------------------------|
+| 200  | OK                         | Successful GET / PUT / PATCH requests        |
+| 201  | Created                    | Successful POST (register, create job, etc.) |
+| 400  | Bad Request                | Validation errors, duplicate email, etc.     |
+| 401  | Unauthorized               | Missing or invalid JWT token                 |
+| 403  | Forbidden                  | Valid token but insufficient permissions     |
+| 404  | Not Found                  | User/Job/Company not found in DB             |
+| 500  | Internal Server Error      | Unexpected crashes (caught by errorHandler)  |
+
+---
+
+## 26. 🗃️ Database Schema — Field Details
+
+### User Schema (`models/User.js`)
+| Field              | Type      | Required | Default | Description                                |
+|--------------------|-----------|----------|---------|--------------------------------------------|
+| `fullname`         | String    | ✅       | —       | Full name of the user                      |
+| `email`            | String    | ✅       | —       | Unique email address                       |
+| `countryCode`      | String    | ✅       | `+91`   | Phone country code (e.g. +91, +1)          |
+| `phoneNumber`      | String    | ✅       | —       | 10-digit phone number                      |
+| `password`         | String    | ✅       | —       | Bcrypt hashed password                     |
+| `profilePhoto`     | String    | ❌       | —       | Cloudinary URL                             |
+| `bio`              | String    | ❌       | —       | Short user bio                             |
+| `skills`           | [String]  | ❌       | []      | Array of skill tags                        |
+| `experience`       | Number    | ❌       | 0       | Years of experience                        |
+| `hasCompanyProfile`| Boolean   | —        | false   | Whether user has set up Hiring Mode        |
+| `otp`              | String    | ❌       | —       | Temporary 6-digit OTP for password reset   |
+| `otpExpiry`        | Date      | ❌       | —       | OTP expiry time (10 minutes from creation) |
+| `isPremium`        | Boolean   | —        | false   | Whether user has an active paid plan       |
+| `paymentId`        | String    | ❌       | —       | Stripe transaction/subscription ID         |
+| `createdAt`        | Date      | —        | auto    | Auto-managed by Mongoose timestamps        |
+
+### Application Schema (`models/Application.js`)
+| Field           | Type     | Required | Default    | Description                                      |
+|-----------------|----------|----------|------------|--------------------------------------------------|
+| `userId`        | ObjectId | ✅       | —          | Reference to `User`                              |
+| `jobId`         | ObjectId | ✅       | —          | Reference to `Job`                               |
+| `aiScore`       | Number   | ❌       | 0          | AI compatibility score (0–100%)                  |
+| `status`        | String   | —        | `applied`  | ATS status: `applied/shortlisted/interview/hired/rejected` |
+| `coverLetter`   | String   | ❌       | —          | Candidate's optional cover letter                |
+| `appliedAt`     | Date     | —        | `Date.now` | Timestamp of application                         |
+
+---
+
+## 27. 💳 Subscription Plans & Pricing
+
+| Feature                        | Free       | Pro (₹999/mo)  | Enterprise (₹2999/mo) |
+|--------------------------------|------------|----------------|-----------------------|
+| Job Applications               | 10/month   | Unlimited       | Unlimited             |
+| AI Resume Analysis             | 1 time     | 5/month         | Unlimited             |
+| AI Mock Interviews             | 1 (demo)   | 10/month        | Unlimited             |
+| AI Job Match Score             | ❌         | ✅             | ✅                    |
+| Resume Boost / Improve         | ❌         | ✅             | ✅                    |
+| Direct Message Recruiters      | ❌         | ✅             | ✅                    |
+| Priority in Search Results     | ❌         | ❌             | ✅                    |
+| Dedicated Account Manager      | ❌         | ❌             | ✅                    |
+
+> Payment integration via **Stripe** (International) or **Razorpay** (India).
+
+---
+
+## 28. 🛡️ Security Checklist
+
+| Security Measure        | Implementation                                                      | Status  |
+|-------------------------|---------------------------------------------------------------------|---------|
+| Password Hashing        | `bcryptjs` with salt rounds = 10                                    | ✅ Plan |
+| JWT Auth                | HTTP-only cookie, 7-day expiry, verified on every protected route   | ✅ Plan |
+| Secure HTTP Headers     | `helmet` middleware applied globally in `app.js`                    | ✅ Plan |
+| CORS Policy             | Whitelist only `FRONTEND_URL` and `ADMIN_URL`                       | ✅ Plan |
+| Rate Limiting           | `express-rate-limit` — max 100 requests per 15 minutes per IP       | ✅ Plan |
+| Input Validation        | Validate all request bodies before controller logic                 | ✅ Plan |
+| OTP Expiry              | OTP auto-expires in 10 minutes, cleared after use                   | ✅ Plan |
+| File Upload Security    | Only PDF and image MIME types accepted via `multer`                 | ✅ Plan |
+| XSS Protection          | `helmet` + sanitized user inputs                                    | ✅ Plan |
+| Error Leakage           | `errorHandler.js` never exposes stack traces in production          | ✅ Plan |
+| `.env` Protection       | `.env` in `.gitignore`, secrets never hardcoded                     | ✅ Plan |
+| Stripe Webhook           | Verified with `STRIPE_WEBHOOK_SECRET` before processing payment     | ✅ Plan |
+
+> [!TIP]
+> Add `express-rate-limit` package to backend to prevent brute-force attacks on `/login` and `/forgot-password` routes.
+
+---
+
+*📅 Documentation Version: 2.0 (SEO Optimized) | Last Updated: 2026 | Status: Complete ✅*
