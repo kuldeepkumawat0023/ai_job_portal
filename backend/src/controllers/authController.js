@@ -269,9 +269,6 @@ exports.login = async (req, res, next) => {
 // @desc    Google OAuth Login
 // @route   POST /api/v1/user/google-login
 // @access  Public
-const { OAuth2Client } = require('google-auth-library');
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
 exports.googleLogin = async (req, res, next) => {
   try {
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -381,9 +378,6 @@ exports.googleLogin = async (req, res, next) => {
 // @desc    Forgot Password (Send OTP)
 // @route   POST /api/v1/user/forgot-password
 // @access  Public
-const otpGenerator = require('otp-generator');
-const sendEmail = require('../config/email');
-
 exports.forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
