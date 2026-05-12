@@ -15,6 +15,16 @@ const dashboardRoutes = require('./dashboardRoutes');
 
 const router = express.Router();
 
+// Health Check Route
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Backend is up and running!',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Mount routes
 router.use('/user', authRoutes);
 router.use('/user', userRoutes);

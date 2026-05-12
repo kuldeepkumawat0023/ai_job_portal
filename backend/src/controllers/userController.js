@@ -1,19 +1,5 @@
 const User = require('../models/User');
-const cloudinary = require('../config/cloudinary');
-
-
-// Helper to extract public_id from Cloudinary URL
-const getPublicId = (url) => {
-  try {
-    const parts = url.split('/');
-    const folderIndex = parts.findIndex(p => p === 'ai_job_portal');
-    if (folderIndex === -1) return null;
-    const publicIdWithExt = parts.slice(folderIndex).join('/');
-    return publicIdWithExt.split('.')[0];
-  } catch (error) {
-    return null;
-  }
-};
+const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
 
 // @desc    Get all users (Public/Basic Info)
 // @route   GET /api/v1/user/all
@@ -69,7 +55,7 @@ exports.updateProfile = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized update request', data: null });
     }
 
-    const { fullname, bio, skills, experience, profilePhoto, education, workExperience, projects, role } = req.body;
+    const { fullname, bio, skills, experience, education, workExperience, projects, role } = req.body;
 
     let user = await User.findById(req.params.id);
 
@@ -77,35 +63,36 @@ exports.updateProfile = async (req, res, next) => {
       return res.status(404).json({ success: false, statusCode: 404, message: 'User not found', data: null });
     }
 
-    // Handle file uploads (Cloudinary URL) & Delete old files
+    // Handle file uploads (Buffer Streaming to Cloudinary)
     if (req.file) {
       if (req.file.fieldname === 'profilePhoto') {
-        // Delete old photo from Cloudinary
-        if (user.profilePhoto && user.profilePhoto.includes('cloudinary')) {
-          const oldPublicId = getPublicId(user.profilePhoto);
-          if (oldPublicId) await cloudinary.uploader.destroy(oldPublicId).catch(err => console.log('Cloudinary Delete Error:', err));
+        // 1. Delete old photo if exists
+        if (user.profilePhoto) {
+          await deleteFromCloudinary(user.profilePhoto);
         }
-        user.profilePhoto = req.file.path;
+        // 2. Upload new photo
+        const result = await uploadToCloudinary(req.file.buffer, 'ai_job_portal/profiles', 'image');
+        user.profilePhoto = result.secure_url;
       } else if (req.file.fieldname === 'resume') {
-        // Delete old resume from Cloudinary
-        if (user.resume && user.resume.includes('cloudinary')) {
-          const oldPublicId = getPublicId(user.resume);
-          if (oldPublicId) await cloudinary.uploader.destroy(oldPublicId, { resource_type: 'raw' }).catch(err => console.log('Cloudinary Delete Error:', err));
+        // 1. Delete old resume if exists
+        if (user.resume) {
+          await deleteFromCloudinary(user.resume);
         }
-        user.resume = req.file.path;
+        // 2. Upload new resume
+        const result = await uploadToCloudinary(req.file.buffer, 'ai_job_portal/resumes', 'raw');
+        user.resume = result.secure_url;
       }
     }
 
-    // Update fields
+    // Update text fields
     if (fullname) user.fullname = fullname;
     if (bio) user.bio = bio;
     if (skills) user.skills = skills;
     if (experience !== undefined) user.experience = experience;
-    if (profilePhoto) user.profilePhoto = profilePhoto;
     if (education) user.education = education;
     if (workExperience) user.workExperience = workExperience;
     if (projects) user.projects = projects;
-    if (role && req.user.role === 'admin') user.role = role; // Only admin can change roles
+    if (role && req.user.role === 'admin') user.role = role;
 
     await user.save();
 

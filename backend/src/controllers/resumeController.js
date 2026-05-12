@@ -1,24 +1,11 @@
 const Resume = require('../models/Resume');
 const User = require('../models/User');
-const cloudinary = require('../config/cloudinary');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
 const OpenAI = require('openai');
 const axios = require('axios');
 const pdf = require('pdf-parse');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// Helper to extract public_id from Cloudinary URL
-const getPublicId = (url) => {
-  try {
-    const parts = url.split('/');
-    const folderIndex = parts.findIndex(p => p === 'ai_job_portal');
-    if (folderIndex === -1) return null;
-    const publicIdWithExt = parts.slice(folderIndex).join('/');
-    return publicIdWithExt.split('.')[0];
-  } catch (error) {
-    return null;
-  }
-};
 
 // @desc    Upload a new resume
 // @route   POST /api/v1/resume/upload
@@ -29,11 +16,15 @@ exports.uploadResume = async (req, res, next) => {
       return res.status(400).json({ success: false, statusCode: 400, message: 'Please upload a file', data: null });
     }
 
+    // Set all previous resumes as NOT default
     await Resume.updateMany({ userId: req.user.id }, { isDefault: false });
+
+    // Upload to Cloudinary using advanced streaming
+    const result = await uploadToCloudinary(req.file.buffer, 'ai_job_portal/resumes', 'raw');
 
     const resume = await Resume.create({
       userId: req.user.id,
-      fileUrl: req.file.path,
+      fileUrl: result.secure_url,
       isDefault: true
     });
 
@@ -168,10 +159,8 @@ exports.deleteResume = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized', data: null });
     }
 
-    const publicId = getPublicId(resume.fileUrl);
-    if (publicId) {
-      await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' }).catch(err => console.log('Cloudinary Delete Error:', err));
-    }
+    // Advanced cleanup
+    await deleteFromCloudinary(resume.fileUrl);
 
     await resume.deleteOne();
     res.status(200).json({ success: true, statusCode: 200, message: 'Resume deleted successfully', data: null });
