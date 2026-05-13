@@ -1,0 +1,102 @@
+{
+	"info": {
+		"_postman_id": "ai-job-portal-fixed-60",
+		"name": "AI Job Portal - 60 APIs (FIXED PATHS)",
+		"description": "Standardized string-based URLs for 100% path visibility. Includes all 60 endpoints from all 14 modules.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01. Auth (8 APIs)",
+			"item": [
+				{ "name": "Register", "request": { "method": "POST", "body": { "mode": "raw", "raw": "{\n    \"fullname\": \"User\",\n    \"email\": \"user@example.com\",\n    \"phoneNumber\": \"9876543210\",\n    \"password\": \"Pass123!\",\n    \"confirmPassword\": \"Pass123!\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/user/register" } },
+				{ "name": "Login", "request": { "method": "POST", "body": { "mode": "raw", "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"Pass123!\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/user/login" } },
+				{ "name": "Google Login", "request": { "method": "POST", "body": { "mode": "raw", "raw": "{\"idToken\": \"...\"}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/user/google-login" } },
+				{ "name": "Forgot Password", "request": { "method": "POST", "body": { "mode": "raw", "raw": "{\"email\": \"user@example.com\"}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/user/forgot-password" } },
+				{ "name": "Verify OTP", "request": { "method": "POST", "body": { "mode": "raw", "raw": "{\"email\": \"user@example.com\", \"otp\": \"123456\"}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/user/verify-otp" } },
+				{ "name": "Reset Password", "request": { "method": "POST", "body": { "mode": "raw", "raw": "{\"email\": \"user@example.com\", \"newPassword\": \"NewPass123!\", \"confirmPassword\": \"NewPass123!\"}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/user/reset-password" } },
+				{ "name": "Reactivate Account", "request": { "method": "POST", "body": { "mode": "raw", "raw": "{\"email\": \"user@example.com\", \"newPassword\": \"NewPass123!\", \"confirmPassword\": \"NewPass123!\"}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/user/reactivate-account" } },
+				{ "name": "Logout", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": "{{baseUrl}}/user/logout" } }
+			]
+		},
+		{
+			"name": "02. User (5 APIs)",
+			"item": [
+				{ "name": "All Users", "request": { "method": "GET", "url": "{{baseUrl}}/user/all" } },
+				{ "name": "Get Profile", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": "{{baseUrl}}/user/profile/{{userId}}" } },
+				{ "name": "Update Profile", "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "body": { "mode": "raw", "raw": "{\"fullname\": \"New Name\"}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/user/profile/update/{{userId}}" } },
+				{ "name": "Update Resume", "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "body": { "mode": "formdata", "formdata": [ { "key": "resume", "type": "file" } ] }, "url": "{{baseUrl}}/user/profile/resume/{{userId}}" } },
+				{ "name": "Delete Account", "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": "{{baseUrl}}/user/profile/delete/{{userId}}" } }
+			]
+		},
+		{
+			"name": "03. Admin (8 APIs)",
+			"item": [
+				{ "name": "Stats", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": "{{baseUrl}}/admin/stats" } },
+				{ "name": "Bulk Import", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file" } ] }, "url": "{{baseUrl}}/admin/jobs/bulk-import" } },
+				{ "name": "Suspend User", "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": "{{baseUrl}}/admin/user/{{userId}}/suspend" } }
+			]
+		},
+		{
+			"name": "04. Jobs (7 APIs)",
+			"item": [
+				{ "name": "Post Job", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "body": { "mode": "raw", "raw": "{\n    \"title\": \"Job Title\",\n    \"description\": \"Desc\",\n    \"requirements\": \"Reqs\",\n    \"salary\": \"10L\",\n    \"location\": \"Remote\",\n    \"jobType\": \"Full-time\",\n    \"category\": \"Dev\",\n    \"companyId\": \"{{companyId}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/job/post" } },
+				{ "name": "All Jobs", "request": { "method": "GET", "url": "{{baseUrl}}/job/all" } },
+				{ "name": "Job Details", "request": { "method": "GET", "url": "{{baseUrl}}/job/get/{{jobId}}" } }
+			]
+		},
+		{
+			"name": "05. AI Tools (10 APIs)",
+			"item": [
+				{ "name": "Match Job AI", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": "{{baseUrl}}/ai/match-job/{{jobId}}" } },
+				{ "name": "JD Gen AI", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "body": { "mode": "raw", "raw": "{\"title\": \"Developer\"}" }, "url": "{{baseUrl}}/ai/generate-job-desc" } }
+			]
+		},
+		{
+			"name": "06. Application (5 APIs)",
+			"item": [
+				{ "name": "Apply", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": "{{baseUrl}}/application/apply/{{jobId}}" } },
+				{ "name": "Status Update", "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "body": { "mode": "raw", "raw": "{\"status\": \"shortlisted\"}" }, "url": "{{baseUrl}}/application/status/{{applicationId}}/update" } }
+			]
+		},
+		{
+			"name": "07. Chat (3 APIs)",
+			"item": [
+				{ "name": "Send", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "body": { "mode": "raw", "raw": "{\"receiverId\": \"...\", \"message\": \"Hi\"}" }, "url": "{{baseUrl}}/chat/send" } }
+			]
+		},
+		{
+			"name": "08. Interviews (4 APIs)",
+			"item": [
+				{ "name": "Schedule", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "body": { "mode": "raw", "raw": "{\"candidateId\": \"...\", \"jobId\": \"...\", \"date\": \"...\"}" }, "url": "{{baseUrl}}/interview/schedule" } }
+			]
+		},
+		{
+			"name": "09. Company (4 APIs)",
+			"item": [
+				{ "name": "Register", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "body": { "mode": "raw", "raw": "{\"name\": \"...\", \"location\": \"...\"}" }, "url": "{{baseUrl}}/company/register" } }
+			]
+		},
+		{
+			"name": "10. Dashboard & Health",
+			"item": [
+				{ "name": "Health", "request": { "method": "GET", "url": "{{baseUrl}}/health" } }
+			]
+		},
+		{
+			"name": "11. Payment (3 APIs)",
+			"item": [
+				{ "name": "Checkout", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": "{{baseUrl}}/payment/checkout" } }
+			]
+		}
+	],
+	"variable": [
+		{ "key": "baseUrl", "value": "http://localhost:5000/api/v1" },
+		{ "key": "token", "value": "TOKEN" },
+		{ "key": "userId", "value": "USER_ID" },
+		{ "key": "jobId", "value": "JOB_ID" },
+		{ "key": "resumeId", "value": "RESUME_ID" },
+		{ "key": "companyId", "value": "COMPANY_ID" },
+		{ "key": "applicationId", "value": "APP_ID" }
+	]
+}

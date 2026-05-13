@@ -282,9 +282,7 @@ exports.googleLogin = async (req, res, next) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     const payload = ticket.getPayload();
-    const email = payload.email;
-    const fullname = payload.name;
-    const profilePhoto = payload.picture;
+    const { email, name: fullname, picture: profilePhoto } = payload;
 
     let user = await User.findOne({ email });
 
@@ -302,23 +300,9 @@ exports.googleLogin = async (req, res, next) => {
         phoneNumber: '0000000000', // Default or prompt later
         countryCode: '+91',
         password: Math.random().toString(36).slice(-8) + 'Aa1@', // Random secure password
-        profilePhoto
-      });
-      
-      const token = signToken(user._id);
-      return res.status(201).json({
-        success: true,
-        statusCode: 201,
-        message: 'Google signup successful',
-        data: {
-          user: {
-            _id: user._id,
-            fullname: user.fullname,
-            email: user.email,
-            role: user.hasCompanyProfile ? 'recruiter' : 'candidate'
-          },
-          token
-        }
+        profilePhoto,
+        role: 'candidate',
+        isActive: true
       });
     }
 
@@ -326,27 +310,10 @@ exports.googleLogin = async (req, res, next) => {
 
     // Send Login Notification Email
     const loginHtmlMessage = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
-        .content { background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
-        .header { color: #667eea; margin-bottom: 20px; }
-        .details { color: #555; line-height: 1.6; font-size: 16px; margin-bottom: 20px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="content">
-          <h2 class="header">AI Job Portal</h2>
-          <h3>Welcome Back, ${user.fullname}!</h3>
-          <p class="details">We are thrilled to see you again. You have successfully logged into your AI Job Portal account via Google.</p>
-          <p class="details" style="font-size: 14px; color: #888;">If this was you, you can safely ignore this message.<br>If you did not authorize this login, please contact our support team immediately.</p>
-        </div>
-      </div>
-    </body>
-    </html>
+    <div style="font-family: sans-serif; text-align: center;">
+      <h2 style="color: #667eea;">Welcome to AI Job Portal</h2>
+      <p>Hello <b>${user.fullname}</b>, you have successfully logged in via Google.</p>
+    </div>
     `;
     
     sendEmail({
@@ -364,16 +331,17 @@ exports.googleLogin = async (req, res, next) => {
           _id: user._id,
           fullname: user.fullname,
           email: user.email,
-          role: user.hasCompanyProfile ? 'recruiter' : 'candidate'
+          profilePhoto: user.profilePhoto,
+          role: user.hasCompanyProfile ? 'recruiter' : user.role
         },
         token
       }
     });
   } catch (error) {
-    // If token verification fails, it throws an error
     return res.status(401).json({ success: false, statusCode: 401, message: 'Invalid Google token', data: null });
   }
 };
+
 
 // @desc    Forgot Password (Send OTP)
 // @route   POST /api/v1/user/forgot-password
