@@ -1,5 +1,9 @@
 import apiClient, { ApiResponse, AuthUser } from '../apiClient';
 
+/**
+ * 🔐 Advanced Auth Service
+ * Perfectly matched to the Node.js backend controllers.
+ */
 export const authService = {
   /**
    * Login user
@@ -10,9 +14,17 @@ export const authService = {
   },
 
   /**
+   * Google Login (Social)
+   */
+  googleLogin: async (idToken: string): Promise<ApiResponse<{ user: AuthUser; token: string }>> => {
+    const response = await apiClient.post('/user/google-login', { idToken });
+    return response.data;
+  },
+
+  /**
    * Register user
    */
-  register: async (data: any): Promise<ApiResponse<{ user: AuthUser }>> => {
+  register: async (data: any): Promise<ApiResponse<{ user: AuthUser; token?: string; isReactivation?: boolean }>> => {
     const response = await apiClient.post('/user/register', data);
     return response.data;
   },
@@ -26,7 +38,7 @@ export const authService = {
   },
 
   /**
-   * Verify OTP
+   * Verify OTP (Step 2 of Password Reset or Reactivation)
    */
   verifyOtp: async (data: { email: string; otp: string }): Promise<ApiResponse> => {
     const response = await apiClient.post('/user/verify-otp', data);
@@ -34,10 +46,18 @@ export const authService = {
   },
 
   /**
-   * Reset Password
+   * Reset Password (Step 3)
    */
   resetPassword: async (data: any): Promise<ApiResponse> => {
     const response = await apiClient.post('/user/reset-password', data);
+    return response.data;
+  },
+
+  /**
+   * Reactivate Account (After soft-delete)
+   */
+  reactivateAccount: async (data: any): Promise<ApiResponse> => {
+    const response = await apiClient.post('/user/reactivate-account', data);
     return response.data;
   },
 
@@ -46,6 +66,14 @@ export const authService = {
    */
   getProfile: async (): Promise<ApiResponse<{ user: AuthUser }>> => {
     const response = await apiClient.get('/user/profile');
+    return response.data;
+  },
+
+  /**
+   * Logout user
+   */
+  logout: async (): Promise<ApiResponse> => {
+    const response = await apiClient.post('/user/logout');
     return response.data;
   },
 };

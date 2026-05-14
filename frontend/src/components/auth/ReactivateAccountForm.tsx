@@ -4,12 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authService } from '@/lib/services/auth.services';
 import toast from 'react-hot-toast';
-import { ShieldCheck, Lock, Eye, EyeOff, Save } from 'lucide-react';
+import { RefreshCcw, Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 /**
- * 🔒 Premium Reset Password Form (Full Validation)
+ * 🔒 Premium Reactivate Account Form (Full Validation)
  */
-const ResetPasswordForm = () => {
+const ReactivateAccountForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
@@ -32,9 +32,9 @@ const ResetPasswordForm = () => {
     if (!value) {
       error = 'Required';
     } else if (name === 'newPassword' && value.length < 6) {
-      error = 'Minimum 6 chars';
+      error = 'Minimum 6 characters';
     } else if (name === 'confirmPassword' && value !== formData.newPassword) {
-      error = 'Passwords mismatch';
+      error = 'Passwords do not match';
     }
     setErrors(prev => ({ ...prev, [name]: error }));
   };
@@ -57,20 +57,20 @@ const ResetPasswordForm = () => {
         newPassword: nErr ? (formData.newPassword ? 'Min 6 chars' : 'Required') : '',
         confirmPassword: cErr ? (formData.confirmPassword ? 'Mismatch' : 'Required') : '',
       });
-      return toast.error('Please fix errors');
+      return toast.error('Please correct errors');
     }
 
     setLoading(true);
-    const toastId = toast.loading('Resetting password...');
+    const toastId = toast.loading('Reactivating account...');
 
     try {
-      const response = await authService.resetPassword({ email, ...formData });
+      const response = await authService.reactivateAccount({ email, ...formData });
       if (response.success) {
-        toast.success('Password updated!', { id: toastId });
+        toast.success('Welcome back! Reactivated.', { id: toastId });
         router.push('/login');
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Reset failed';
+      const message = err instanceof Error ? err.message : 'Reactivation failed';
       toast.error(message, { id: toastId });
     } finally {
       setLoading(false);
@@ -82,10 +82,10 @@ const ResetPasswordForm = () => {
       <div className="w-full mx-auto">
         <div className="mb-8 text-center">
           <div className="bg-primary/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20">
-            <ShieldCheck className="text-primary w-8 h-8" />
+            <RefreshCcw className="text-primary w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-bold text-primary mb-2">Set New Password</h2>
-          <p className="text-sm text-on-surface-variant opacity-70">Create a secure password for your account.</p>
+          <h2 className="text-2xl font-bold text-primary mb-2">Reactivate Account</h2>
+          <p className="text-sm text-on-surface-variant opacity-70">Welcome back! Set a new password to reactivate your AI JobFit profile.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -104,7 +104,7 @@ const ResetPasswordForm = () => {
               <button 
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors ${errors.newPassword ? 'text-red-500 hover:text-red-600' : 'text-primary/70 hover:text-primary'}`}
+                className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors ${errors.newPassword ? 'text-red-500' : 'text-primary/70 hover:text-primary'}`}
               >
                 {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
               </button>
@@ -139,8 +139,8 @@ const ResetPasswordForm = () => {
             className="w-full gradient-button text-white font-bold py-4 px-4 rounded-xl shadow-md hover:opacity-90 active:scale-[0.98] transition-all hover:shadow-lg disabled:opacity-50 flex items-center justify-center gap-2" 
             type="submit"
           >
-            {loading ? 'Updating...' : 'Update Password'}
-            {!loading && <Save className="w-5 h-5" />}
+            {loading ? 'Reactivating...' : 'Reactivate & Login'}
+            {!loading && <CheckCircle2 className="w-5 h-5" />}
           </button>
         </form>
       </div>
@@ -148,4 +148,4 @@ const ResetPasswordForm = () => {
   );
 };
 
-export default ResetPasswordForm;
+export default ReactivateAccountForm;

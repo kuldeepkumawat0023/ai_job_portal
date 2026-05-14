@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI JobFit - Create Account</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#ddb7ff",
+                        "tertiary-container": "#b55d00",
+                        "on-tertiary-container": "#fffbff",
+                        "inverse-primary": "#c0c1ff",
+                        "on-secondary-container": "#fffbff",
+                        "primary": "#4648d4",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e4e1ed",
+                        "surface-tint": "#494bd6",
+                        "surface-container-low": "#f5f2fe",
+                        "inverse-surface": "#303038",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "error-container": "#ffdad6",
+                        "surface": "#fcf8ff",
+                        "on-tertiary-fixed": "#301400",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-surface-variant": "#464554",
+                        "surface-container-highest": "#e4e1ed",
+                        "secondary": "#8127cf",
+                        "tertiary-fixed": "#ffdcc5",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#1b1b23",
+                        "tertiary": "#904900",
+                        "on-background": "#1b1b23",
+                        "surface-container-high": "#e9e6f3",
+                        "on-secondary-fixed-variant": "#6900b3",
+                        "on-secondary-fixed": "#2c0051",
+                        "background": "#fcf8ff",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "on-primary-fixed": "#07006c",
+                        "primary-fixed": "#e1e0ff",
+                        "surface-bright": "#fcf8ff",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#9c48ea",
+                        "surface-dim": "#dbd8e4",
+                        "inverse-on-surface": "#f2effb",
+                        "on-primary-container": "#fffbff",
+                        "secondary-fixed": "#f0dbff",
+                        "primary-container": "#6063ee",
+                        "outline-variant": "#c7c4d7",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#efecf8",
+                        "outline": "#767586",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "64px",
+                        "max_width": "1280px",
+                        "xs": "8px",
+                        "lg": "40px",
+                        "md": "24px",
+                        "gutter": "24px",
+                        "base": "4px",
+                        "sm": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h3": ["Inter"],
+                        "h2": ["Inter"],
+                        "h1": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "button": ["14px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400" }],
+                        "h3": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h2": ["30px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "h1": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 20px rgba(70, 72, 212, 0.04);
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #4648d4 0%, #8127cf 100%);
+        }
+        .text-gradient-primary {
+            background: linear-gradient(135deg, #4648d4 0%, #8127cf 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .input-glass {
+            background: transparent;
+            border: 1px solid rgba(199, 196, 215, 0.5);
+            transition: all 0.3s ease;
+        }
+        .input-glass:focus {
+            border-color: #4648d4;
+            box-shadow: 0 0 0 2px rgba(70, 72, 212, 0.1);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="bg-surface min-h-screen flex items-center justify-center p-md relative overflow-hidden font-body-md text-on-surface">
+<!-- Ambient Background -->
+<div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px]"></div>
+<div class="absolute top-[40%] -right-[10%] w-[40%] h-[40%] rounded-full bg-secondary/5 blur-[100px]"></div>
+</div>
+<!-- Main Content -->
+<main class="w-full max-w-md relative z-10">
+<!-- Logo Header -->
+<div class="flex flex-col items-center mb-lg"><div class="flex items-center gap-2 mb-xs">
+<span class="material-symbols-outlined text-primary text-[32px] drop-shadow-sm">work</span>
+<span class="font-h2 text-h2 text-on-surface tracking-tight">AI JobFit</span>
+</div>
+<div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-primary-fixed/50 border border-primary/10 shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">auto_awesome</span>
+<span class="font-label-caps text-label-caps text-primary tracking-widest">AI POWERED TALENT</span>
+</div></div>
+<!-- Registration Card -->
+<div class="glass-panel rounded-xl p-lg shadow-xl border border-white/40 bg-surface-container-lowest/70">
+<div class="mb-md text-center">
+<h1 class="font-h3 text-h3 text-on-surface mb-xs">Create your account</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Join the future of intelligent hiring.</p>
+</div>
+<form class="space-y-md">
+<!-- Full Name -->
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs" for="fullName">Full Name</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">person</span>
+<input class="w-full rounded-xl py-3.5 pl-12 pr-4 font-body-md text-body-md text-on-surface placeholder:text-outline/50 border border-outline-variant/30 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none bg-surface-container-low/50 shadow-inner" id="fullName" placeholder="Jane Doe" type="text"/>
+</div>
+</div>
+<!-- Email -->
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs" for="email">Email Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">mail</span>
+<input class="w-full rounded-xl py-3.5 pl-12 pr-4 font-body-md text-body-md text-on-surface placeholder:text-outline/50 border border-outline-variant/30 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none bg-surface-container-low/50 shadow-inner" id="email" placeholder="jane@company.com" type="email"/>
+</div>
+</div>
+<!-- Phone Number -->
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs" for="phone">Phone Number</label>
+<div class="flex rounded-xl shadow-inner bg-surface-container-low/50 border border-outline-variant/30">
+<div class="relative border-r border-outline-variant/30">
+<select class="rounded-l-xl py-3.5 pl-4 pr-8 h-full font-body-md text-body-md text-on-surface appearance-none bg-transparent transition-all outline-none border-none focus:ring-0" id="countryCode">
+<option>+1</option>
+<option>+44</option>
+<option>+91</option>
+<option>+61</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[20px]">arrow_drop_down</span>
+</div>
+<input class="flex-1 rounded-r-xl py-3.5 px-4 font-body-md text-body-md text-on-surface placeholder:text-outline/50 focus:z-10 focus:ring-4 focus:ring-primary/10 transition-all outline-none bg-transparent border-none" id="phone" placeholder="(555) 000-0000" type="tel"/>
+</div>
+</div>
+<!-- Password -->
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs" for="password">Password</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">lock</span>
+<input class="w-full rounded-xl py-3.5 pl-12 pr-12 font-body-md text-body-md text-on-surface placeholder:text-outline/50 border border-outline-variant/30 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none bg-surface-container-low/50 shadow-inner" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Confirm Password -->
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs" for="confirmPassword">Confirm Password</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">lock_reset</span>
+<input class="w-full rounded-xl py-3.5 pl-12 pr-4 font-body-md text-body-md text-on-surface placeholder:text-outline/50 border border-outline-variant/30 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none bg-surface-container-low/50 shadow-inner" id="confirmPassword" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="w-full bg-gradient-to-r from-primary to-secondary text-on-primary font-button text-button py-4 px-4 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 mt-sm relative overflow-hidden group" type="submit">
+<span class="relative z-10">Create Account</span>
+<span class="material-symbols-outlined relative z-10 text-[18px]">arrow_forward</span>
+<div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</button>
+</form>
+<div class="mt-md relative flex items-center justify-center">
+<div class="border-t border-outline-variant/30 w-full absolute"></div>
+<span class="bg-surface-container-lowest px-3 font-label-caps text-label-caps text-on-surface-variant relative z-10">OR</span>
+</div>
+<!-- Social Login -->
+<button class="w-full mt-md bg-white border border-outline-variant/30 text-on-surface font-button text-button py-3.5 px-4 rounded-xl hover:bg-surface-container-low transition-all flex justify-center items-center gap-3 shadow-sm hover:shadow-md">
+<svg fill="none" height="18" viewbox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
+<path d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.26H17.92C17.67 15.63 16.89 16.81 15.73 17.58V20.34H19.29C21.38 18.42 22.56 15.6 22.56 12.25Z" fill="#4285F4"></path>
+<path d="M12 23C14.97 23 17.46 22.02 19.29 20.34L15.73 17.58C14.74 18.24 13.48 18.65 12 18.65C9.13 18.65 6.7 16.71 5.84 14.1H2.17V16.94C4.01 20.6 7.71 23 12 23Z" fill="#34A853"></path>
+<path d="M5.84 14.1C5.62 13.44 5.5 12.74 5.5 12C5.5 11.26 5.62 10.56 5.84 9.9V7.06H2.17C1.41 8.57 1 10.24 1 12C1 13.76 1.41 15.43 2.17 16.94L5.84 14.1Z" fill="#FBBC05"></path>
+<path d="M12 5.35C13.62 5.35 15.07 5.9 16.21 6.99L19.38 3.82C17.46 2.03 14.97 1 12 1C7.71 1 4.01 3.4 2.17 7.06L5.84 9.9C6.7 7.29 9.13 5.35 12 5.35Z" fill="#EA4335"></path>
+</svg>
+        Continue with Google
+    </button>
+</div>
+<!-- Sign In Link -->
+<p class="text-center mt-md font-body-md text-body-md text-on-surface-variant">
+            Already have an account? 
+            <a class="text-primary font-semibold hover:underline" href="#">Sign in</a>
+</p>
+</main>
+</body></html>

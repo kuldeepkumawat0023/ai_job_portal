@@ -69,17 +69,21 @@ const Navbar = () => {
           )}
 
           <div className="hidden md:flex gap-4 items-center">
-            <Button variant="ghost" className="relative group px-4 py-2 hover:bg-transparent">
-              <span className="relative z-10">Login</span>
-              <span className="absolute bottom-1 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-            </Button>
-            <Button
-              variant="gradient"
-              glow
-              className="shadow-lg shadow-primary/20"
-            >
-              Join Now
-            </Button>
+            <Link href="/login">
+              <Button variant="ghost" className="relative group px-4 py-2 hover:bg-transparent">
+                <span className="relative z-10">Login</span>
+                <span className="absolute bottom-1 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button
+                variant="gradient"
+                glow
+                className="shadow-lg shadow-primary/20"
+              >
+                Join Now
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -118,8 +122,12 @@ const Navbar = () => {
                   </Link>
                 ))}
                 <div className="h-px bg-outline-variant/10 dark:bg-white/10 my-2" />
-                <Button variant="ghost" className="justify-start px-0 text-lg font-medium text-primary">Login</Button>
-                <Button variant="gradient" className="w-full py-4 font-bold">Join Now</Button>
+                <Link href="/login" onClick={() => setIsOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start px-0 text-lg font-medium text-primary">Login</Button>
+                </Link>
+                <Link href="/register" onClick={() => setIsOpen(false)}>
+                  <Button variant="gradient" className="w-full py-4 font-bold">Join Now</Button>
+                </Link>
               </div>
             </motion.div>
           )}
