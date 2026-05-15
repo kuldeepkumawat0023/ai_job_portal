@@ -5,20 +5,24 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
-  FileSearch,
   Briefcase,
-  CheckSquare,
+  Users,
   MessageSquare,
-  Lightbulb,
-  Mic2,
-  UserCircle,
+  Calendar,
+  Star,
+  BarChart3,
   Settings,
-  Bot,
   ChevronRight,
   ChevronDown,
+  Plus,
+  HelpCircle,
   X,
+  LogOut,
+  Sparkles,
+  Building2,
   User,
-  ShieldAlert
+  Bell,
+  Lock
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Button } from '@/components/common/Button';
@@ -30,30 +34,32 @@ interface NavLink {
   children?: NavLink[];
 }
 
-const navLinks: NavLink[] = [
-  { name: 'Dashboard', href: '/candidate/dashboard', icon: LayoutDashboard },
-  { name: 'Resume Analysis', href: '/candidate/resume-analysis', icon: FileSearch },
-  { name: 'Job Matches', href: '/candidate/job-matches', icon: Briefcase },
-  { name: 'Applications', href: '/candidate/applications', icon: CheckSquare },
-  { name: 'Messages', href: '/candidate/messages', icon: MessageSquare },
-  { name: 'AI Suggestions', href: '/candidate/ai-suggestions', icon: Lightbulb },
-  { name: 'AI Mock Interview', href: '/candidate/aimock-interview', icon: Mic2 },
-  {
-    name: 'Portfolio',
-    href: '/candidate/portfolio',
-    icon: UserCircle,
+const recruiterNavLinks: NavLink[] = [
+  { name: 'Dashboard', href: '/recruiter/dashboard', icon: LayoutDashboard },
+  { 
+    name: 'Job Management', 
+    href: '/recruiter/job-board', 
+    icon: Briefcase,
     children: [
-      { name: 'View Profile', href: '/candidate/portfolio', icon: User },
-      { name: 'Builder', href: '/candidate/portfolio/builder', icon: FileSearch },
+      { name: 'Active Jobs', href: '/recruiter/job-board', icon: Briefcase },
+      { name: 'Post New Job', href: '/recruiter/job-board/new', icon: Plus },
     ]
   },
-  {
-    name: 'Settings',
-    href: '/candidate/settings',
+  { name: 'Applications', href: '/recruiter/applications', icon: Users },
+  { name: 'Messages', href: '/recruiter/messages', icon: MessageSquare },
+  { name: 'Interviews', href: '/recruiter/interviews', icon: Calendar },
+  { name: 'Feedback', href: '/recruiter/feedback', icon: Star },
+  { name: 'Analytics', href: '/recruiter/analytics', icon: BarChart3 },
+  { 
+    name: 'Settings', 
+    href: '/recruiter/settings', 
     icon: Settings,
     children: [
-      { name: 'Account', href: '/candidate/settings', icon: User },
-      { name: 'Privacy', href: '/candidate/settings/privacy', icon: ShieldAlert },
+      { name: 'Team Management', href: '/recruiter/settings', icon: Users },
+      { name: 'Company Profile', href: '/recruiter/settings/profile', icon: Building2 },
+      { name: 'Personal Profile', href: '/recruiter/settings/personal', icon: User },
+      { name: 'Notifications', href: '/recruiter/settings/notifications', icon: Bell },
+      { name: 'Security', href: '/recruiter/settings/security', icon: Lock },
     ]
   },
 ];
@@ -75,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   // Automatically open sub-menu if child route is active
   React.useEffect(() => {
-    navLinks.forEach(item => {
+    recruiterNavLinks.forEach(item => {
       if (item.children?.some(child => pathname === child.href)) {
         setOpenSubMenus(prev => prev.includes(item.name) ? prev : [...prev, item.name]);
       }
@@ -100,11 +106,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="mb-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center font-bold text-white shadow-lg shadow-primary/20">
-              A
+              R
             </div>
             <div>
               <div className="text-xl font-bold text-on-surface tracking-tight">AI JobFit</div>
-              <div className="text-[10px] font-bold text-primary uppercase tracking-widest">Next-Gen Hiring</div>
+              <div className="text-[10px] font-bold text-primary uppercase tracking-widest">Recruiter Portal</div>
             </div>
           </div>
 
@@ -121,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Navigation Links */}
         <nav className="flex-1 space-y-1.5 overflow-y-auto pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {navLinks.map((link) => {
+          {recruiterNavLinks.map((link) => {
             const hasChildren = link.children && link.children.length > 0;
             const isExpanded = openSubMenus.includes(link.name);
             const isActive = pathname === link.href;
@@ -207,8 +213,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Bottom AI Action */}
         <div className="mt-auto pt-6 border-t border-outline-variant/10">
           <button className="w-full gradient-button text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-95 group">
-            <Bot className="w-5 h-5 transition-transform group-hover:rotate-12" />
-            <span>Ask AI Coach</span>
+            <Sparkles className="w-5 h-5 transition-transform group-hover:rotate-12" />
+            <span>Ask AI Recruiter</span>
           </button>
         </div>
       </aside>

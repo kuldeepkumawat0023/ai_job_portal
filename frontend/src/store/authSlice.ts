@@ -41,14 +41,16 @@ const authSlice = createSlice({
           state.user = user;
           state.isAuthenticated = true;
           
-          // Re-sync to cookie to ensure 365-day life
+          // Re-sync to cookies to ensure 365-day life
           Cookies.set(TOKEN_KEY, token, { expires: 365, path: '/' });
+          Cookies.set('user_role', user.role, { expires: 365, path: '/' });
         }
       } catch (error) {
         console.error('Auth sync failed:', error);
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
         Cookies.remove(TOKEN_KEY);
+        Cookies.remove('user_role');
       } finally {
         state.isInitialized = true;
       }
@@ -67,6 +69,7 @@ const authSlice = createSlice({
         localStorage.setItem(TOKEN_KEY, token);
         localStorage.setItem(USER_KEY, JSON.stringify(user));
         Cookies.set(TOKEN_KEY, token, { expires: 365, path: '/' });
+        Cookies.set('user_role', user.role, { expires: 365, path: '/' });
       }
     },
 
@@ -94,6 +97,7 @@ const authSlice = createSlice({
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
         Cookies.remove(TOKEN_KEY, { path: '/' });
+        Cookies.remove('user_role', { path: '/' });
       }
     },
   },

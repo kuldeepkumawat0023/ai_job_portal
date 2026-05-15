@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 20px rgba(70, 72, 212, 0.04);
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 8px 32px rgba(70, 72, 212, 0.08);
+        }
+        .primary-gradient {
+            background: linear-gradient(135deg, #4648d4 0%, #8127cf 100%);
+        }
+        .inner-glow:hover {
+            box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+        body {
+            background: radial-gradient(circle at top left, #f9fafb, #eff6ff);
+            min-height: 100vh;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-container": "#fffbff",
+                      "tertiary-container": "#b55d00",
+                      "on-tertiary-container": "#fffbff",
+                      "surface-dim": "#dbd8e4",
+                      "background": "#fcf8ff",
+                      "secondary": "#8127cf",
+                      "outline-variant": "#c7c4d7",
+                      "on-primary": "#ffffff",
+                      "surface-container-highest": "#e4e1ed",
+                      "surface-bright": "#fcf8ff",
+                      "primary-container": "#6063ee",
+                      "on-background": "#1b1b23",
+                      "primary-fixed": "#e1e0ff",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed-variant": "#703700",
+                      "surface-variant": "#e4e1ed",
+                      "on-secondary-container": "#fffbff",
+                      "secondary-fixed-dim": "#ddb7ff",
+                      "inverse-surface": "#303038",
+                      "primary": "#4648d4",
+                      "on-surface-variant": "#464554",
+                      "on-surface": "#1b1b23",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-fixed": "#ffdcc5",
+                      "surface": "#fcf8ff",
+                      "secondary-fixed": "#f0dbff",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-fixed": "#301400",
+                      "error-container": "#ffdad6",
+                      "outline": "#767586",
+                      "surface-container": "#efecf8",
+                      "secondary-container": "#9c48ea",
+                      "on-primary-fixed-variant": "#2f2ebe",
+                      "on-secondary": "#ffffff",
+                      "surface-container-high": "#e9e6f3",
+                      "primary-fixed-dim": "#c0c1ff",
+                      "on-secondary-fixed": "#2c0051",
+                      "tertiary-fixed-dim": "#ffb783",
+                      "tertiary": "#904900",
+                      "on-primary-fixed": "#07006c",
+                      "inverse-on-surface": "#f2effb",
+                      "on-error": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "inverse-primary": "#c0c1ff",
+                      "surface-tint": "#494bd6",
+                      "on-secondary-fixed-variant": "#6900b3",
+                      "surface-container-low": "#f5f2fe"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "base": "4px",
+                      "max_width": "1280px",
+                      "gutter": "24px",
+                      "sm": "16px",
+                      "lg": "40px",
+                      "xl": "64px",
+                      "xs": "8px",
+                      "md": "24px"
+              },
+              "fontFamily": {
+                      "h3": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "h1": ["Inter"],
+                      "button": ["Inter"],
+                      "h2": ["Inter"]
+              },
+              "fontSize": {
+                      "h3": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "h1": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                      "button": ["14px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                      "h2": ["30px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-64 bg-surface-container-low backdrop-blur-xl border-r border-outline-variant/30 shadow-xl shadow-primary/5 flex flex-col p-md gap-xs z-50">
+<div class="flex items-center gap-3 mb-lg">
+<div class="w-10 h-10 primary-gradient rounded-lg flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" data-weight="fill">hub</span>
+</div>
+<div>
+<h1 class="font-h3 text-h3 font-bold text-primary">AI JobFit</h1>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Recruiter Portal</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="text-on-surface-variant hover:bg-surface-container-highest flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-button text-button">Dashboard</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-highest flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">work</span>
+<span class="font-button text-button">Job Board</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-highest flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-button text-button">Applications</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-highest flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-button text-button">Messages</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-highest flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-button text-button">Interviews</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-highest flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">rate_review</span>
+<span class="font-button text-button">Feedback</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-highest flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-button text-button">Analytics</span>
+</a>
+<a class="bg-primary-container text-on-primary-container rounded-lg font-semibold flex items-center gap-3 px-4 py-3 translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-button text-button">Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-md border-t border-outline-variant/20">
+<div class="flex items-center gap-3 px-2">
+<img alt="Recruiter Profile" class="w-10 h-10 rounded-full border-2 border-primary/20" data-alt="A professional headshot of a confident female executive with a friendly smile, wearing a modern charcoal blazer. She is set against a brightly lit, out-of-focus high-end office background with clean glass and white architectural elements. The lighting is soft and flattering, emphasizing a professional yet approachable tone that aligns with a premium tech recruitment platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsmirOFFp2f-FTeY5-s0Xk7eLj-jAf_tUH8VXbSVT3jgMfcqoADC_C6rfDV9sSwkk0kRMSpLxhFUqCHMAOHlaNvVPqitYUC6u9bw7HFXKvDwjQcSs8ron8t-eUSubmoHVYjWrfLjup6cKgj-osBlLEYHBTJof0-GRO6GHfXnJK0iqTzODPKL1edmjzTN_EUXjB5Bu5vk6a5JY5ShlyT6rjG33n6oNPa66fqf-wQzfM7Ti7iKwm0Tta2-iJARcYDsVY6dSpBBUo9ic"/>
+<div>
+<p class="font-button text-button font-bold text-on-surface">Sarah Jenkins</p>
+<p class="text-[11px] text-on-surface-variant">Senior Lead Recruiter</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 right-0 z-40 bg-surface/70 backdrop-blur-md border-b border-outline-variant/20 shadow-sm pl-72 pr-gutter py-sm flex justify-between items-center">
+<div class="flex items-center gap-4 bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/20 w-96">
+<span class="material-symbols-outlined text-outline">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-full placeholder:text-outline/60" placeholder="Search for candidates, jobs, or settings..." type="text"/>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-sm">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+</div>
+<div class="h-6 w-[1px] bg-outline-variant/40"></div>
+<div class="flex items-center gap-2 cursor-pointer group">
+<div class="w-8 h-8 rounded-full primary-gradient flex items-center justify-center text-white text-[10px] font-bold">SJ</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">expand_more</span>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pl-72 pr-gutter pt-32 pb-xl max-w-screen-2xl mx-auto">
+<!-- Header Section -->
+<div class="mb-lg">
+<h2 class="font-h2 text-h2 text-on-surface mb-xs">Settings</h2>
+<p class="font-body-md text-on-surface-variant">Manage your account, team, and portal preferences with AI-driven insights.</p>
+</div>
+<!-- Bento Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Internal Tabs Navigation -->
+<div class="col-span-12 lg:col-span-3">
+<nav class="flex flex-col gap-2 sticky top-32">
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white shadow-sm border border-primary/20 text-primary font-semibold transition-all">
+<span class="material-symbols-outlined" data-weight="fill">person</span>
+<span class="font-button text-button">Profile</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">business</span>
+<span class="font-button text-button">Company Profile</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-button text-button">Team Management</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">notifications_active</span>
+<span class="font-button text-button">Notifications</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-button text-button">Billing &amp; Plans</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">security</span>
+<span class="font-button text-button">Security</span>
+</button>
+</nav>
+</div>
+<!-- Content Area -->
+<div class="col-span-12 lg:col-span-9 space-y-gutter">
+<!-- Profile Section -->
+<section class="glass-card rounded-xl p-lg transition-all duration-300">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="font-h3 text-h3">Profile Settings</h3>
+<button class="px-6 py-2 rounded-full primary-gradient text-on-primary font-button text-button inner-glow transition-all">Save Changes</button>
+</div>
+<div class="flex flex-col md:flex-row gap-lg items-start">
+<div class="relative group">
+<img alt="Sarah Profile Large" class="w-32 h-32 rounded-2xl object-cover border-4 border-white shadow-lg" data-alt="A detailed close-up portrait of a high-level female executive with professional attire, set in a bright, modern office with soft daylight. The environment features glass walls and subtle tech accents. The overall atmosphere is premium, clean, and highly sophisticated, using a palette of soft whites and blues to convey trust and technological precision in a light-mode UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDof92EW-x3j9QtKBjqQHn4d0UaaBZojQW6fFgF8CwzyTAW4ZMaK2wBdO7vWea-JgtHLEPYTsO4j6Lsk1e3vVyS6xjMChtug_yFzMZHUPEyo1lxhm3gkeCSnc1cNFb-3ayexhJR0vvc-QH3-bg0nbR3ZP8WVAJl0Q8KKv5YqEResNv-Ez93_T856TF2uS1bNE4C_XNUGhNDhqMSuZt2ryxO6m6ubL7Rra35XG0mu3YQH3UlPleBRyKhClRI2ThXzFdjO1pSiopN98c"/>
+<button class="absolute -bottom-2 -right-2 bg-white p-2 rounded-full shadow-md text-primary border border-outline-variant hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">photo_camera</span>
+</button>
+</div>
+<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-md w-full">
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">FULL NAME</label>
+<input class="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 py-2 font-body-md transition-all" type="text" value="Sarah Jenkins"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">EMAIL ADDRESS</label>
+<input class="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 py-2 font-body-md transition-all" type="email" value="s.jenkins@lumina-intelligence.ai"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">ROLE</label>
+<input class="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 py-2 font-body-md transition-all" type="text" value="Senior Lead Recruiter"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">DEPARTMENT</label>
+<input class="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 py-2 font-body-md transition-all" type="text" value="Talent Acquisition"/>
+</div>
+<div class="col-span-full flex flex-col gap-1 mt-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant">PROFESSIONAL BIO</label>
+<textarea class="w-full bg-transparent border border-outline-variant/30 rounded-lg focus:border-primary focus:ring-0 py-2 px-3 font-body-md transition-all resize-none" rows="3">Passionate about connecting world-class engineering talent with innovative AI startups. Specialist in technical sourcing and human-centric recruiting workflows.</textarea>
+</div>
+</div>
+</div>
+</section>
+<!-- Company & Billing Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Company Profile -->
+<section class="glass-card rounded-xl p-lg flex flex-col">
+<div class="flex items-center gap-3 mb-md">
+<div class="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[28px]">business</span>
+</div>
+<h4 class="font-button text-[18px] font-bold">Company Profile</h4>
+</div>
+<div class="space-y-md flex-1">
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">COMPANY NAME</label>
+<p class="font-body-md font-semibold">Lumina Intelligence AI</p>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">WEBSITE</label>
+<p class="font-body-md text-primary underline">https://lumina-intelligence.ai</p>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">INDUSTRY</label>
+<span class="px-3 py-1 bg-primary/10 text-primary text-[12px] font-bold rounded-full w-fit">Artificial Intelligence</span>
+</div>
+</div>
+<button class="mt-lg w-full py-3 rounded-lg border border-outline-variant text-on-surface-variant font-button text-button hover:bg-surface transition-all">Edit Company Details</button>
+</section>
+<!-- Billing & Plans -->
+<section class="glass-card rounded-xl p-lg flex flex-col relative overflow-hidden">
+<!-- AI Insight Chip -->
+<div class="absolute top-4 right-4 animate-pulse">
+<span class="px-2 py-1 bg-secondary/10 text-secondary text-[10px] font-bold rounded-full border border-secondary/20">AI SAVINGS ACTIVE</span>
+</div>
+<div class="flex items-center gap-3 mb-md">
+<div class="w-12 h-12 bg-secondary/10 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-[28px]">stars</span>
+</div>
+<h4 class="font-button text-[18px] font-bold">Billing &amp; Plan</h4>
+</div>
+<div class="mb-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-1">CURRENT PLAN</p>
+<h2 class="text-[32px] font-black text-on-surface">Enterprise</h2>
+<p class="text-on-surface-variant text-[14px]">Next billing date: <span class="font-semibold">Oct 12, 2024</span></p>
+</div>
+<div class="space-y-2 mb-lg">
+<div class="flex items-center justify-between text-body-md">
+<span>Team Seats</span>
+<span class="font-bold">24 / 50</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full primary-gradient w-[48%]"></div>
+</div>
+</div>
+<button class="mt-auto w-full py-3 rounded-lg primary-gradient text-on-primary font-button text-button inner-glow shadow-md shadow-primary/20">Manage Subscription</button>
+</section>
+</div>
+<!-- Notifications Section -->
+<section class="glass-card rounded-xl p-lg">
+<div class="flex items-center justify-between mb-lg">
+<div>
+<h3 class="font-h3 text-h3">Notification Preferences</h3>
+<p class="font-body-md text-on-surface-variant">Stay updated with real-time AI matching and team alerts.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+<div class="space-y-md">
+<h5 class="font-label-caps text-label-caps text-primary border-b border-primary/10 pb-2 mb-md">EMAIL NOTIFICATIONS</h5>
+<div class="flex items-center justify-between py-2">
+<div>
+<p class="font-button text-button font-bold text-on-surface">New Applications</p>
+<p class="text-[12px] text-on-surface-variant">Weekly digest of all new candidates</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between py-2">
+<div>
+<p class="font-button text-button font-bold text-on-surface">AI Match Alerts</p>
+<p class="text-[12px] text-on-surface-variant">Instant alerts for candidates &gt; 90% fit</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+<div class="space-y-md">
+<h5 class="font-label-caps text-label-caps text-primary border-b border-primary/10 pb-2 mb-md">IN-APP ALERTS</h5>
+<div class="flex items-center justify-between py-2">
+<div>
+<p class="font-button text-button font-bold text-on-surface">Interview Reminders</p>
+<p class="text-[12px] text-on-surface-variant">Push notifications 15 mins before</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between py-2">
+<div>
+<p class="font-button text-button font-bold text-on-surface">Team Mentions</p>
+<p class="text-[12px] text-on-surface-variant">When teammates tag you in comments</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+</section>
+<!-- Security Quick Actions -->
+<section class="glass-card rounded-xl p-lg border-l-4 border-error/40">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-error/10 rounded-full flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[28px]">verified_user</span>
+</div>
+<div>
+<h4 class="font-button text-[18px] font-bold">Advanced Security</h4>
+<p class="font-body-md text-on-surface-variant">Two-factor authentication is currently <span class="text-error font-bold uppercase">disabled</span>.</p>
+</div>
+</div>
+<button class="px-6 py-2 rounded-full border border-error text-error font-button text-button hover:bg-error/5 transition-all">Enable 2FA</button>
+</div>
+</section>
+</div>
+</div>
+</main>
+</body></html>
