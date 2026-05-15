@@ -4,6 +4,8 @@ const cluster = require('cluster');
 const os = require('os');
 const app = require('./src/app');
 const connectDB = require('./src/config/db');
+const { connectRedis } = require('./src/config/redis');
+const { initSocket } = require('./src/config/socket');
 
 const PORT = process.env.PORT || 5000;
 const numCPUs = os.cpus().length;
@@ -26,11 +28,15 @@ if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
   // Worker process logic
   const startServer = async () => {
     try {
-      // 1. Connect to Database first
+      // 1. Connect to Database & Redis
       await connectDB();
+      await connectRedis();
 
-      // 2. Start Express Server
+      // 2. Start HTTP Server
       const server = http.createServer(app);
+
+      // 3. Initialize Socket.io
+      initSocket(server);
 
       // Bind to 0.0.0.0 for external access (Market Ready)
       server.listen(PORT, '0.0.0.0', () => {
