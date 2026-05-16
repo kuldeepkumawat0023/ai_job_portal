@@ -3,6 +3,7 @@ const Job = require('../models/Job');
 const Interview = require('../models/Interview');
 const MockInterview = require('../models/MockInterview');
 const User = require('../models/User');
+const Resume = require('../models/Resume');
 
 // @desc    Get Candidate Dashboard Stats
 // @route   GET /api/v1/dashboard/candidate
@@ -11,11 +12,35 @@ exports.getCandidateStats = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
+    // 1. Basic Stats
     const totalApplied = await Application.countDocuments({ applicantId: userId });
     const interviewCount = await Interview.countDocuments({ candidateId: userId, status: 'scheduled' });
     const mockInterviewCount = await MockInterview.countDocuments({ userId });
     
-    const user = await User.findById(userId).select('resumeRetries jobSearches isPremium');
+    // 2. Resume Analysis Data (AI Features)
+    const resume = await Resume.findOne({ userId, isDefault: true });
+    
+    // 3. Application Activity (Last 7 Days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const activityData = await Application.aggregate([
+      {
+        $match: {
+          applicantId: req.user._id,
+          createdAt: { $gte: sevenDaysAgo }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id": 1 } }
+    ]);
+
+    const user = await User.findById(userId).select('resumeRetries jobSearches isPremium bio skills education workExperience projects');
 
     // Free plan limit from documentation
     const FREE_RESUME_LIMIT = 3;
@@ -29,6 +54,13 @@ exports.getCandidateStats = async (req, res, next) => {
         scheduledInterviews: interviewCount,
         mockInterviewsDone: mockInterviewCount,
         isPremium: user.isPremium,
+        resumeAnalysis: resume ? {
+          score: resume.score || 0,
+          skills: resume.skills || [],
+          weaknesses: resume.weaknesses || [],
+          coachingTips: resume.coachingTips || []
+        } : null,
+        activity: activityData,
         usage: {
           resumeAnalyses: {
             used: user.resumeRetries || 0,

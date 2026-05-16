@@ -8,6 +8,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
     "axios": "^1.6.8",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.2.0",
@@ -29,6 +30,8 @@
     "openai": "^4.44.0",
     "otp-generator": "^4.0.1",
     "pdf-parse": "^1.1.1",
+    "redis": "^5.12.1",
+    "socket.io": "^4.8.3",
     "stripe": "^15.6.0"
   },
   "devDependencies": {

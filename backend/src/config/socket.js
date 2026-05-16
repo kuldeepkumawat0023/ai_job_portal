@@ -13,6 +13,7 @@ const initSocket = (server) => {
     }
   });
 
+  /* 
   // Setup Redis Adapter for Clustering support
   const pubClient = redisClient.duplicate();
   const subClient = redisClient.duplicate();
@@ -21,6 +22,7 @@ const initSocket = (server) => {
     io.adapter(createAdapter(pubClient, subClient));
     console.log('✅ Socket.io Redis Adapter Setup Done');
   });
+  */
 
   // Middleware: Authenticate Socket Connection
   io.use((socket, next) => {

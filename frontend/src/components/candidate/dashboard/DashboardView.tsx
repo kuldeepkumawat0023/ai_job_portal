@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   Send, 
   MessageSquare, 
@@ -17,43 +18,121 @@ import {
 import { motion } from 'framer-motion';
 import { Button } from '@/components/common/Button';
 import { cn } from '@/utils/cn';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { dashboardService } from '@/lib/services/dashboard.services';
+import { jobService, Job } from '@/lib/services/job.services';
+import { applicationService } from '@/lib/services/application.services';
 
-const stats = [
-  { name: 'Applications Sent', value: '12', icon: Send, color: 'text-primary', bg: 'bg-primary/10' },
-  { name: 'Interviews', value: '4', icon: MessageSquare, color: 'text-secondary', bg: 'bg-secondary/10' },
-  { name: 'Resume Score', value: '92', icon: GraduationCap, color: 'text-tertiary', bg: 'bg-tertiary/10' },
-  { name: 'Profile Completion', value: '78%', icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-];
-
-const jobMatches = [
-  { id: 1, title: 'Senior AI Engineer', company: 'OpenAI', location: 'San Francisco (Hybrid)', match: '98%', logo: 'https://api.dicebear.com/7.x/initials/svg?seed=OA' },
-  { id: 2, title: 'Fullstack Developer', company: 'Stripe', location: 'Remote', match: '95%', logo: 'https://api.dicebear.com/7.x/initials/svg?seed=ST' },
-  { id: 3, title: 'ML Researcher', company: 'Anthropic', location: 'London', match: '91%', logo: 'https://api.dicebear.com/7.x/initials/svg?seed=AN' },
-];
-
-interface PipelineJob {
-  title: string;
-  company: string;
-  time?: string;
-  tag?: string;
-  urgent?: boolean;
-  highlight?: boolean;
+interface DashboardStats {
+  totalApplied: number;
+  scheduledInterviews: number;
+  mockInterviewsDone: number;
+  resumeAnalysis: {
+    score: number;
+    skills: string[];
+    weaknesses: string[];
+    coachingTips: string[];
+  } | null;
+  activity: { _id: string; count: number }[];
 }
-
-interface PipelineColumn {
-  status: string;
-  count: number;
-  jobs: PipelineJob[];
-}
-
-const pipeline: PipelineColumn[] = [
-  { status: 'Applied', count: 1, jobs: [{ title: 'Frontend Eng', company: 'Vercel', time: '2d ago' }] },
-  { status: 'Shortlisted', count: 0, jobs: [] },
-  { status: 'Interview', count: 2, jobs: [{ title: 'Software Eng', company: 'Google', tag: 'Tech Screen • Tomorrow', urgent: true }, { title: 'Fullstack Dev', company: 'Meta', tag: 'Scheduling' }] },
-  { status: 'Offer', count: 1, jobs: [{ title: 'AI Researcher', company: 'DeepMind', tag: 'Decision by Fri', highlight: true }] },
-];
 
 const DashboardView = () => {
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
+  const [appliedJobs, setAppliedJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [statsRes, jobsRes, appsRes] = await Promise.all([
+          dashboardService.getCandidateStats(),
+          jobService.getRecommendedJobs(),
+          applicationService.getAppliedJobs()
+        ]);
+
+        if (statsRes?.success) setStats(statsRes.data);
+        if (jobsRes?.success) setRecommendedJobs(jobsRes.data?.slice(0, 5) || []);
+        if (appsRes?.success) setAppliedJobs(appsRes.data || []);
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Profile Completion Logic
+  const profileFields = ['bio', 'skills', 'education', 'workExperience', 'projects', 'resume'];
+  const filledFields = user ? profileFields.filter(f => {
+    const val = (user as any)[f];
+    return val && (Array.isArray(val) ? val.length > 0 : true);
+  }).length : 0;
+  const completionRate = Math.round((filledFields / profileFields.length) * 100);
+  const isProfileIncomplete = completionRate < 100;
+
+  // Pipeline Logic
+  const pipeline = [
+    { 
+      status: 'Applied', 
+      key: 'pending', 
+      count: appliedJobs.filter(a => !a.status || a.status === 'pending').length, 
+      jobs: appliedJobs.filter(a => !a.status || a.status === 'pending').map(a => ({ 
+        title: a.jobId?.title || 'Unknown Role', 
+        company: a.jobId?.companyId?.name || 'Company', 
+        time: a.createdAt ? new Date(a.createdAt).toLocaleDateString() : 'Recently' 
+      })) 
+    },
+    { 
+      status: 'Shortlisted', 
+      key: 'shortlisted', 
+      count: appliedJobs.filter(a => a.status === 'shortlisted').length, 
+      jobs: appliedJobs.filter(a => a.status === 'shortlisted').map(a => ({ 
+        title: a.jobId?.title || 'Unknown Role', 
+        company: a.jobId?.companyId?.name || 'Company',
+        time: a.updatedAt ? new Date(a.updatedAt).toLocaleDateString() : 'Recently'
+      })) 
+    },
+    { 
+      status: 'Interview', 
+      key: 'interview', 
+      count: appliedJobs.filter(a => a.status === 'interview').length, 
+      jobs: appliedJobs.filter(a => a.status === 'interview').map(a => ({ 
+        title: a.jobId?.title || 'Unknown Role', 
+        company: a.jobId?.companyId?.name || 'Company', 
+        tag: 'Scheduled',
+        time: a.updatedAt ? new Date(a.updatedAt).toLocaleDateString() : 'Recently'
+      })) 
+    },
+    { 
+      status: 'Offer', 
+      key: 'hired', 
+      count: appliedJobs.filter(a => a.status === 'hired').length, 
+      jobs: appliedJobs.filter(a => a.status === 'hired').map(a => ({ 
+        title: a.jobId?.title || 'Unknown Role', 
+        company: a.jobId?.companyId?.name || 'Company', 
+        highlight: true,
+        time: a.updatedAt ? new Date(a.updatedAt).toLocaleDateString() : 'Recently'
+      })) 
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="space-y-8 pb-10 animate-pulse p-4">
+        <div className="h-48 bg-surface-container-high rounded-[2.5rem]" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-surface-container-low rounded-2xl" />)}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 pb-10">
       {/* Welcome Banner */}
@@ -61,11 +140,21 @@ const DashboardView = () => {
         <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-primary/10 to-transparent pointer-events-none" />
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 relative z-10">
           <div>
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-on-surface mb-2">Welcome back, Alex 👋</h1>
-            <p className="text-sm md:text-base text-on-surface-variant max-w-md">Your AI readiness score is looking strong today. We found 3 new matches for your profile.</p>
-            <Button variant="gradient" size="sm" className="mt-6 shadow-lg shadow-primary/20">
-              Complete Profile
-            </Button>
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-on-surface mb-2">
+              Welcome back, {user?.fullname?.split(' ')[0] || 'User'} 👋
+            </h1>
+            <p className="text-sm md:text-base text-on-surface-variant max-w-md">
+              {isProfileIncomplete 
+                ? "Your profile is almost there! Complete it to unlock personalized AI matches."
+                : "Your AI readiness score is looking strong today. We found new matches for your profile."}
+            </p>
+            {isProfileIncomplete && (
+              <Link href="/candidate/resume-analysis">
+                <Button variant="gradient" size="sm" className="mt-6 shadow-lg shadow-primary/20">
+                  Complete Profile
+                </Button>
+              </Link>
+            )}
           </div>
           
           <div className="flex items-center gap-6 bg-white/40 dark:bg-black/20 p-6 rounded-3xl backdrop-blur-md border border-white/20">
@@ -76,15 +165,17 @@ const DashboardView = () => {
                   cx="18" cy="18" r="16" fill="none" 
                   className="stroke-primary" 
                   strokeWidth="3" 
-                  strokeDasharray="85, 100" 
+                  strokeDasharray={`${stats?.resumeAnalysis?.score || 0}, 100`} 
                   strokeLinecap="round" 
                 />
               </svg>
-              <span className="text-xl font-bold text-primary">85%</span>
+              <span className="text-xl font-bold text-primary">{stats?.resumeAnalysis?.score || 0}%</span>
             </div>
             <div>
               <div className="text-sm font-bold text-on-surface">AI Readiness</div>
-              <div className="text-[10px] text-tertiary font-bold uppercase tracking-widest mt-1">Top 15% Globally</div>
+              <div className="text-[10px] text-tertiary font-bold uppercase tracking-widest mt-1">
+                {stats?.resumeAnalysis?.score && stats.resumeAnalysis.score > 80 ? 'Top 15% Globally' : 'Keep Improving'}
+              </div>
             </div>
           </div>
         </div>
@@ -92,7 +183,12 @@ const DashboardView = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, i) => (
+        {[
+          { name: 'Applications Sent', value: stats?.totalApplied || 0, icon: Send, color: 'text-primary', bg: 'bg-primary/10' },
+          { name: 'Interviews', value: stats?.scheduledInterviews || 0, icon: MessageSquare, color: 'text-secondary', bg: 'bg-secondary/10' },
+          { name: 'Resume Score', value: stats?.resumeAnalysis?.score || 0, icon: GraduationCap, color: 'text-tertiary', bg: 'bg-tertiary/10' },
+          { name: 'Profile Completion', value: `${completionRate}%`, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+        ].map((stat, i) => (
           <motion.div 
             key={stat.name}
             initial={{ opacity: 0, y: 20 }}
@@ -133,30 +229,34 @@ const DashboardView = () => {
                   cx="18" cy="18" r="16" fill="none" 
                   className="stroke-primary" 
                   strokeWidth="2.5" 
-                  strokeDasharray="92, 100" 
+                  strokeDasharray={`${stats?.resumeAnalysis?.score || 0}, 100`} 
                   strokeLinecap="round" 
                 />
               </svg>
-              <span className="text-3xl font-black text-primary tracking-tighter">92</span>
+              <span className="text-3xl font-black text-primary tracking-tighter">{stats?.resumeAnalysis?.score || 0}</span>
             </div>
             <div className="flex-1 space-y-4">
               <div>
                 <div className="text-[10px] font-bold text-on-surface-variant mb-2 uppercase tracking-widest">Top Skills Detected</div>
                 <div className="flex flex-wrap gap-1.5">
-                  {['React', 'Node.js', 'AI Eng'].map(s => (
+                  {(stats?.resumeAnalysis?.skills?.slice(0, 3) || ['No Data']).map(s => (
                     <span key={s} className="bg-primary/5 text-primary text-[10px] font-bold px-2.5 py-1 rounded-lg border border-primary/10">{s}</span>
                   ))}
                 </div>
               </div>
               <div>
                 <div className="text-[10px] font-bold text-on-surface-variant mb-2 uppercase tracking-widest text-error">Gap Found</div>
-                <span className="bg-error/5 text-error text-[10px] font-bold px-2.5 py-1 rounded-lg border border-error/10">System Design</span>
+                <span className="bg-error/5 text-error text-[10px] font-bold px-2.5 py-1 rounded-lg border border-error/10">
+                  {stats?.resumeAnalysis?.weaknesses?.[0] || 'Analyze Resume'}
+                </span>
               </div>
             </div>
           </div>
           
           <div className="mt-auto grid grid-cols-2 gap-4 pt-6 border-t border-outline-variant/10">
-            <Button size="sm" className="w-full">Improve Score</Button>
+            <Link href="/candidate/resume-analysis">
+              <Button size="sm" className="w-full">Improve Score</Button>
+            </Link>
             <Button variant="outline" size="sm" className="w-full">Re-analyze</Button>
           </div>
         </div>
@@ -168,25 +268,34 @@ const DashboardView = () => {
               <Rocket className="text-tertiary w-6 h-6" />
               AI Job Matches
             </h2>
-            <button className="text-primary text-xs font-bold hover:underline">View All</button>
+            <Link href="/candidate/job-matches">
+              <button className="text-primary text-xs font-bold hover:underline">View All</button>
+            </Link>
           </div>
           
           <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            {jobMatches.map((job) => (
-              <div key={job.id} className="bg-surface-container-low/50 rounded-2xl p-4 border border-outline-variant/5 flex items-center gap-5 hover:bg-surface-container-high transition-colors group cursor-pointer">
-                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-2 shrink-0 border border-outline-variant/10 shadow-sm transition-transform group-hover:scale-105">
-                  <img src={job.logo} alt={job.company} className="w-full h-full object-contain" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-on-surface truncate group-hover:text-primary transition-colors">{job.title}</h3>
-                  <div className="text-xs text-on-surface-variant truncate">{job.company} • {job.location}</div>
-                </div>
-                <div className="flex flex-col items-end gap-1.5 shrink-0">
-                  <span className="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full border border-tertiary/20">{job.match} Match</span>
-                  <button className="text-xs font-bold text-primary hover:opacity-80">Apply Now</button>
-                </div>
+            {recommendedJobs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full opacity-40">
+                <Rocket className="w-12 h-12 mb-2" />
+                <p className="text-xs font-bold uppercase tracking-widest">No matches found yet</p>
               </div>
-            ))}
+            ) : (
+              recommendedJobs.map((job) => (
+                <div key={job._id} className="bg-surface-container-low/50 rounded-2xl p-4 border border-outline-variant/5 flex items-center gap-5 hover:bg-surface-container-high transition-colors group cursor-pointer">
+                  <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-2 shrink-0 border border-outline-variant/10 shadow-sm transition-transform group-hover:scale-105 overflow-hidden">
+                    <img src={(job.companyId as any)?.logo || 'https://api.dicebear.com/7.x/initials/svg?seed=' + job.title} alt="Company" className="w-full h-full object-contain" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-on-surface truncate group-hover:text-primary transition-colors">{job.title}</h3>
+                    <div className="text-xs text-on-surface-variant truncate">{(job.companyId as any)?.name} • {job.location}</div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <span className="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full border border-tertiary/20">AI Recommended</span>
+                    <button className="text-xs font-bold text-primary hover:opacity-80">Apply Now</button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -210,7 +319,7 @@ const DashboardView = () => {
               <div className="space-y-3 p-4 bg-surface-container-low/40 rounded-[2rem] border border-outline-variant/10 h-full min-h-[160px]">
                 {col.jobs.length === 0 ? (
                   <div className="h-20 border-2 border-dashed border-outline-variant/20 rounded-2xl flex items-center justify-center text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">
-                    Drop here
+                    No items
                   </div>
                 ) : (
                   col.jobs.map((job, jidx) => (
@@ -219,22 +328,22 @@ const DashboardView = () => {
                       whileHover={{ scale: 1.02 }}
                       className={cn(
                         "p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-outline-variant/10 shadow-sm cursor-grab active:cursor-grabbing",
-                        job.urgent && "border-secondary/30 bg-secondary/[0.02]",
-                        job.highlight && "border-primary/30 bg-primary/[0.02]"
+                        (job as any).urgent && "border-secondary/30 bg-secondary/[0.02]",
+                        (job as any).highlight && "border-primary/30 bg-primary/[0.02]"
                       )}
                     >
                       <div className="font-bold text-sm mb-1">{job.title}</div>
-                      <div className="text-xs text-on-surface-variant mb-3">{job.company}</div>
-                      {job.tag && (
+                      <div className="text-xs text-on-surface-variant mb-3">{job.company || 'Unknown Company'}</div>
+                      {(job as any).tag && (
                         <div className={cn(
                           "text-[10px] font-bold px-2 py-1 rounded inline-block",
-                          job.urgent ? "bg-secondary/10 text-secondary" : 
-                          job.highlight ? "bg-primary/10 text-primary" : "bg-surface-container text-on-surface-variant"
+                          (job as any).urgent ? "bg-secondary/10 text-secondary" : 
+                          (job as any).highlight ? "bg-primary/10 text-primary" : "bg-surface-container text-on-surface-variant"
                         )}>
-                          {job.tag}
+                          {(job as any).tag}
                         </div>
                       )}
-                      {!job.tag && <div className="text-[10px] text-on-surface-variant/60 font-medium">Applied {job.time}</div>}
+                      {!(job as any).tag && <div className="text-[10px] text-on-surface-variant/60 font-medium">Applied {(job as any).time}</div>}
                     </motion.div>
                   ))
                 )}
@@ -252,12 +361,12 @@ const DashboardView = () => {
               <BarChart3 className="w-5 h-5 text-primary" />
               Application Activity
             </h3>
-            <div className="flex gap-1">
-              {[0.4, 0.6, 0.3, 0.8, 1, 0.7, 0.9].map((h, i) => (
+            <div className="flex gap-1 items-end h-12">
+              {(stats?.activity || [0.4, 0.6, 0.3, 0.8, 1, 0.7, 0.9]).map((h: any, i) => (
                 <motion.div 
                   key={i}
                   initial={{ height: 0 }}
-                  animate={{ height: `${h * 100}%` }}
+                  animate={{ height: typeof h === 'object' ? `${Math.min(100, (h.count || 0) * 20)}%` : `${(h || 0) * 100}%` }}
                   transition={{ delay: 0.5 + i * 0.1 }}
                   className="w-1.5 bg-primary/20 group-hover:bg-primary/40 rounded-full transition-colors"
                 />
@@ -266,7 +375,7 @@ const DashboardView = () => {
           </div>
           <div className="mt-auto flex items-end justify-between text-[10px] font-bold text-on-surface-variant uppercase tracking-widest relative z-10">
             <span>Last 7 Days</span>
-            <span className="text-primary">+12% vs last week</span>
+            <span className="text-primary">Live Activity</span>
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-primary/[0.02] to-transparent pointer-events-none" />
         </div>
@@ -277,28 +386,23 @@ const DashboardView = () => {
             AI Coaching
           </h3>
           <div className="space-y-4 mb-6">
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
-                <Trophy className="w-4 h-4" />
+            {(stats?.resumeAnalysis?.coachingTips?.slice(0, 2) || ["Optimize LinkedIn", "Practice System Design"]).map((tip, idx) => (
+              <div key={idx} className="flex items-start gap-4">
+                <div className={`w-8 h-8 rounded-full ${idx === 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-secondary/10 text-secondary'} flex items-center justify-center shrink-0`}>
+                  {idx === 0 ? <Trophy className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                </div>
+                <div>
+                  <div className="text-sm font-bold">{tip}</div>
+                  <div className="text-xs text-on-surface-variant">Recommended by AI based on your latest scan.</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm font-bold">Optimize LinkedIn</div>
-                <div className="text-xs text-on-surface-variant">Your summary lacks key AI terminology detected in top jobs.</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
-                <AlertTriangle className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-sm font-bold">Practice System Design</div>
-                <div className="text-xs text-on-surface-variant">We noticed a gap in technical skills for your dream roles.</div>
-              </div>
-            </div>
+            ))}
           </div>
-          <Button variant="outline" size="sm" className="w-full mt-auto font-bold border-dashed border-primary/30 text-primary hover:bg-primary/5">
-            Start Practice Session
-          </Button>
+          <Link href="/candidate/aimock-interview" className="mt-auto">
+            <Button variant="outline" size="sm" className="w-full font-bold border-dashed border-primary/30 text-primary hover:bg-primary/5">
+              Start Practice Session
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

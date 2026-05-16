@@ -20,12 +20,14 @@ exports.sendMessage = async (req, res, next) => {
 
     const message = await Message.create({ senderId, receiverId, content });
 
+    /*
     // Cache in Redis
     const chatKey = [senderId, receiverId].sort().join(':');
     const cacheKey = `chat_history:${chatKey}`;
     await redisClient.lPush(cacheKey, JSON.stringify(message));
     await redisClient.lTrim(cacheKey, 0, CACHE_LIMIT - 1);
     await redisClient.expire(cacheKey, CACHE_EXPIRY);
+    */
 
     // Emit Real-time via Socket.io
     const io = getIO();
@@ -47,18 +49,21 @@ exports.getMessages = async (req, res, next) => {
     const chatKey = [myId, otherUserId].sort().join(':');
     const cacheKey = `chat_history:${chatKey}`;
     
+    /*
     let messages = await redisClient.lRange(cacheKey, 0, -1);
     
     if (messages && messages.length > 0) {
       messages = messages.map(msg => JSON.parse(msg)).reverse();
     } else {
-      messages = await Message.find({
+    */
+      const messages = await Message.find({
         $or: [
           { senderId: myId, receiverId: otherUserId },
           { senderId: otherUserId, receiverId: myId }
         ]
       }).sort('createdAt').limit(CACHE_LIMIT);
 
+    /*
       if (messages.length > 0) {
         const pipe = redisClient.multi();
         messages.slice().reverse().forEach(msg => {
@@ -69,6 +74,7 @@ exports.getMessages = async (req, res, next) => {
         await pipe.exec();
       }
     }
+    */
 
     // Mark as read
     await Message.updateMany(

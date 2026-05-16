@@ -30,7 +30,7 @@ if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
     try {
       // 1. Connect to Database & Redis
       await connectDB();
-      await connectRedis();
+      // await connectRedis();
 
       // 2. Start HTTP Server
       const server = http.createServer(app);
