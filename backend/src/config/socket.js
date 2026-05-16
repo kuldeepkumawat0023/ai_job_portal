@@ -43,11 +43,36 @@ const initSocket = (server) => {
     const userId = socket.user.id;
     console.log(`🔌 User Connected: ${userId} (Socket: ${socket.id})`);
 
-    // Join a room named after the userId
+    // Join a personal room named after the userId for private messaging
     socket.join(userId);
 
+    // Broadcast online status to all connected users
+    socket.broadcast.emit('user_online', { userId });
+
+    // ─── Typing Indicators ─────────────────────────────────
+    socket.on('typing', ({ to }) => {
+      if (to) {
+        io.to(to).emit('typing', { from: userId });
+      }
+    });
+
+    socket.on('stop_typing', ({ to }) => {
+      if (to) {
+        io.to(to).emit('stop_typing', { from: userId });
+      }
+    });
+
+    // ─── Message Read Receipt ──────────────────────────────
+    socket.on('mark_read', ({ from }) => {
+      if (from) {
+        io.to(from).emit('messages_read', { by: userId });
+      }
+    });
+
+    // ─── Disconnect ────────────────────────────────────────
     socket.on('disconnect', () => {
       console.log(`❌ User Disconnected: ${userId}`);
+      socket.broadcast.emit('user_offline', { userId });
     });
   });
 

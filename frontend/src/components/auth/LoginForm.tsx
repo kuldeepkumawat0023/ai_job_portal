@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/store/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { authService } from '@/lib/services/auth.services';
 import toast from 'react-hot-toast';
 import { GoogleLogin } from '@react-oauth/google';

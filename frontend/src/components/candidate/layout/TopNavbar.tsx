@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { cn } from '@/utils/cn';
-import { useAuth } from '@/store/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { authService } from '@/lib/services/auth.services';
 import { useRouter } from 'next/navigation';
 import { getBackendBaseUrl } from '@/lib/apiClient';

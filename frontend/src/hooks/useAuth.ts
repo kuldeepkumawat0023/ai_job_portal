@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 /**
  * 🎣 useAuth Hook
  * Your central hub for all things Authentication.
+ * Now located in @/hooks for architectural consistency.
  */
 export const useAuth = () => {
   const dispatch = useAppDispatch();

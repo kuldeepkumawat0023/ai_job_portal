@@ -27,6 +27,9 @@ import {
 import { cn } from '@/utils/cn';
 import { Button } from '@/components/common/Button';
 
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+
 interface NavLink {
   name: string;
   href: string;
@@ -72,6 +75,9 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const pathname = usePathname();
   const [openSubMenus, setOpenSubMenus] = React.useState<string[]>([]);
+  
+  const { conversations } = useSelector((state: RootState) => state.chat);
+  const totalUnreadCount = conversations.reduce((acc, conv) => acc + (conv.unreadCount || 0), 0);
 
   const toggleSubMenu = (name: string) => {
     setOpenSubMenus(prev =>
@@ -133,6 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             const isActive = pathname === link.href;
             const isChildActive = link.children?.some(child => pathname === child.href);
             const Icon = link.icon;
+            const isMessages = link.name === 'Messages';
 
             return (
               <div key={link.name} className="flex flex-col gap-1">
@@ -174,7 +181,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       isActive ? "text-primary" : "text-on-surface-variant group-hover:text-primary"
                     )} />
                     <span className="text-sm font-semibold flex-1">{link.name}</span>
-                    {isActive && <ChevronRight className="w-4 h-4 opacity-50" />}
+                    
+                    {isMessages && totalUnreadCount > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-error text-white text-[10px] font-black animate-pulse shadow-sm">
+                        {totalUnreadCount}
+                      </span>
+                    )}
+
+                    {isActive && !isMessages && <ChevronRight className="w-4 h-4 opacity-50" />}
+                    {isMessages && isActive && totalUnreadCount === 0 && <ChevronRight className="w-4 h-4 opacity-50" />}
                   </Link>
                 )}
 

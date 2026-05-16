@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/store/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 
 interface RoleGuardProps {
   children: React.ReactNode;

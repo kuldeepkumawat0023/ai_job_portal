@@ -1,73 +1,101 @@
-import apiClient, { ApiResponse, AuthUser } from '../apiClient';
+import apiClient from '../apiClient';
+import { ApiResponse } from '../apiClient';
 
+/**
+ * 💼 Job Interface (Synced with Backend Job.js Model)
+ */
 export interface Job {
   _id: string;
-  user: Partial<AuthUser>;
   title: string;
-  companyName: string;
-  logo?: string;
-  category?: string;
   description: string;
-  requirements?: string;
-  perks?: string;
-  jobType: 'Full Time' | 'Part Time' | 'Contract' | 'Internship' | 'Freelance' | 'Remote' | 'Hybrid' | 'On-Site';
+  requirements: string[];
+  salary: string; 
   location: string;
-  salaryRange?: string;
-  experienceRequired?: string;
-  contactEmail?: string;
-  contactMobile?: string;
-  applyLink?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  jobType: 'Full-time' | 'Part-time' | 'Contract' | 'Freelance' | 'Internship';
+  experience: number;
+  category: string;
+  companyId: any; // Populated company details (name, logo, etc.)
+  postedBy: string;
+  applications: string[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface JobListingData {
-  jobs: Job[];
-  pagination: {
-    total: number;
-    page: number;
-    pages: number;
-  };
-}
-
-const JOB_PATHS = {
-  BASE: '/job',
-  GET_ONE: (id: string) => `/job/${id}`,
-  GET_USER_JOBS: '/job/getadminjobs',
-  POST: '/job/post',
-};
-
+/**
+ * 💼 Job Service
+ * Perfectly synchronized with JobController.js
+ */
 export const jobService = {
   /**
-   * Fetch all jobs (with optional filters)
+   * Get all jobs with optional filters (keyword, location, category, jobType)
+   * GET /api/v1/job/all
    */
-  getJobs: async (params?: Record<string, unknown>): Promise<ApiResponse<JobListingData>> => {
-    const response = await apiClient.get(JOB_PATHS.BASE + '/get', { params });
+  getAllJobs: async (params?: { keyword?: string, location?: string, category?: string, jobType?: string }): Promise<ApiResponse<Job[]>> => {
+    const response = await apiClient.get('/job/all', { params });
     return response.data;
   },
 
   /**
-   * Fetch a single job by ID
+   * Get job details by ID
+   * GET /api/v1/job/get/:id
    */
-  getJobById: async (id: string): Promise<ApiResponse<{ job: Job }>> => {
-    const response = await apiClient.get(JOB_PATHS.GET_ONE(id));
+  getJobById: async (id: string): Promise<ApiResponse<Job>> => {
+    const response = await apiClient.get(`/job/get/${id}`);
     return response.data;
   },
 
   /**
-   * Create a new job post
+   * Get recommended jobs based on candidate's profile
+   * GET /api/v1/job/recommended
    */
-  createJob: async (data: Partial<Job> | FormData): Promise<ApiResponse<{ job: Job }>> => {
-    const response = await apiClient.post(JOB_PATHS.POST, data);
+  getRecommendedJobs: async (): Promise<ApiResponse<Job[]>> => {
+    const response = await apiClient.get('/job/recommended');
     return response.data;
   },
 
   /**
-   * Fetch logged-in recruiter's jobs
+   * Post a new job (Recruiter/Admin)
+   * POST /api/v1/job/post
    */
-  getMyJobs: async (): Promise<ApiResponse<{ jobs: Job[] }>> => {
-    const response = await apiClient.get(JOB_PATHS.GET_USER_JOBS);
+  postJob: async (data: {
+    title: string;
+    description: string;
+    requirements?: string | string[];
+    salary?: string;
+    location: string;
+    jobType?: string;
+    experience?: number;
+    category: string;
+    companyId: string;
+  }): Promise<ApiResponse<Job>> => {
+    const response = await apiClient.post('/job/post', data);
+    return response.data;
+  },
+
+  /**
+   * Get jobs posted by the current recruiter
+   * GET /api/v1/job/admin/jobs
+   */
+  getAdminJobs: async (): Promise<ApiResponse<Job[]>> => {
+    const response = await apiClient.get('/job/admin/jobs');
+    return response.data;
+  },
+
+  /**
+   * Update a job posting
+   * PUT /api/v1/job/update/:id
+   */
+  updateJob: async (id: string, data: Partial<Job>): Promise<ApiResponse<Job>> => {
+    const response = await apiClient.put(`/job/update/${id}`, data);
+    return response.data;
+  },
+
+  /**
+   * Delete a job posting
+   * DELETE /api/v1/job/delete/:id
+   */
+  deleteJob: async (id: string): Promise<ApiResponse<void>> => {
+    const response = await apiClient.delete(`/job/delete/${id}`);
     return response.data;
   },
 };
