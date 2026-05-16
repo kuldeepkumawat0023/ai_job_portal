@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const ROLES = require('../utils/roles');
 
 const userSchema = new mongoose.Schema({
   fullname: {
@@ -86,6 +87,16 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  hiringOtp: {
+    type: String,
+  },
+  hiringOtpExpiry: {
+    type: Date,
+  },
+  isHiringOtpVerified: {
+    type: Boolean,
+    default: false
+  },
   isPremium: {
     type: Boolean,
     default: false
@@ -95,8 +106,8 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['candidate', 'recruiter', 'admin'],
-    default: 'candidate'
+    enum: Object.values(ROLES),
+    default: ROLES.CANDIDATE
   },
   resume: {
     type: String, // Cloudinary URL

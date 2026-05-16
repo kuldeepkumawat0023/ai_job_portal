@@ -81,6 +81,11 @@ const authSlice = createSlice({
         state.user = { ...state.user, ...action.payload };
         if (typeof window !== 'undefined') {
           localStorage.setItem(USER_KEY, JSON.stringify(state.user));
+          
+          // Sync role to cookie if updated
+          if (action.payload.role) {
+            Cookies.set('user_role', action.payload.role, { expires: 365, path: '/' });
+          }
         }
       }
     },

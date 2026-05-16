@@ -17,40 +17,40 @@ export default function RecruiterRootLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    /* <AuthGuard>
-      <RoleGuard allowedRoles={['recruiter', 'admin']}> */
-        <ChatProvider>
-          <div className="flex h-screen bg-background overflow-hidden font-sans">
+    <AuthGuard>
+      <RoleGuard allowedRoles={['recruiter', 'admin']}>
+        {/* <ChatProvider> */}
+        <div className="flex h-screen bg-background overflow-hidden font-sans">
 
-            {/* Sidebar - Handles both desktop (static) and mobile (overlay) via props */}
-            <Sidebar
-              isOpen={isSidebarOpen}
-              onClose={() => setIsSidebarOpen(false)}
-            />
+          {/* Sidebar - Handles both desktop (static) and mobile (overlay) via props */}
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+          />
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden lg:pl-72 transition-all duration-300">
-              <TopNavbar onMenuClick={() => setIsSidebarOpen(true)} />
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden lg:pl-72 transition-all duration-300">
+            <TopNavbar onMenuClick={() => setIsSidebarOpen(true)} />
 
-              <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 custom-scrollbar">
-                <div className="max-w-7xl mx-auto">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key="recruiter-content"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                    >
-                      {children}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </main>
-            </div>
+            <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 custom-scrollbar">
+              <div className="max-w-7xl mx-auto">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key="recruiter-content"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  >
+                    {children}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </main>
           </div>
-        </ChatProvider>
-      /* </RoleGuard>
-    </AuthGuard> */
+        </div>
+        {/* </ChatProvider> */}
+      </RoleGuard>
+    </AuthGuard>
   );
 }

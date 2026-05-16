@@ -2,6 +2,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const otpGenerator = require('otp-generator');
 const sendEmail = require('../config/email');
+const ROLES = require('../utils/roles');
 const { OAuth2Client } = require('google-auth-library');
 const axios = require('axios');
 
@@ -255,7 +256,7 @@ exports.login = async (req, res, next) => {
           _id: user._id,
           fullname: user.fullname,
           email: user.email,
-          role: user.hasCompanyProfile ? 'recruiter' : 'candidate'
+          role: user.role
         },
         token
       }
@@ -301,7 +302,7 @@ exports.googleLogin = async (req, res, next) => {
         countryCode: '+91',
         password: Math.random().toString(36).slice(-8) + 'Aa1@', // Random secure password
         profilePhoto,
-        role: 'candidate',
+        role: ROLES.CANDIDATE,
         isActive: true
       });
     }
@@ -332,7 +333,7 @@ exports.googleLogin = async (req, res, next) => {
           fullname: user.fullname,
           email: user.email,
           profilePhoto: user.profilePhoto,
-          role: user.hasCompanyProfile ? 'recruiter' : user.role
+          role: user.role
         },
         token
       }
@@ -588,3 +589,131 @@ exports.reactivateAccount = async (req, res, next) => {
 };
 
 
+
+// @desc    Send OTP for Hiring Mode transition
+// @route   POST /api/v1/user/send-hiring-otp
+// @access  Private
+exports.sendHiringOtp = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, statusCode: 404, message: 'User not found', data: null });
+    }
+
+    // Generate 6 digit OTP
+    const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
+
+    // Set Hiring OTP and expiry (10 mins)
+    user.hiringOtp = otp;
+    user.hiringOtpExpiry = Date.now() + 10 * 60 * 1000;
+    user.isHiringOtpVerified = false;
+    await user.save({ validateBeforeSave: false });
+
+    console.log(`[Hiring OTP] Generated for ${user.email}: ${otp}`);
+
+    // Email HTML Template
+    const htmlMessage = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f4f7f6; }
+        .header { background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%); padding: 30px 20px; text-align: center; color: white; border-radius: 8px 8px 0 0; }
+        .header h1 { margin: 0; font-size: 28px; letter-spacing: 1px; }
+        .content { background-color: white; padding: 40px 30px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .content h2 { color: #333; margin-top: 0; }
+        .content p { color: #555; line-height: 1.6; font-size: 16px; }
+        .otp-box { background-color: #f0faff; border: 2px dashed #00b4db; text-align: center; padding: 20px; margin: 30px 0; border-radius: 8px; }
+        .otp-code { font-size: 36px; font-weight: bold; color: #0083b0; letter-spacing: 4px; }
+        .footer { text-align: center; margin-top: 20px; color: #888; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>AI Job Portal</h1>
+        </div>
+        <div class="content">
+          <h2>Hiring Mode Verification</h2>
+          <p>Hello ${user.fullname},</p>
+          <p>You are about to switch to Hiring Mode. Please use the following One-Time Password (OTP) to verify your account and set up your company profile. <strong>This code is valid for 10 minutes.</strong></p>
+          
+          <div class="otp-box">
+            <div class="otp-code">${otp}</div>
+          </div>
+          
+          <p>If you did not request this, please ignore this email or secure your account.</p>
+        </div>
+        <div class="footer">
+          <p>&copy; ${new Date().getFullYear()} AI Job Portal. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Hiring Mode Verification OTP - AI Job Portal',
+        html: htmlMessage
+      });
+
+      res.status(200).json({
+        success: true,
+        statusCode: 200,
+        message: 'OTP sent to email',
+        data: null
+      });
+    } catch (err) {
+      user.hiringOtp = undefined;
+      user.hiringOtpExpiry = undefined;
+      await user.save({ validateBeforeSave: false });
+      return res.status(400).json({ success: false, statusCode: 400, message: 'Email could not be sent', data: null });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Verify Hiring OTP
+// @route   POST /api/v1/user/verify-hiring-otp
+// @access  Private
+exports.verifyHiringOtp = async (req, res, next) => {
+  try {
+    const { otp } = req.body;
+
+    if (!otp) {
+      return res.status(400).json({ success: false, statusCode: 400, message: 'Please provide OTP', data: null });
+    }
+
+    console.log(`[Hiring OTP] Verifying for User ${req.user.id} with OTP: ${otp}`);
+
+    const user = await User.findOne({
+      _id: req.user.id,
+      hiringOtp: otp,
+      hiringOtpExpiry: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(401).json({ success: false, statusCode: 401, message: 'Invalid or expired OTP', data: null });
+    }
+
+    user.isHiringOtpVerified = true;
+    user.hiringOtp = undefined;
+    user.hiringOtpExpiry = undefined;
+    user.role = ROLES.RECRUITER;
+    user.hasCompanyProfile = true;
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: 'OTP verified successfully. You can now proceed to register your company.',
+      data: null
+    });
+  } catch (error) {
+    next(error);
+  }
+};

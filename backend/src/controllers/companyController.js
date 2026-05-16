@@ -1,5 +1,6 @@
 const Company = require('../models/Company');
 const User = require('../models/User');
+const ROLES = require('../utils/roles');
 
 // @desc    Register a new company
 // @route   POST /api/v1/company/register
@@ -27,8 +28,13 @@ exports.registerCompany = async (req, res, next) => {
       userId: req.user.id
     });
 
-    // Update user's hasCompanyProfile flag
-    await User.findByIdAndUpdate(req.user.id, { hasCompanyProfile: true });
+    // Update user's hasCompanyProfile flag and change role to recruiter
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, { 
+      hasCompanyProfile: true,
+      role: ROLES.RECRUITER
+    }, { new: true });
+
+    console.log(`[Role Update] User ${updatedUser._id} role changed to: ${updatedUser.role}`);
 
     res.status(201).json({
       success: true,

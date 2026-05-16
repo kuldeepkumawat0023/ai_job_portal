@@ -62,6 +62,22 @@ export const authService = {
   },
 
   /**
+   * Send OTP for Hiring Mode transition
+   */
+  sendHiringOtp: async (): Promise<ApiResponse> => {
+    const response = await apiClient.post('/user/send-hiring-otp');
+    return response.data;
+  },
+
+  /**
+   * Verify OTP for Hiring Mode transition
+   */
+  verifyHiringOtp: async (otp: string): Promise<ApiResponse> => {
+    const response = await apiClient.post('/user/verify-hiring-otp', { otp });
+    return response.data;
+  },
+
+  /**
    * Get Current User Profile
    */
   getProfile: async (): Promise<ApiResponse<{ user: AuthUser }>> => {

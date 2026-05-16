@@ -28,9 +28,24 @@ const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) => {
           </svg>
         </div>
         <h1 className="text-2xl font-bold text-on-surface mb-2">Access Denied</h1>
-        <p className="text-on-surface-variant max-w-md">
-          You don't have the necessary permissions to view this sanctuary. Please contact your administrator if you believe this is an error.
+        <p className="text-on-surface-variant max-w-md mb-8">
+          You don't have the necessary permissions to view this sanctuary. Please contact your administrator if you believe this is an error, or try logging in again to refresh your session.
         </p>
+        
+        <div className="flex flex-col sm:flex-row gap-4">
+          <button 
+            onClick={() => window.location.href = '/login'}
+            className="px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+          >
+            Back to Login
+          </button>
+          <button 
+            onClick={() => window.location.href = '/'}
+            className="px-8 py-3 bg-surface-variant text-on-surface-variant rounded-xl font-bold hover:bg-surface-variant/80 transition-all border border-outline/20"
+          >
+            Back to Home
+          </button>
+        </div>
       </div>
     );
   }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useAppSelector, useAppDispatch } from '@/store/hooks/redux';
-import { logout as logoutAction, setCredentials, initializeAuth } from '@/store/authSlice';
+import { logout as logoutAction, setCredentials, initializeAuth, updateUser as updateUserAction } from '@/store/authSlice';
 import { AuthUser } from '@/lib/apiClient';
 import { useEffect } from 'react';
 
@@ -36,6 +36,7 @@ export const useAuth = () => {
     isInitialized,
     logout,
     login,
+    updateUser: (data: Partial<AuthUser>) => dispatch(updateUserAction(data)),
     isCandidate: user?.role === 'candidate',
     isRecruiter: user?.role === 'recruiter',
     isAdmin: user?.role === 'admin',

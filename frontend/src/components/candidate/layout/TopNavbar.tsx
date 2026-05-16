@@ -12,7 +12,8 @@ import {
   User,
   LogOut,
   Globe,
-  Settings
+  Settings,
+  Briefcase
 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { cn } from '@/utils/cn';
@@ -21,6 +22,7 @@ import { authService } from '@/lib/services/auth.services';
 import { useRouter } from 'next/navigation';
 import { getBackendBaseUrl } from '@/lib/apiClient';
 import Link from 'next/link';
+import HiringTransitionModal from './HiringTransitionModal';
 
 interface TopNavbarProps {
   onMenuClick: () => void;
@@ -38,6 +40,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isHiringModalOpen, setIsHiringModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { user, logout } = useAuth();
@@ -122,6 +125,18 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </Button>
         )}
+
+        <div className="hidden md:flex items-center ml-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setIsHiringModalOpen(true)}
+            className="rounded-xl border-primary/30 text-primary hover:bg-primary hover:text-white transition-all font-bold text-[10px] uppercase tracking-widest flex items-center gap-2"
+          >
+            <Briefcase className="w-3.5 h-3.5" />
+            Start Hiring
+          </Button>
+        </div>
 
         <div className="h-8 w-[1px] bg-outline-variant/20 mx-1 hidden sm:block" />
 
@@ -221,6 +236,10 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
           </AnimatePresence>
         </div>
       </div>
+      <HiringTransitionModal 
+        isOpen={isHiringModalOpen} 
+        onClose={() => setIsHiringModalOpen(false)} 
+      />
     </header>
   );
 };
