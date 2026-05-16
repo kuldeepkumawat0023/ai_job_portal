@@ -17,6 +17,7 @@ import {
   ChevronRight,
   ChevronDown,
   X,
+  Globe,
   User,
   ShieldAlert
 } from 'lucide-react';
@@ -46,7 +47,6 @@ const navLinks: NavLink[] = [
     href: '/candidate/portfolio',
     icon: UserCircle,
     children: [
-      { name: 'View Profile', href: '/candidate/portfolio', icon: User },
       { name: 'Builder', href: '/candidate/portfolio/builder', icon: FileSearch },
     ]
   },
@@ -55,8 +55,9 @@ const navLinks: NavLink[] = [
     href: '/candidate/settings',
     icon: Settings,
     children: [
-      { name: 'Account', href: '/candidate/settings', icon: User },
-      { name: 'Privacy', href: '/candidate/settings/privacy', icon: ShieldAlert },
+      { name: 'Profile Settings', href: '/candidate/settings', icon: UserCircle },
+      { name: 'View My Profile', href: '/candidate/settings/profile', icon: UserCircle },
+      { name: 'Privacy & Security', href: '/candidate/settings/privacy', icon: ShieldAlert },
     ]
   },
 ];
@@ -69,7 +70,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const pathname = usePathname();
   const [openSubMenus, setOpenSubMenus] = React.useState<string[]>([]);
-  
+
   const { conversations } = useSelector((state: RootState) => state.chat);
   const totalUnreadCount = conversations.reduce((acc, conv) => acc + (conv.unreadCount || 0), 0);
 
@@ -175,7 +176,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       isActive ? "text-primary" : "text-on-surface-variant group-hover:text-primary"
                     )} />
                     <span className="text-sm font-semibold flex-1">{link.name}</span>
-                    
+
                     {isMessages && totalUnreadCount > 0 && (
                       <span className="px-2 py-0.5 rounded-full bg-error text-white text-[10px] font-black animate-pulse shadow-sm">
                         {totalUnreadCount}
