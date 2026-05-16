@@ -182,7 +182,8 @@ const DashboardView = () => {
       </section>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[
           { name: 'Applications Sent', value: stats?.totalApplied || 0, icon: Send, color: 'text-primary', bg: 'bg-primary/10' },
           { name: 'Interviews', value: stats?.scheduledInterviews || 0, icon: MessageSquare, color: 'text-secondary', bg: 'bg-secondary/10' },
@@ -194,14 +195,14 @@ const DashboardView = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="glass-card p-6 flex items-center gap-5 hover:-translate-y-1 cursor-pointer group"
+            className="glass-card p-4 md:p-6 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3 md:gap-5 hover:-translate-y-1 cursor-pointer group"
           >
-            <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center transition-transform group-hover:scale-110`}>
-              <stat.icon className="w-6 h-6" />
+            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center transition-transform group-hover:scale-110 shrink-0`}>
+              <stat.icon className="w-5 h-5 md:w-6 md:h-6" />
             </div>
-            <div>
-              <div className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">{stat.name}</div>
-              <div className="text-2xl font-bold text-on-surface mt-0.5">{stat.value}</div>
+            <div className="min-w-0">
+              <div className="text-[9px] md:text-xs font-bold text-on-surface-variant uppercase tracking-wider truncate">{stat.name}</div>
+              <div className="text-lg md:text-2xl font-bold text-on-surface mt-0.5">{stat.value}</div>
             </div>
           </motion.div>
         ))}
@@ -301,24 +302,26 @@ const DashboardView = () => {
       </div>
 
       {/* Application Kanban */}
-      <section>
-        <h2 className="text-xl font-bold text-on-surface mb-6 flex items-center gap-3">
-          <LayoutDashboard className="text-secondary w-6 h-6" />
-          Application Pipeline
-        </h2>
-        <div className="flex gap-6 overflow-x-auto pb-6 -mx-6 px-6 no-scrollbar snap-x lg:grid lg:grid-cols-4 lg:overflow-visible">
+      <section className="mt-4">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-on-surface flex items-center gap-3">
+            <LayoutDashboard className="text-secondary w-6 h-6" />
+            Application Pipeline
+          </h2>
+        </div>
+        
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {pipeline.map((col, idx) => (
-            <div key={col.status} className="min-w-[280px] snap-start flex flex-col gap-4">
+            <div key={col.status} className="flex flex-col gap-3">
               <div className="flex justify-between items-center px-2">
-                <div className={`text-[10px] font-black uppercase tracking-[0.2em] ${idx === 2 ? 'text-secondary' : idx === 3 ? 'text-primary' : 'text-on-surface-variant'}`}>
+                <div className={`text-[9px] font-black uppercase tracking-[0.15em] ${idx === 2 ? 'text-secondary' : idx === 3 ? 'text-primary' : 'text-on-surface-variant'}`}>
                   {col.status} ({col.count})
                 </div>
-                {idx === 2 && <div className="w-2 h-2 bg-secondary rounded-full animate-pulse" />}
               </div>
               
-              <div className="space-y-3 p-4 bg-surface-container-low/40 rounded-[2rem] border border-outline-variant/10 h-full min-h-[160px]">
+              <div className="space-y-3 p-4 bg-surface-container-low/40 rounded-3xl border border-outline-variant/10 h-full min-h-[140px] shadow-sm">
                 {col.jobs.length === 0 ? (
-                  <div className="h-20 border-2 border-dashed border-outline-variant/20 rounded-2xl flex items-center justify-center text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">
+                  <div className="h-20 border border-dashed border-outline-variant/20 rounded-2xl flex flex-col items-center justify-center text-[9px] font-bold text-on-surface-variant/30 uppercase tracking-widest gap-1.5">
                     No items
                   </div>
                 ) : (
@@ -326,24 +329,30 @@ const DashboardView = () => {
                     <motion.div 
                       key={jidx} 
                       whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       className={cn(
-                        "p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-outline-variant/10 shadow-sm cursor-grab active:cursor-grabbing",
+                        "p-3 bg-white dark:bg-zinc-900 rounded-xl border border-outline-variant/10 shadow-sm",
                         (job as any).urgent && "border-secondary/30 bg-secondary/[0.02]",
                         (job as any).highlight && "border-primary/30 bg-primary/[0.02]"
                       )}
                     >
-                      <div className="font-bold text-sm mb-1">{job.title}</div>
-                      <div className="text-xs text-on-surface-variant mb-3">{job.company || 'Unknown Company'}</div>
-                      {(job as any).tag && (
-                        <div className={cn(
-                          "text-[10px] font-bold px-2 py-1 rounded inline-block",
-                          (job as any).urgent ? "bg-secondary/10 text-secondary" : 
-                          (job as any).highlight ? "bg-primary/10 text-primary" : "bg-surface-container text-on-surface-variant"
-                        )}>
-                          {(job as any).tag}
-                        </div>
-                      )}
-                      {!(job as any).tag && <div className="text-[10px] text-on-surface-variant/60 font-medium">Applied {(job as any).time}</div>}
+                      <div className="font-bold text-[11px] mb-0.5 text-on-surface leading-tight truncate">{job.title}</div>
+                      <div className="text-[10px] text-on-surface-variant truncate mb-2">{job.company || 'Company'}</div>
+                      <div className="flex items-center justify-between">
+                        {(job as any).tag ? (
+                          <div className={cn(
+                            "text-[8px] font-bold px-1.5 py-0.5 rounded border",
+                            (job as any).urgent ? "bg-secondary/10 text-secondary border-secondary/20" : 
+                            (job as any).highlight ? "bg-primary/10 text-primary border-primary/20" : "bg-surface-container text-on-surface-variant border-outline-variant/20"
+                          )}>
+                            {(job as any).tag}
+                          </div>
+                        ) : (
+                          <div className="text-[8px] text-on-surface-variant/50 font-bold uppercase flex items-center gap-1">
+                            Applied {(job as any).time}
+                          </div>
+                        )}
+                      </div>
                     </motion.div>
                   ))
                 )}

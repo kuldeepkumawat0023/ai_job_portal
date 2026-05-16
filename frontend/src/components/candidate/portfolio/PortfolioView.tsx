@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   BadgeCheck, 
   MapPin, 
@@ -13,274 +13,613 @@ import {
   Sparkles,
   Download,
   Share2,
-  Briefcase
+  Briefcase,
+  Edit3,
+  X,
+  Plus,
+  Trash2,
+  Loader2,
+  Camera,
+  GraduationCap
 } from 'lucide-react';
+import { userService } from '@/lib/services/user.services';
+import { toast } from 'react-hot-toast';
+import { cn } from '@/utils/cn';
 
 const PortfolioView = () => {
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  
+  // Edit Form States
+  const [editForm, setEditForm] = useState<any>({
+    fullname: '',
+    bio: '',
+    experience: 0,
+    skills: '',
+    location: '',
+    phoneNumber: '',
+    countryCode: '+91',
+    education: [],
+    workExperience: [],
+    projects: []
+  });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const userStr = localStorage.getItem('portal_user');
+      if (!userStr) return;
+      const user = JSON.parse(userStr);
+      
+      const res = await userService.getProfile(user._id || user.id);
+      if (res.success) {
+        setProfile(res.data);
+        // Initialize edit form with ALL fields
+        setEditForm({
+          fullname: res.data?.fullname || '',
+          bio: res.data?.bio || '',
+          experience: res.data?.experience || 0,
+          skills: res.data?.skills?.join(', ') || '',
+          location: res.data?.location || '',
+          phoneNumber: res.data?.phoneNumber || '',
+          countryCode: res.data?.countryCode || '+91',
+          education: res.data?.education || [],
+          workExperience: res.data?.workExperience || [],
+          projects: res.data?.projects || []
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast.error('Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await userService.updateProfile(profile._id, editForm);
+      if (res.success) {
+        toast.success('Profile updated successfully!');
+        setProfile(res.data);
+        setIsEditModalOpen(false);
+        // Update local storage to keep sync
+        localStorage.setItem('portal_user', JSON.stringify(res.data));
+      }
+    } catch (error) {
+      toast.error('Update failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('profilePhoto', file);
+
+    try {
+      setSaving(true);
+      const res = await userService.updateProfile(profile._id, formData);
+      if (res.success) {
+        setProfile(res.data);
+        localStorage.setItem('portal_user', JSON.stringify(res.data));
+        toast.success('Photo updated!');
+      }
+    } catch (error) {
+      toast.error('Upload failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addItem = (field: string, template: any) => {
+    setEditForm((prev: any) => ({
+      ...prev,
+      [field]: [...prev[field], template]
+    }));
+  };
+
+  const removeItem = (field: string, index: number) => {
+    setEditForm((prev: any) => ({
+      ...prev,
+      [field]: prev[field].filter((_: any, i: number) => i !== index)
+    }));
+  };
+
+  const updateItem = (field: string, index: number, key: string, value: any) => {
+    const newItems = [...editForm[field]];
+    newItems[index] = { ...newItems[index], [key]: value };
+    setEditForm((prev: any) => ({ ...prev, [field]: newItems }));
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-5xl mx-auto space-y-8 pb-10 animate-pulse">
+        <div className="h-64 bg-surface-container rounded-3xl"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 h-96 bg-surface-container rounded-3xl"></div>
+          <div className="h-96 bg-surface-container rounded-3xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) return <div className="text-center py-20 text-on-surface-variant font-bold">Please log in to view your portfolio.</div>;
+
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8 pb-10">
+    <div className="w-full max-w-5xl mx-auto space-y-8 pb-10 px-4 md:px-0">
       
       {/* Action Bar */}
-      <div className="flex justify-end gap-3 mb-4">
-        <button className="glass-card px-4 py-2 rounded-xl text-sm font-medium text-on-surface flex items-center gap-2 hover:bg-surface-container transition-colors shadow-sm border border-outline-variant/20">
-          <Share2 className="w-4 h-4" /> Share Profile
-        </button>
-        <button className="gradient-button text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2">
-          <Download className="w-4 h-4" /> Download Resume
-        </button>
+      <div className="flex justify-between items-center gap-3 mb-4">
+        <h2 className="text-xl font-black text-on-surface uppercase tracking-widest hidden md:block">Professional Portfolio</h2>
+        <div className="flex gap-3 w-full md:w-auto">
+          <button 
+            onClick={() => setIsEditModalOpen(true)}
+            className="flex-1 md:flex-none glass-card px-5 py-2.5 rounded-2xl text-sm font-bold text-primary flex items-center justify-center gap-2 hover:bg-primary/5 transition-all border-primary/20"
+          >
+            <Edit3 className="w-4 h-4" /> Edit Profile
+          </button>
+          <button className="flex-1 md:flex-none gradient-button text-white px-6 py-2.5 rounded-2xl text-sm font-black shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+            <Download className="w-4 h-4" /> Download Resume
+          </button>
+        </div>
       </div>
 
       {/* Main Profile Header */}
-      <div className="glass-card rounded-3xl p-8 md:p-10 relative overflow-hidden border border-white/10 dark:border-white/5 shadow-sm">
-        {/* Decorative background blur */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="glass-card rounded-[40px] p-8 md:p-12 relative overflow-hidden border-outline-variant/10 shadow-2xl">
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-secondary/10 rounded-full blur-[100px] pointer-events-none"></div>
         
-        <div className="flex flex-col md:flex-row gap-8 relative z-10 items-center md:items-start text-center md:text-left">
-          {/* Profile Photo */}
-          <div className="relative shrink-0">
-            <div className="w-40 h-40 rounded-3xl overflow-hidden border-4 border-surface shadow-xl relative z-10">
-              <img 
-                alt="Alex Rivera" 
-                className="w-full h-full object-cover" 
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400&h=400" 
-              />
+        <div className="flex flex-col md:flex-row gap-10 relative z-10 items-center md:items-start text-center md:text-left">
+          <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+            <div className="w-44 h-44 rounded-[48px] overflow-hidden border-4 border-surface shadow-2xl relative z-10 bg-surface-container-high flex items-center justify-center">
+              {profile.profilePhoto ? (
+                <img alt={profile.fullname} className="w-full h-full object-cover" src={profile.profilePhoto} />
+              ) : (
+                <div className="text-primary font-black text-4xl">{profile.fullname?.charAt(0)}</div>
+              )}
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
+                <Camera className="w-8 h-8 text-white" />
+              </div>
             </div>
-            {/* Verified Badge */}
-            <div className="absolute -bottom-3 -right-3 bg-surface p-1.5 rounded-full shadow-lg z-20">
-              <div className="bg-blue-500 text-white rounded-full p-1 flex items-center justify-center">
-                <BadgeCheck className="w-5 h-5" />
+            <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handlePhotoUpload} />
+            <div className="absolute -bottom-4 -right-4 bg-surface p-2 rounded-[20px] shadow-2xl z-20">
+              <div className="bg-primary text-white rounded-[16px] p-2 flex items-center justify-center shadow-lg">
+                <BadgeCheck className="w-6 h-6" />
               </div>
             </div>
           </div>
           
-          {/* Profile Info */}
-          <div className="flex-1 space-y-5 flex flex-col md:block items-center">
-            <div>
-              <h1 className="text-4xl font-bold text-on-surface flex flex-col md:flex-row items-center gap-4">
-                Alex Rivera
-                <span className="text-[11px] uppercase font-bold tracking-widest bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800/50 shadow-sm">
-                  Open to Work
+          <div className="flex-1 space-y-6">
+            <div className="space-y-2">
+              <h1 className="text-4xl md:text-5xl font-black text-on-surface flex flex-col md:flex-row items-center gap-4">
+                {profile.fullname}
+                <span className="text-[10px] uppercase font-black tracking-[0.2em] bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-2xl border border-emerald-500/20 shadow-sm">
+                  Available Now
                 </span>
               </h1>
-              <p className="text-xl text-primary font-bold mt-2">Senior Full-Stack Engineer</p>
-              <p className="text-sm text-on-surface-variant flex items-center gap-1.5 mt-2 font-medium">
-                <MapPin className="w-4 h-4 text-outline" /> San Francisco, CA (Remote)
+              <p className="text-xl md:text-2xl text-primary font-bold">{profile.role === 'candidate' ? 'Professional Candidate' : profile.role}</p>
+              <p className="text-sm text-on-surface-variant flex items-center justify-center md:justify-start gap-2 font-bold uppercase tracking-widest opacity-70">
+                <MapPin className="w-4 h-4 text-primary" /> {profile.location || 'Remote'}
               </p>
             </div>
             
-            <p className="text-base text-on-surface-variant leading-relaxed max-w-2xl">
-              Passionate engineer with 6+ years of experience building scalable web applications. Specializing in React ecosystem, Node.js microservices, and AI integration. Dedicated to writing clean, maintainable code and mentoring junior developers.
+            <p className="text-lg text-on-surface-variant leading-relaxed max-w-3xl font-medium">
+              {profile.bio || "No bio added yet. Click 'Edit Profile' to introduce yourself to recruiters!"}
             </p>
             
-            <div className="flex gap-4 pt-2">
-              <a className="px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-on-surface font-semibold hover:text-primary hover:border-primary/50 transition-all shadow-sm flex items-center gap-2" href="#">
-                <Link2 className="w-5 h-5" /> Portfolio
-              </a>
-              <a className="px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-on-surface font-semibold hover:text-primary hover:border-primary/50 transition-all shadow-sm flex items-center gap-2" href="#">
-                <Code2 className="w-5 h-5" /> GitHub
-              </a>
-              <a className="px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-on-surface font-semibold hover:text-primary hover:border-primary/50 transition-all shadow-sm flex items-center gap-2" href="#">
-                <Mail className="w-5 h-5" /> Contact
-              </a>
+            <div className="flex flex-wrap justify-center md:justify-start gap-3">
+              <button className="px-5 py-3 bg-surface-container-low border border-outline-variant/30 rounded-2xl text-on-surface font-bold text-xs uppercase tracking-widest hover:text-primary hover:border-primary/50 transition-all shadow-sm flex items-center gap-2">
+                <Mail className="w-4 h-4" /> {profile.email}
+              </button>
+              {profile.phoneNumber && (
+                <button className="px-5 py-3 bg-surface-container-low border border-outline-variant/30 rounded-2xl text-on-surface font-bold text-xs uppercase tracking-widest hover:text-primary hover:border-primary/50 transition-all shadow-sm flex items-center gap-2">
+                  <span className="text-primary">{profile.countryCode}</span> {profile.phoneNumber}
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Column: Experience & Projects */}
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 space-y-8">
           
-          {/* Experience Timeline */}
-          <div className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm">
-            <h3 className="text-2xl font-bold text-on-surface flex items-center gap-3 mb-8">
-              <Briefcase className="w-6 h-6 text-primary" /> Work Experience
+          {/* Work Experience */}
+          <div className="glass-card rounded-[32px] p-8 md:p-10 border-outline-variant/10 shadow-xl">
+            <h3 className="text-2xl font-black text-on-surface flex items-center gap-4 mb-10 uppercase tracking-tight">
+              <Briefcase className="w-7 h-7 text-primary" /> Work History
             </h3>
             
-            <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-outline-variant/30 before:to-transparent">
-              
-              {/* Job 1 */}
-              <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-surface bg-primary text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                  <Briefcase className="w-4 h-4" />
-                </div>
-                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-5 rounded-2xl glass-card shadow-sm border border-outline-variant/20">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-bold text-lg text-on-surface">Senior Software Engineer</h4>
+            <div className="space-y-12 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-1 before:bg-gradient-to-b before:from-primary/40 before:to-transparent">
+              {profile.workExperience?.length > 0 ? profile.workExperience.map((exp: any, i: number) => (
+                <div key={i} className="relative pl-12 group">
+                  <div className="absolute left-0 top-1 w-10 h-10 rounded-2xl bg-surface border-4 border-primary/20 flex items-center justify-center z-10 transition-transform group-hover:scale-110">
+                    <div className="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
                   </div>
-                  <div className="text-sm font-bold text-primary mb-3">TechNova Solutions • 2021 - Present</div>
-                  <p className="text-sm text-on-surface-variant leading-relaxed">
-                    Led a team of 5 engineers to migrate legacy monolith to microservices architecture. Reduced load times by 40% and improved system reliability.
-                  </p>
-                </div>
-              </div>
-              
-              {/* Job 2 */}
-              <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-surface bg-surface-container-highest text-on-surface shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                  <Briefcase className="w-4 h-4" />
-                </div>
-                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-5 rounded-2xl glass-card shadow-sm border border-outline-variant/20">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-bold text-lg text-on-surface">Full Stack Developer</h4>
+                  <div className="space-y-3">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                      <h4 className="font-black text-xl text-on-surface tracking-tight">{exp.role}</h4>
+                      <span className="text-[10px] font-black px-3 py-1 bg-primary/5 text-primary rounded-lg border border-primary/10 uppercase tracking-widest">{exp.duration}</span>
+                    </div>
+                    <div className="text-sm font-black text-primary/80 uppercase tracking-widest">{exp.company}</div>
+                    <p className="text-sm text-on-surface-variant leading-relaxed font-medium">
+                      {exp.description}
+                    </p>
                   </div>
-                  <div className="text-sm font-bold text-primary mb-3">InnoSoft Inc. • 2018 - 2021</div>
-                  <p className="text-sm text-on-surface-variant leading-relaxed">
-                    Developed scalable React frontends and Node.js backends. Implemented automated CI/CD pipelines using GitHub Actions.
-                  </p>
                 </div>
-              </div>
-              
+              )) : (
+                <div className="pl-12 py-10 text-on-surface-variant/50 font-bold italic">No work history added yet.</div>
+              )}
             </div>
           </div>
 
-          {/* Project Showcase */}
-          <div className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm">
-            <h3 className="text-2xl font-bold text-on-surface flex items-center gap-3 mb-8">
-              <AppWindow className="w-6 h-6 text-primary" /> Featured Projects
+          {/* Projects */}
+          <div className="glass-card rounded-[32px] p-8 md:p-10 border-outline-variant/10 shadow-xl">
+            <h3 className="text-2xl font-black text-on-surface flex items-center gap-4 mb-10 uppercase tracking-tight">
+              <AppWindow className="w-7 h-7 text-primary" /> Key Projects
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Project Card 1 */}
-              <div className="bg-surface-container-lowest dark:bg-background border border-outline-variant/30 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
-                <div className="h-48 w-full overflow-hidden relative">
-                  <img 
-                    alt="Dashboard project" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                    src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=600&h=400" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <span className="bg-black/40 backdrop-blur-md text-white text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-lg border border-white/20">AI Platform</span>
-                  </div>
-                </div>
-                <div className="p-5">
-                  <h4 className="text-base font-bold text-on-surface mb-2">Lumina Analytics Dashboard</h4>
-                  <p className="text-sm text-on-surface-variant line-clamp-2 mb-4 leading-relaxed">
-                    Architected a real-time data visualization platform processing 1M+ events daily. Implemented predictive AI models.
-                  </p>
-                  <div className="flex gap-2 mb-4">
-                    <span className="text-[11px] font-bold px-2.5 py-1 bg-surface-container-high rounded-md text-on-surface-variant">React</span>
-                    <span className="text-[11px] font-bold px-2.5 py-1 bg-surface-container-high rounded-md text-on-surface-variant">Python</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-3 border-t border-outline-variant/20">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
-                      <Sparkles className="w-3.5 h-3.5" /> AI Enhanced
+              {profile.projects?.length > 0 ? profile.projects.map((proj: any, i: number) => (
+                <div key={i} className="bg-surface-container/30 border border-outline-variant/10 rounded-[28px] p-6 hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+                      <Code2 className="w-6 h-6" />
                     </div>
-                    <a className="text-xs font-bold text-on-surface-variant hover:text-primary flex items-center gap-1 transition-colors" href="#">
-                      View Details <ArrowRight className="w-3.5 h-3.5" />
-                    </a>
+                    {proj.link && (
+                      <a href={proj.link} target="_blank" className="p-2 hover:bg-primary/10 rounded-xl transition-colors">
+                        <ArrowRight className="w-5 h-5 text-on-surface-variant" />
+                      </a>
+                    )}
                   </div>
-                </div>
-              </div>
-
-              {/* Project Card 2 */}
-              <div className="bg-surface-container-lowest dark:bg-background border border-outline-variant/30 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
-                <div className="h-48 w-full overflow-hidden relative">
-                  <img 
-                    alt="Cloud project" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                    src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=600&h=400" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <span className="bg-black/40 backdrop-blur-md text-white text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-lg border border-white/20">E-Commerce</span>
-                  </div>
-                </div>
-                <div className="p-5">
-                  <h4 className="text-base font-bold text-on-surface mb-2">CloudScale Microservices</h4>
-                  <p className="text-sm text-on-surface-variant line-clamp-2 mb-4 leading-relaxed">
-                    Designed and deployed a highly available cloud infrastructure capable of handling 50k+ concurrent users.
+                  <h4 className="text-lg font-black text-on-surface mb-3 tracking-tight">{proj.title}</h4>
+                  <p className="text-sm text-on-surface-variant line-clamp-3 mb-6 font-medium leading-relaxed">
+                    {proj.description}
                   </p>
-                  <div className="flex gap-2 mb-4">
-                    <span className="text-[11px] font-bold px-2.5 py-1 bg-surface-container-high rounded-md text-on-surface-variant">Node.js</span>
-                    <span className="text-[11px] font-bold px-2.5 py-1 bg-surface-container-high rounded-md text-on-surface-variant">AWS</span>
-                    <span className="text-[11px] font-bold px-2.5 py-1 bg-surface-container-high rounded-md text-on-surface-variant">Docker</span>
-                  </div>
-                  <div className="flex justify-end pt-3 border-t border-outline-variant/20">
-                    <a className="text-xs font-bold text-on-surface-variant hover:text-primary flex items-center gap-1 transition-colors" href="#">
-                      View Details <ArrowRight className="w-3.5 h-3.5" />
-                    </a>
+                  <div className="flex flex-wrap gap-2">
+                    {proj.stack?.map((s: string, j: number) => (
+                      <span key={j} className="text-[9px] font-black px-2.5 py-1 bg-surface rounded-lg text-primary border border-outline-variant/10 uppercase tracking-widest">
+                        {s}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )) : (
+                <div className="col-span-full py-10 text-center text-on-surface-variant/50 font-bold italic">No projects added yet.</div>
+              )}
             </div>
           </div>
-          
         </div>
 
-        {/* Right Column: Skills & Stats */}
-        <div className="space-y-8">
-          
-          {/* Skills Card */}
-          <div className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm">
-            <h3 className="text-2xl font-bold text-on-surface flex items-center gap-3 mb-6">
-              <BrainCircuit className="w-6 h-6 text-primary" /> Core Skills
+        <div className="lg:col-span-4 space-y-8">
+          {/* Skills */}
+          <div className="glass-card rounded-[32px] p-8 border-outline-variant/10 shadow-xl">
+            <h3 className="text-xl font-black text-on-surface flex items-center gap-3 mb-8 uppercase tracking-widest text-[13px]">
+              <BrainCircuit className="w-5 h-5 text-primary" /> Core Expertise
             </h3>
-            
+            <div className="flex flex-wrap gap-2.5">
+              {profile.skills?.length > 0 ? profile.skills.map((skill: string) => (
+                <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-primary/30 transition-all cursor-default shadow-sm">
+                  {skill} 
+                </span>
+              )) : (
+                <div className="text-on-surface-variant/50 font-bold italic text-sm">No skills added.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Education */}
+          <div className="glass-card rounded-[32px] p-8 border-outline-variant/10 shadow-xl">
+            <h3 className="text-xl font-black text-on-surface flex items-center gap-3 mb-8 uppercase tracking-widest text-[13px]">
+              <GraduationCap className="w-5 h-5 text-primary" /> Education
+            </h3>
             <div className="space-y-6">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">Frontend Engineering</p>
-                <div className="flex flex-wrap gap-2">
-                  {['React', 'TypeScript', 'Next.js', 'Tailwind CSS'].map(skill => (
-                    <span key={skill} className="bg-surface-container-lowest dark:bg-surface-container-high border border-outline-variant/30 px-4 py-2 rounded-xl text-sm font-semibold text-on-surface shadow-sm hover:border-primary transition-colors cursor-default">
-                      {skill} 
-                    </span>
-                  ))}
+              {profile.education?.length > 0 ? profile.education.map((edu: any, i: number) => (
+                <div key={i} className="space-y-1 relative pl-4 border-l-2 border-primary/20">
+                  <div className="text-xs font-black text-primary uppercase tracking-widest">{edu.year}</div>
+                  <h4 className="font-bold text-on-surface leading-tight">{edu.degree}</h4>
+                  <p className="text-xs text-on-surface-variant font-medium">{edu.university}</p>
+                  {edu.cgpa && <div className="text-[10px] font-bold text-emerald-600 uppercase mt-1">CGPA: {edu.cgpa}</div>}
                 </div>
-              </div>
-              
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">Backend & Cloud</p>
-                <div className="flex flex-wrap gap-2">
-                  {['Node.js', 'PostgreSQL', 'GraphQL', 'AWS', 'Docker'].map(skill => (
-                    <span key={skill} className="bg-surface-container-lowest dark:bg-surface-container-high border border-outline-variant/30 px-4 py-2 rounded-xl text-sm font-semibold text-on-surface shadow-sm hover:border-primary transition-colors cursor-default">
-                      {skill} 
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">AI & Tools</p>
-                <div className="flex flex-wrap gap-2">
-                  {['OpenAI API', 'LangChain', 'Git', 'Figma'].map(skill => (
-                    <span key={skill} className="bg-surface-container-lowest dark:bg-surface-container-high border border-outline-variant/30 px-4 py-2 rounded-xl text-sm font-semibold text-on-surface shadow-sm hover:border-primary transition-colors cursor-default">
-                      {skill} 
-                    </span>
-                  ))}
-                </div>
-              </div>
+              )) : (
+                <div className="text-on-surface-variant/50 font-bold italic text-sm">No education listed.</div>
+              )}
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm">
-            <h3 className="text-lg font-bold text-on-surface mb-6">Quick Stats</h3>
+          {/* Stats */}
+          <div className="glass-card rounded-[32px] p-8 border-outline-variant/10 shadow-xl bg-primary/5">
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-surface-container-lowest p-4 rounded-xl text-center border border-outline-variant/20">
-                <div className="text-2xl font-black text-primary mb-1">6+</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Years Exp.</div>
+              <div className="text-center p-4">
+                <div className="text-3xl font-black text-primary">{profile.experience || 0}+</div>
+                <div className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant opacity-70">Years Exp</div>
               </div>
-              <div className="bg-surface-container-lowest p-4 rounded-xl text-center border border-outline-variant/20">
-                <div className="text-2xl font-black text-primary mb-1">24</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Projects</div>
-              </div>
-              <div className="bg-surface-container-lowest p-4 rounded-xl text-center border border-outline-variant/20">
-                <div className="text-2xl font-black text-primary mb-1">100%</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Job Match</div>
-              </div>
-              <div className="bg-surface-container-lowest p-4 rounded-xl text-center border border-outline-variant/20">
-                <div className="text-2xl font-black text-primary mb-1">8</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Certificates</div>
+              <div className="text-center p-4">
+                <div className="text-3xl font-black text-primary">{profile.projects?.length || 0}</div>
+                <div className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant opacity-70">Projects</div>
               </div>
             </div>
           </div>
-
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-xl" onClick={() => setIsEditModalOpen(false)}></div>
+          <div className="relative w-full max-w-4xl max-h-[90vh] glass-card rounded-[40px] shadow-2xl border-outline-variant/20 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+            {/* Modal Header */}
+            <div className="p-8 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container/30">
+              <div>
+                <h2 className="text-2xl font-black text-on-surface tracking-tight uppercase">Update Profile</h2>
+                <p className="text-sm text-on-surface-variant font-medium">Keep your professional identity fresh</p>
+              </div>
+              <button onClick={() => setIsEditModalOpen(false)} className="p-3 hover:bg-error/10 hover:text-error rounded-2xl transition-all">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-10">
+              <form id="edit-profile-form" onSubmit={handleUpdateProfile} className="space-y-12">
+                
+                {/* Basic Section */}
+                <section className="space-y-6">
+                  <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
+                    <span className="w-8 h-[2px] bg-primary/30"></span> Basic Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Full Name</label>
+                      <input 
+                        className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium capitalize"
+                        placeholder="John Doe"
+                        value={editForm.fullname}
+                        onChange={e => setEditForm({...editForm, fullname: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Location (e.g. Remote, City)</label>
+                      <input 
+                        className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
+                        placeholder="Jaipur, India"
+                        value={editForm.location}
+                        onChange={e => setEditForm({...editForm, location: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Country Code</label>
+                      <input 
+                        className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
+                        placeholder="+91"
+                        value={editForm.countryCode}
+                        onChange={e => setEditForm({...editForm, countryCode: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Phone Number (10 Digits)</label>
+                      <input 
+                        type="text"
+                        maxLength={10}
+                        className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
+                        placeholder="9876543210"
+                        value={editForm.phoneNumber}
+                        onChange={e => {
+                          const val = e.target.value.replace(/\D/g, ''); // Only numbers
+                          if (val.length <= 10) {
+                            setEditForm({...editForm, phoneNumber: val});
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Experience (Years)</label>
+                      <input 
+                        type="number"
+                        className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
+                        value={editForm.experience}
+                        onChange={e => setEditForm({...editForm, experience: parseInt(e.target.value) || 0})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Professional Bio</label>
+                    <textarea 
+                      rows={4}
+                      className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium resize-none"
+                      value={editForm.bio}
+                      onChange={e => setEditForm({...editForm, bio: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Skills (Comma separated)</label>
+                    <input 
+                      className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
+                      placeholder="React, Node.js, TypeScript..."
+                      value={editForm.skills}
+                      onChange={e => setEditForm({...editForm, skills: e.target.value})}
+                    />
+                  </div>
+                </section>
+
+                {/* Experience Section */}
+                <section className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
+                      <span className="w-8 h-[2px] bg-primary/30"></span> Work History
+                    </h3>
+                    <button 
+                      type="button"
+                      onClick={() => addItem('workExperience', { role: '', company: '', duration: '', description: '' })}
+                      className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {editForm.workExperience.map((exp: any, i: number) => (
+                      <div key={i} className="p-6 bg-surface-container/30 rounded-3xl border border-outline-variant/10 relative group">
+                        <button 
+                          type="button"
+                          onClick={() => removeItem('workExperience', i)}
+                          className="absolute top-4 right-4 p-2 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <input 
+                            placeholder="Role (e.g. Senior Dev)"
+                            className="bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
+                            value={exp.role}
+                            onChange={e => updateItem('workExperience', i, 'role', e.target.value)}
+                          />
+                          <input 
+                            placeholder="Company"
+                            className="bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
+                            value={exp.company}
+                            onChange={e => updateItem('workExperience', i, 'company', e.target.value)}
+                          />
+                          <input 
+                            placeholder="Duration (e.g. 2021 - Present)"
+                            className="bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
+                            value={exp.duration}
+                            onChange={e => updateItem('workExperience', i, 'duration', e.target.value)}
+                          />
+                        </div>
+                        <textarea 
+                          placeholder="Description of your responsibilities..."
+                          className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30 resize-none"
+                          rows={2}
+                          value={exp.description}
+                          onChange={e => updateItem('workExperience', i, 'description', e.target.value)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Projects Section */}
+                <section className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
+                      <span className="w-8 h-[2px] bg-primary/30"></span> Projects
+                    </h3>
+                    <button 
+                      type="button"
+                      onClick={() => addItem('projects', { title: '', description: '', link: '', stack: [] })}
+                      className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {editForm.projects.map((proj: any, i: number) => (
+                      <div key={i} className="p-6 bg-surface-container/30 rounded-3xl border border-outline-variant/10 relative group">
+                        <button 
+                          type="button"
+                          onClick={() => removeItem('projects', i)}
+                          className="absolute top-4 right-4 p-2 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <input 
+                          placeholder="Project Title"
+                          className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30 mb-3 font-bold"
+                          value={proj.title}
+                          onChange={e => updateItem('projects', i, 'title', e.target.value)}
+                        />
+                        <textarea 
+                          placeholder="Description..."
+                          className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30 mb-3 resize-none"
+                          rows={2}
+                          value={proj.description}
+                          onChange={e => updateItem('projects', i, 'description', e.target.value)}
+                        />
+                        <input 
+                          placeholder="Project Link (URL)"
+                          className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
+                          value={proj.link}
+                          onChange={e => updateItem('projects', i, 'link', e.target.value)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Education Section */}
+                <section className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
+                      <span className="w-8 h-[2px] bg-primary/30"></span> Education
+                    </h3>
+                    <button 
+                      type="button"
+                      onClick={() => addItem('education', { degree: '', university: '', cgpa: '', year: '' })}
+                      className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {editForm.education.map((edu: any, i: number) => (
+                      <div key={i} className="p-5 bg-surface-container/30 rounded-3xl border border-outline-variant/10 relative group">
+                        <button type="button" onClick={() => removeItem('education', i)} className="absolute top-2 right-2 p-1 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <input placeholder="Degree" className="w-full bg-transparent border-b border-outline-variant/20 mb-2 py-1 text-sm focus:outline-none" value={edu.degree} onChange={e => updateItem('education', i, 'degree', e.target.value)} />
+                        <input placeholder="University" className="w-full bg-transparent border-b border-outline-variant/20 mb-2 py-1 text-sm focus:outline-none" value={edu.university} onChange={e => updateItem('education', i, 'university', e.target.value)} />
+                        <div className="grid grid-cols-2 gap-2">
+                          <input placeholder="Year" className="w-full bg-transparent border-b border-outline-variant/20 py-1 text-xs focus:outline-none" value={edu.year} onChange={e => updateItem('education', i, 'year', e.target.value)} />
+                          <input placeholder="CGPA" className="w-full bg-transparent border-b border-outline-variant/20 py-1 text-xs focus:outline-none" value={edu.cgpa} onChange={e => updateItem('education', i, 'cgpa', e.target.value)} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+              </form>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-8 border-t border-outline-variant/10 bg-surface-container/30 flex gap-4">
+              <button 
+                onClick={() => setIsEditModalOpen(false)}
+                className="flex-1 px-8 py-4 rounded-[20px] font-black text-sm uppercase tracking-widest border border-outline-variant/20 hover:bg-surface transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                form="edit-profile-form"
+                disabled={saving}
+                className="flex-[2] gradient-button text-white px-8 py-4 rounded-[20px] font-black text-sm uppercase tracking-widest shadow-2xl flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

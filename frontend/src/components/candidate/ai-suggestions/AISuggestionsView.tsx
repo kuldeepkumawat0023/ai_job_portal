@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Bolt,
   TrendingUp,
@@ -8,158 +8,247 @@ import {
   Users,
   UserPlus,
   Radar,
+  FileText,
   Mic,
   Play,
-  Sparkles
+  Sparkles,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import { aiService } from '@/lib/services/ai.services';
+import { toast } from 'react-hot-toast';
 
 const AISuggestionsView = () => {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        const response = await aiService.getCareerSuggestions();
+        if (response.success) {
+          setData(response.data);
+        } else {
+          setError(response.message || 'Failed to fetch suggestions');
+        }
+      } catch (err: any) {
+        setError(err.message || 'Something went wrong');
+        toast.error('Failed to load career insights');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="w-full h-[60vh] flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+        <p className="text-on-surface-variant font-medium animate-pulse">Analyzing your professional profile...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    const isNoResume = error.toLowerCase().includes('resume');
+    
+    return (
+      <div className="w-full max-w-2xl mx-auto mt-20 p-12 glass-card border-outline-variant/30 rounded-[48px] text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 pointer-events-none"></div>
+        
+        {isNoResume ? (
+          <>
+            <div className="w-24 h-24 bg-primary/10 rounded-[32px] flex items-center justify-center mx-auto mb-8 shadow-inner">
+              <FileText className="w-12 h-12 text-primary" />
+            </div>
+            <h3 className="text-3xl font-black text-on-surface mb-4">Resume Required</h3>
+            <p className="text-on-surface-variant text-lg mb-10 leading-relaxed">
+              To provide personalized career insights, our AI needs to analyze your background first.
+            </p>
+            <Link href="/candidate/resume-analysis">
+              <button className="gradient-button text-white px-10 py-4 rounded-2xl font-black text-sm flex items-center gap-3 mx-auto hover:shadow-2xl hover:shadow-primary/30 transition-all active:scale-95">
+                Upload Resume Now
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </Link>
+          </>
+        ) : (
+          <>
+            <AlertCircle className="w-16 h-16 text-error mx-auto mb-6" />
+            <h3 className="text-2xl font-bold text-on-surface mb-2 tracking-tight">Oops! Connection Issue</h3>
+            <p className="text-on-surface-variant mb-8 font-medium">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-on-surface text-surface-container-lowest px-10 py-4 rounded-2xl font-black text-sm hover:bg-primary hover:text-white transition-all"
+            >
+              Try Again
+            </button>
+          </>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
+    <div className="w-full max-w-7xl mx-auto space-y-6 pb-20 px-4 md:px-0">
       {/* Header Section */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-on-surface mb-2">AI Career Cockpit</h1>
-        <p className="text-lg text-on-surface-variant">Intelligent recommendations to accelerate your professional growth.</p>
+      <div className="mb-8 md:mb-12">
+        <h1 className="text-3xl md:text-5xl font-black text-on-surface mb-3 tracking-tight leading-tight">AI Career Cockpit</h1>
+        <p className="text-base md:text-xl text-on-surface-variant font-medium max-w-2xl">Intelligent recommendations to accelerate your professional growth.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10">
 
         {/* Left Column: Priority Recommendations */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
-          <h2 className="text-2xl font-bold text-on-surface flex items-center gap-2">
-            <Bolt className="w-6 h-6 text-primary" />
+        <div className="lg:col-span-8 flex flex-col gap-6 md:gap-8">
+          <h2 className="text-xl md:text-2xl font-black text-on-surface flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-primary/10">
+              <Bolt className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+            </div>
             Priority Actions
           </h2>
 
-          {/* Suggestion Card 1 */}
-          <div className="glass-card rounded-2xl p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 border border-white/10 dark:border-white/5 shadow-sm">
-            <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+          {data?.priorityActions?.map((action: any, index: number) => (
+            <div 
+              key={index}
+              className="glass-card rounded-[32px] p-6 md:p-10 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border border-outline-variant/30 hover:border-primary/30"
+            >
+              <div className={cn(
+                "absolute top-0 left-0 w-1.5 h-full transition-all duration-500",
+                index === 0 ? "bg-primary" : "bg-secondary"
+              )}></div>
 
-            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
-              <div>
-                <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-secondary bg-secondary/10 border border-secondary/20 px-2.5 py-1 rounded-lg mb-3">
-                  <TrendingUp className="w-3.5 h-3.5" /> Skill Growth
-                </span>
-                <h3 className="text-2xl font-bold text-on-surface">Master Advanced React Hooks</h3>
+              <div className="flex flex-col md:flex-row justify-between items-start gap-6 md:gap-10 mb-8">
+                <div className="flex-1 order-2 md:order-1">
+                  <span className={cn(
+                    "inline-flex items-center gap-2 text-[9px] md:text-[10px] uppercase tracking-[0.2em] font-black px-4 py-1.5 rounded-full mb-4 border",
+                    index === 0 ? "text-primary bg-primary/10 border-primary/20" : "text-secondary bg-secondary/10 border-secondary/20"
+                  )}>
+                    <TrendingUp className="w-3.5 h-3.5" /> {action.type}
+                  </span>
+                  <h3 className="text-xl md:text-3xl font-black text-on-surface mb-3 group-hover:text-primary transition-colors leading-tight">{action.title}</h3>
+                  <p className="text-on-surface-variant leading-relaxed text-sm md:text-base font-medium">{action.description}</p>
+                </div>
+                {action.image && (
+                  <div className="relative group/img order-1 md:order-2 w-full md:w-auto">
+                    <img
+                      alt={action.title}
+                      className="w-full h-48 md:w-48 md:h-48 rounded-[24px] md:rounded-[32px] object-cover shadow-2xl border-4 border-white/5 grayscale group-hover/img:grayscale-0 transition-all duration-500"
+                      src={action.image}
+                    />
+                    <div className="absolute inset-0 rounded-[24px] md:rounded-[32px] bg-primary/10 opacity-0 group-hover/img:opacity-100 transition-opacity"></div>
+                  </div>
+                )}
               </div>
-              <img
-                alt="Tech visualization"
-                className="w-20 h-20 rounded-xl object-cover shadow-sm border border-white/20 dark:border-white/10 shrink-0"
-                src="https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&q=80&w=200&h=200"
-              />
-            </div>
 
-            <div className="bg-surface-container rounded-xl p-4 mb-6 border border-outline-variant/20 flex gap-3 items-start">
-              <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm text-on-surface font-bold mb-1">Why this helps:</p>
-                <p className="text-sm text-on-surface-variant">78% of your 'Top Match' Senior Frontend roles explicitly require deep knowledge of custom hooks and performance optimization in React.</p>
+              <div className="bg-surface-container/30 rounded-2xl p-5 md:p-8 mb-8 border border-outline-variant/20 flex gap-4 items-start group-hover:bg-primary/5 transition-colors">
+                <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] md:text-xs text-on-surface font-black uppercase tracking-widest mb-1.5">Why this helps:</p>
+                  <p className="text-sm md:text-base text-on-surface-variant leading-relaxed font-medium">{action.reason}</p>
+                </div>
               </div>
+
+              <Link href={action.actionLink || '#'}>
+                <button className="w-full md:w-fit gradient-button text-white font-black text-sm px-8 py-4 md:py-5 rounded-2xl flex items-center justify-center gap-3 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95">
+                  {action.actionText}
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </Link>
             </div>
+          ))}
 
-            <button className="gradient-button text-white font-medium text-sm px-4 py-2.5 rounded-xl flex items-center gap-2 hover:opacity-90 transition-opacity w-fit shadow-md">
-              View Recommended Courses
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Suggestion Card 2 */}
-          <div className="glass-card rounded-2xl p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 border border-white/10 dark:border-white/5 shadow-sm">
-            <div className="absolute top-0 left-0 w-1 h-full bg-tertiary"></div>
-
-            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
-              <div>
-                <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-tertiary bg-tertiary/10 border border-tertiary/20 px-2.5 py-1 rounded-lg mb-3">
-                  <Users className="w-3.5 h-3.5" /> Network Expansion
-                </span>
-                <h3 className="text-2xl font-bold text-on-surface">Connect with FinTech Engineers</h3>
-              </div>
-              <img
-                alt="Network connections"
-                className="w-20 h-20 rounded-xl object-cover shadow-sm border border-white/20 dark:border-white/10 shrink-0"
-                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=200&h=200"
-              />
+          {(!data?.priorityActions || data.priorityActions.length === 0) && (
+            <div className="p-12 md:p-20 text-center glass-card rounded-[32px] border-dashed border-2 border-outline-variant/30">
+              <Sparkles className="w-12 h-12 text-primary/30 mx-auto mb-4" />
+              <p className="text-on-surface-variant font-bold text-lg">No priority actions identified yet. Keep updating your profile!</p>
             </div>
-
-            <div className="bg-surface-container rounded-xl p-4 mb-6 border border-outline-variant/20 flex gap-3 items-start">
-              <Sparkles className="w-5 h-5 text-tertiary shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm text-on-surface font-bold mb-1">Why this helps:</p>
-                <p className="text-sm text-on-surface-variant">You've saved 5 roles at Stripe and Square. Expanding your network in this sector increases referral chances by 3x.</p>
-              </div>
-            </div>
-
-            <button className="bg-transparent border border-outline-variant/50 text-on-surface font-medium text-sm px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-surface-container transition-colors w-fit">
-              View Connection Suggestions
-              <UserPlus className="w-4 h-4 text-tertiary" />
-            </button>
-          </div>
-
+          )}
         </div>
 
         {/* Right Column: Insights & Simulation */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
+        <div className="lg:col-span-4 flex flex-col gap-6 md:gap-10">
 
           {/* Skill Gap Analysis */}
-          <div className="glass-card rounded-2xl p-6 border border-white/10 dark:border-white/5 shadow-sm">
-            <h3 className="text-2xl font-bold text-on-surface mb-4 flex items-center gap-2">
-              <Radar className="w-5 h-5 text-outline" />
+          <div className="glass-card rounded-[32px] p-6 md:p-10 border border-outline-variant/30 shadow-xl shadow-surface-container/50">
+            <h3 className="text-xl md:text-2xl font-black text-on-surface mb-8 flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-outline/10 text-outline">
+                <Radar className="w-5 h-5 md:w-6 md:h-6" />
+              </div>
               Skill Radar
             </h3>
 
-            <div className="mb-4">
-              <div className="relative w-full h-40 rounded-xl border border-outline-variant/20 mb-4 overflow-hidden bg-surface-container flex items-center justify-center">
-                {/* Simplified placeholder for a radar chart */}
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background to-background"></div>
-                <div className="w-24 h-24 rounded-full border-2 border-primary/30 border-dashed animate-[spin_10s_linear_infinite]"></div>
-                <div className="absolute w-16 h-16 rounded-full border-2 border-secondary/40 border-dotted animate-[spin_15s_linear_infinite_reverse]"></div>
-                <Radar className="w-8 h-8 text-primary absolute opacity-50" />
+            <div className="mb-6">
+              <div className="relative w-full aspect-square rounded-[32px] border border-outline-variant/20 mb-8 overflow-hidden bg-surface-container/20 flex items-center justify-center">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent"></div>
+                
+                {/* Visual Radar Mock */}
+                <div className="relative w-32 h-32 md:w-48 md:h-48 flex items-center justify-center">
+                  <div className="absolute inset-0 border-2 border-primary/20 rounded-full animate-[ping_3s_linear_infinite]"></div>
+                  <div className="absolute inset-4 border-2 border-secondary/20 rounded-full animate-[ping_4s_linear_infinite_reverse]"></div>
+                  <div className="absolute inset-8 border-2 border-tertiary/20 rounded-full animate-[ping_5s_linear_infinite]"></div>
+                  <div className="w-full h-full border border-outline-variant/30 rounded-full flex items-center justify-center">
+                    <Radar className="w-8 h-8 md:w-12 md:h-12 text-primary opacity-50" />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-3">
-                <div className="flex justify-between items-center bg-surface-container px-3 py-2 rounded-lg">
-                  <span className="text-sm font-medium text-on-surface-variant">TypeScript</span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 px-2 py-1 rounded-md border border-primary/20">Strong</span>
-                </div>
-                <div className="flex justify-between items-center bg-surface-container px-3 py-2 rounded-lg">
-                  <span className="text-sm font-medium text-on-surface-variant">GraphQL</span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-error bg-error/10 px-2 py-1 rounded-md border border-error/20">Gap Identified</span>
-                </div>
+                {data?.skillRadar?.map((skill: any, idx: number) => (
+                  <div key={idx} className="flex justify-between items-center bg-surface-container/50 px-4 py-3 md:py-4 rounded-2xl border border-outline-variant/10 group hover:border-primary/30 transition-all">
+                    <span className="text-sm font-bold text-on-surface-variant group-hover:text-on-surface">{skill.skill}</span>
+                    <span className={cn(
+                      "text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 rounded-full border shadow-sm",
+                      skill.status === 'Strong' 
+                        ? "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" 
+                        : "text-amber-500 bg-amber-500/10 border-amber-500/20"
+                    )}>
+                      {skill.status}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Interview Simulation */}
-          <div className="glass-card rounded-2xl p-6 bg-gradient-to-br from-surface to-primary/5 border-primary/20 shadow-sm relative overflow-hidden group">
-            <div className="absolute -right-10 -top-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-colors"></div>
+          <div className="glass-card rounded-[40px] p-6 md:p-10 bg-gradient-to-br from-surface to-primary/5 border-primary/20 shadow-2xl relative overflow-hidden group">
+            <div className="absolute -right-10 -top-10 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700"></div>
 
-            <h3 className="text-2xl font-bold text-on-surface mb-3 flex items-center gap-2 relative z-10">
-              <Mic className="w-5 h-5 text-primary" />
+            <h3 className="text-xl md:text-2xl font-black text-on-surface mb-4 flex items-center gap-3 relative z-10">
+              <div className="p-2 rounded-xl bg-primary/20">
+                <Mic className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+              </div>
               Prep Mode
             </h3>
 
-            <p className="text-sm text-on-surface-variant mb-6 relative z-10 leading-relaxed">
-              Your interview for 'Frontend Lead' at Vercel is likely soon based on typical timelines.
+            <p className="text-on-surface-variant mb-8 relative z-10 leading-relaxed font-semibold">
+              Ready to ace your next round? Practice with roles like yours.
             </p>
 
-            <div className="relative w-full h-32 mb-6 rounded-xl overflow-hidden border border-outline-variant/20 group-hover:border-primary/30 transition-colors shadow-inner">
+            <div className="relative w-full aspect-video mb-8 rounded-[24px] md:rounded-3xl overflow-hidden border border-outline-variant/20 group-hover:border-primary/40 transition-all shadow-2xl">
               <img
                 alt="Interview simulation preview"
-                className="w-full h-full object-cover opacity-80"
+                className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
                 src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400&h=300"
               />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-[4px] group-hover:backdrop-blur-none transition-all">
                 <Link href="/candidate/aimock-interview">
-                  <button className="h-12 w-12 rounded-full gradient-button text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                    <Play className="w-5 h-5 ml-1" />
-                  </button>
+                  <div className="h-16 w-16 rounded-full bg-primary text-white flex items-center justify-center shadow-[0_0_30px_rgba(70,72,212,0.5)] hover:scale-110 transition-all cursor-pointer">
+                    <Play className="w-6 h-6 ml-1" />
+                  </div>
                 </Link>
               </div>
             </div>
 
             <Link href="/candidate/aimock-interview" className="block relative z-10">
-              <button className="w-full gradient-button text-white font-bold text-sm px-4 py-3 rounded-xl flex items-center justify-center gap-2 shadow-md hover:opacity-90 transition-opacity">
+              <button className="w-full bg-on-surface text-surface-container-lowest font-black text-sm px-8 py-4 md:py-5 rounded-2xl flex items-center justify-center gap-3 shadow-xl hover:bg-primary hover:text-white transition-all">
                 Start Mock Interview
               </button>
             </Link>
@@ -170,5 +259,10 @@ const AISuggestionsView = () => {
     </div>
   );
 };
+
+// Helper for conditional classes
+function cn(...classes: any[]) {
+  return classes.filter(Boolean).join(' ');
+}
 
 export default AISuggestionsView;

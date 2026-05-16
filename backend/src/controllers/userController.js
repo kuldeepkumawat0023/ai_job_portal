@@ -55,7 +55,7 @@ exports.updateProfile = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized update request', data: null });
     }
 
-    const { fullname, bio, skills, experience, education, workExperience, projects, role } = req.body;
+    const { fullname, bio, skills, experience, education, workExperience, projects, role, location, phoneNumber, countryCode } = req.body;
 
     let user = await User.findById(req.params.id);
 
@@ -87,11 +87,30 @@ exports.updateProfile = async (req, res, next) => {
     // Update text fields
     if (fullname) user.fullname = fullname;
     if (bio) user.bio = bio;
-    if (skills) user.skills = skills;
-    if (experience !== undefined) user.experience = experience;
-    if (education) user.education = education;
-    if (workExperience) user.workExperience = workExperience;
-    if (projects) user.projects = projects;
+    if (location) user.location = location;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+    if (countryCode) user.countryCode = countryCode;
+
+    // Parse skills if it's a string (e.g. from a form field)
+    if (skills) {
+      user.skills = Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim());
+    }
+
+    if (experience !== undefined) {
+      user.experience = Number(experience);
+    }
+
+    // Update Arrays (Replacing with new data from frontend)
+    if (education) {
+      user.education = typeof education === 'string' ? JSON.parse(education) : education;
+    }
+    if (workExperience) {
+      user.workExperience = typeof workExperience === 'string' ? JSON.parse(workExperience) : workExperience;
+    }
+    if (projects) {
+      user.projects = typeof projects === 'string' ? JSON.parse(projects) : projects;
+    }
+
     if (role && req.user.role === 'admin') user.role = role;
 
     await user.save();

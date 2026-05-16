@@ -1,7 +1,12 @@
 import React from 'react';
+import ApplicationForm from '@/components/candidate/applications/ApplicationForm';
 
-const Page = ({ params }: { params: { id: string } }) => {
-  return <div>Application Details for ID: {params.id}</div>;
+const ApplicationPage = () => {
+  return (
+    <div className="min-h-screen bg-surface-container-lowest/30 p-4 md:p-8">
+      <ApplicationForm />
+    </div>
+  );
 };
 
-export default Page;
+export default ApplicationPage;

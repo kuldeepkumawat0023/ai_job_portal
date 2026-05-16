@@ -7,7 +7,15 @@ export interface Resume {
   fileName: string;
   fileUrl: string;
   isDefault: boolean;
-  analysis?: any;
+  score?: number;
+  summary?: string;
+  skills?: string[];
+  strengths?: string[];
+  weaknesses?: string[];
+  coachingTips?: string[];
+  experience?: string;
+  recommendedRoles?: string[];
+  isAnalyzed?: boolean;
   createdAt: string;
   updatedAt: string;
 }

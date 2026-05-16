@@ -40,6 +40,7 @@ export interface AuthUser {
   phoneNumber: string;
   role: 'candidate' | 'recruiter' | 'admin';
   profilePhoto?: string;
+  location?: string;
   bio?: string;
   skills: string[];
   education: Education[];
@@ -83,7 +84,7 @@ apiClient.interceptors.request.use(
       if (!token) {
         token = localStorage.getItem(TOKEN_KEY) || undefined;
       }
-      
+
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -110,7 +111,7 @@ apiClient.interceptors.response.use(
         Cookies.remove(TOKEN_KEY, { path: '/' });
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
-        
+
         if (!window.location.pathname.includes('/login')) {
           window.location.href = '/';
         }

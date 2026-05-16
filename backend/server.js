@@ -7,7 +7,7 @@ const connectDB = require('./src/config/db');
 const { connectRedis } = require('./src/config/redis');
 const { initSocket } = require('./src/config/socket');
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 const numCPUs = os.cpus().length;
 
 if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
