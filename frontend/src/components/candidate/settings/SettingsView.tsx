@@ -25,6 +25,8 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
   const [headline, setHeadline] = useState('');
   const [location, setLocation] = useState('');
 
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
   // Form states (AI Preferences)
   const [aiScoreThreshold, setAiScoreThreshold] = useState(75);
   const [aiFocus, setAiFocus] = useState('skills');
@@ -67,6 +69,13 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
 
     fetchProfileDetails();
   }, [user?._id]);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [headline]);
 
   const handleSaveProfile = async () => {
     if (!user?._id) return;
@@ -251,9 +260,10 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
 
                   <div className="space-y-2">
                     <label className="text-[12px] uppercase font-bold tracking-widest text-on-surface-variant">Professional Headline</label>
-                    <input
-                      className="w-full bg-transparent border-b border-outline-variant/50 focus:border-primary px-0 py-2 text-base text-on-surface border-t-0 border-l-0 border-r-0 focus:ring-0 transition-colors"
-                      type="text"
+                    <textarea
+                      ref={textareaRef}
+                      className="w-full bg-transparent border-b border-outline-variant/50 focus:border-primary px-0 py-2 text-base text-on-surface border-t-0 border-l-0 border-r-0 focus:ring-0 transition-colors resize-none overflow-hidden min-h-[44px] leading-relaxed"
+                      rows={1}
                       value={headline}
                       onChange={(e) => setHeadline(e.target.value)}
                       placeholder="e.g. Senior UX Designer | AI Enthusiast"
