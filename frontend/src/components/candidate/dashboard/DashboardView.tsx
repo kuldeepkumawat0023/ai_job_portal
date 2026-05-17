@@ -23,6 +23,7 @@ import { RootState } from '@/store/store';
 import { dashboardService } from '@/lib/services/dashboard.services';
 import { jobService, Job } from '@/lib/services/job.services';
 import { applicationService } from '@/lib/services/application.services';
+import ProfileWizardModal from './ProfileWizardModal';
 
 interface DashboardStats {
   totalApplied: number;
@@ -43,6 +44,7 @@ const DashboardView = () => {
   const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
   const [appliedJobs, setAppliedJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isProfileWizardOpen, setIsProfileWizardOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -149,11 +151,54 @@ const DashboardView = () => {
                 : "Your AI readiness score is looking strong today. We found new matches for your profile."}
             </p>
             {isProfileIncomplete && (
-              <Link href="/candidate/resume-analysis">
-                <Button variant="gradient" size="sm" className="mt-6 shadow-lg shadow-primary/20">
+              <div className="relative inline-block mt-6 group">
+                {/* Concentric sound wave/vibration ripples with dual-gradient energy */}
+                <motion.div
+                  className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/40 to-secondary/40 pointer-events-none blur-sm"
+                  style={{ zIndex: 0 }}
+                  animate={{
+                    scale: [1, 1.45],
+                    opacity: [0.8, 0]
+                  }}
+                  transition={{
+                    duration: 1.8,
+                    repeat: Infinity,
+                    ease: "easeOut"
+                  }}
+                />
+                <motion.div
+                  className="absolute inset-0 rounded-2xl bg-gradient-to-r from-secondary/30 to-tertiary/30 pointer-events-none blur-sm"
+                  style={{ zIndex: 0 }}
+                  animate={{
+                    scale: [1, 1.85],
+                    opacity: [0.6, 0]
+                  }}
+                  transition={{
+                    duration: 1.8,
+                    delay: 0.6,
+                    repeat: Infinity,
+                    ease: "easeOut"
+                  }}
+                />
+                
+                <Button 
+                  variant="gradient" 
+                  size="sm" 
+                  className="shadow-2xl shadow-primary/50 hover:shadow-secondary/50 active:scale-95 transition-all relative overflow-hidden flex items-center gap-2 font-black tracking-wide"
+                  style={{ position: 'relative', zIndex: 1 }}
+                  onClick={() => setIsProfileWizardOpen(true)}
+                >
+                  {/* Glowing shimmer reflection */}
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
                   Complete Profile
+                  <motion.span
+                    animate={{ rotate: [0, 15, -15, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  >
+                    🚀
+                  </motion.span>
                 </Button>
-              </Link>
+              </div>
             )}
           </div>
           
@@ -207,6 +252,12 @@ const DashboardView = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Profile Wizard Modal */}
+      <ProfileWizardModal 
+        isOpen={isProfileWizardOpen} 
+        onClose={() => setIsProfileWizardOpen(false)} 
+      />
 
       {/* Bento Grid: Analysis & Matches */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

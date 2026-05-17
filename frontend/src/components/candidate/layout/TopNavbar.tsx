@@ -127,15 +127,49 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
         )}
 
         <div className="hidden md:flex items-center ml-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setIsHiringModalOpen(true)}
-            className="rounded-xl border-primary/30 text-primary hover:bg-primary hover:text-white transition-all font-bold text-[10px] uppercase tracking-widest flex items-center gap-2"
-          >
-            <Briefcase className="w-3.5 h-3.5" />
-            Start Hiring
-          </Button>
+          <div className="relative inline-block group">
+            {/* Pulsing sound waves/vibration ripples with dual-gradient energy */}
+            <motion.div
+              className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/30 to-secondary/30 pointer-events-none blur-[2px]"
+              style={{ zIndex: 0 }}
+              animate={{
+                scale: [1, 1.3],
+                opacity: [0.6, 0]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeOut"
+              }}
+            />
+            <motion.div
+              className="absolute inset-0 rounded-xl bg-gradient-to-r from-secondary/20 to-tertiary/20 pointer-events-none blur-[2px]"
+              style={{ zIndex: 0 }}
+              animate={{
+                scale: [1, 1.5],
+                opacity: [0.4, 0]
+              }}
+              transition={{
+                duration: 2,
+                delay: 0.7,
+                repeat: Infinity,
+                ease: "easeOut"
+              }}
+            />
+
+            <Button 
+              variant="gradient" 
+              size="sm"
+              onClick={() => setIsHiringModalOpen(true)}
+              className="relative overflow-hidden rounded-xl text-white font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-primary/30 active:scale-95"
+              style={{ position: 'relative', zIndex: 1 }}
+            >
+              {/* Glowing shimmer reflection */}
+              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+              <Briefcase className="w-3.5 h-3.5 group-hover:animate-bounce" />
+              Start Hiring
+            </Button>
+          </div>
         </div>
 
         <div className="h-8 w-[1px] bg-outline-variant/20 mx-1 hidden sm:block" />

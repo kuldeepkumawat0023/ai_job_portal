@@ -81,4 +81,22 @@ export const aiService = {
     const response = await apiClient.post('/ai/real-interview-feedback', data);
     return response.data;
   },
+
+  /**
+   * Send a message to AI Chat Assistant
+   * POST /api/v1/ai/chat
+   */
+  chat: async (message: string): Promise<ApiResponse<string>> => {
+    const response = await apiClient.post('/ai/chat', { message });
+    return response.data;
+  },
+
+  /**
+   * Fetch chat history for the last 24 hours
+   * GET /api/v1/ai/chat-history
+   */
+  getChatHistory: async (): Promise<ApiResponse<any[]>> => {
+    const response = await apiClient.get('/ai/chat-history');
+    return response.data;
+  },
 };

@@ -32,15 +32,15 @@ export const metadata: Metadata = {
   title: "AI JobFit - Precision Hiring & AI Recruitment",
   description: "Empowering your career through AI-driven job matching and precision recruitment. Connect with top employers and find your perfect role.",
   // manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "AI JobFit",
-  },
-  icons: {
-    icon: "/logo.webp",
-    apple: "/logo.webp",
-  },
+  // appleWebApp: {
+  //   capable: true,
+  //   statusBarStyle: "default",
+  //   title: "AI JobFit",
+  // },
+  // icons: {
+  //   icon: "/logo.webp",
+  //   apple: "/logo.webp",
+  // },
 };
 
 export default function RootLayout({
