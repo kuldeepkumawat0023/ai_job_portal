@@ -471,31 +471,31 @@ const PortfolioView = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {profile.projects?.length > 0 ? profile.projects.map((proj: any, i: number) => (
-                <div key={i} className="bg-[#5a6578] dark:bg-[#121620]/60 border border-slate-500/20 dark:border-[#1b2336]/60 rounded-[32px] p-8 hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1 flex flex-col justify-between min-h-[220px]">
+                <div key={i} className="bg-surface-container-low/80 dark:bg-surface-container-low/30 border border-outline-variant/30 dark:border-outline-variant/10 rounded-[32px] p-8 hover:shadow-xl dark:hover:shadow-2xl/20 transition-all duration-300 group hover:-translate-y-1 flex flex-col justify-between min-h-[220px] hover:border-primary/40 dark:hover:border-primary/40">
                   <div>
                     <div className="flex justify-between items-center mb-6">
-                      <div className="w-12 h-12 rounded-full bg-[#111827] dark:bg-[#1b2336] flex items-center justify-center text-blue-400 dark:text-primary border border-slate-700/50 dark:border-primary/20 shadow-inner">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-inner">
                         <Code2 className="w-5 h-5" />
                       </div>
                       {proj.link ? (
-                        <a href={proj.link} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-white/10 dark:hover:bg-primary/10 rounded-full transition-colors">
-                          <ArrowRight className="w-5 h-5 text-blue-400 dark:text-primary/60 dark:group-hover:text-primary transition-colors transform group-hover:translate-x-1 duration-300" />
+                        <a href={proj.link} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-primary/10 rounded-full transition-colors">
+                          <ArrowRight className="w-5 h-5 text-primary/60 group-hover:text-primary transition-colors transform group-hover:translate-x-1 duration-300" />
                         </a>
                       ) : (
                         <div className="p-2">
-                          <ArrowRight className="w-5 h-5 text-blue-400/40 dark:text-primary/20 transform group-hover:translate-x-1 transition-all duration-300" />
+                          <ArrowRight className="w-5 h-5 text-primary/20 transform group-hover:translate-x-1 transition-all duration-300" />
                         </div>
                       )}
                     </div>
-                    <h4 className="text-xl font-bold text-white mb-3 tracking-tight group-hover:text-blue-300 dark:group-hover:text-primary transition-colors duration-300">{proj.title}</h4>
-                    <p className="text-sm text-slate-200/90 dark:text-slate-300 leading-relaxed line-clamp-3 mb-2 font-medium opacity-90">
+                    <h4 className="text-xl font-bold text-on-surface mb-3 tracking-tight group-hover:text-primary transition-colors duration-300">{proj.title}</h4>
+                    <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-3 mb-2 font-medium">
                       {proj.description}
                     </p>
                   </div>
                   {proj.stack && proj.stack.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-500/30 dark:border-[#1b2336]/30">
+                    <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-outline-variant/20 dark:border-outline-variant/10">
                       {proj.stack.map((s: string, j: number) => (
-                        <span key={j} className="text-[9px] font-black px-2.5 py-1 bg-[#111827] dark:bg-[#1b2336] rounded-lg text-blue-400 dark:text-primary border border-slate-700/30 dark:border-primary/10 uppercase tracking-widest">
+                        <span key={j} className="text-[9px] font-black px-2.5 py-1 bg-primary-container/40 dark:bg-primary-container/20 text-primary border border-primary/10 dark:border-primary/5 rounded-lg uppercase tracking-widest">
                           {s}
                         </span>
                       ))}
