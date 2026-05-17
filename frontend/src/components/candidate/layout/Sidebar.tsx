@@ -49,8 +49,7 @@ const navLinks: NavLink[] = [
     icon: Settings,
     children: [
       { name: 'Profile Settings', href: '/candidate/settings', icon: UserCircle },
-      { name: 'View My Profile', href: '/candidate/settings/profile', icon: UserCircle },
-      { name: 'Privacy & Security', href: '/candidate/settings/privacy', icon: ShieldAlert },
+      { name: 'View My Profile', href: '/candidate/settings/profile', icon: UserCircle }
     ]
   },
 ];
