@@ -157,8 +157,8 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
               }}
             />
 
-            <Button 
-              variant="gradient" 
+            <Button
+              variant="gradient"
               size="sm"
               onClick={() => setIsHiringModalOpen(true)}
               className="relative overflow-hidden rounded-xl text-white font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-primary/30 active:scale-95"
@@ -221,7 +221,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
 
                 <div className="px-2 space-y-0.5">
                   <Link
-                    href="/candidate/portfolio"
+                    href="/candidate/settings/profile"
                     onClick={() => setIsDropdownOpen(false)}
                     className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-on-surface hover:bg-primary/10 hover:text-primary rounded-xl transition-colors group/item"
                   >
@@ -270,9 +270,9 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
           </AnimatePresence>
         </div>
       </div>
-      <HiringTransitionModal 
-        isOpen={isHiringModalOpen} 
-        onClose={() => setIsHiringModalOpen(false)} 
+      <HiringTransitionModal
+        isOpen={isHiringModalOpen}
+        onClose={() => setIsHiringModalOpen(false)}
       />
     </header>
   );

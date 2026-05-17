@@ -25,6 +25,7 @@ import {
 import { userService } from '@/lib/services/user.services';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/utils/cn';
+import { jsPDF } from 'jspdf';
 
 const PortfolioView = () => {
   const [profile, setProfile] = useState<any>(null);
@@ -80,6 +81,199 @@ const PortfolioView = () => {
       toast.error('Failed to load profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // PDF Generation Engine using jsPDF
+  const exportToPDF = () => {
+    if (!profile) {
+      toast.error('Profile data not loaded yet');
+      return;
+    }
+
+    try {
+      const doc = new jsPDF();
+      const margin = 20;
+      let yPosition = 20;
+
+      // Color theme
+      const primaryColor = [70, 72, 212]; // #4648d4
+      const secondaryColor = [39, 41, 109];
+      const textColor = [33, 33, 33];
+      const grayTextColor = [100, 116, 139];
+
+      // Guess target role from bio or default
+      const targetRole = profile.bio?.toLowerCase().includes('frontend') 
+        ? 'Senior Frontend Engineer' 
+        : profile.bio?.toLowerCase().includes('backend') 
+          ? 'Senior Backend Engineer' 
+          : 'Professional Candidate';
+
+      // Document Title/Name
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(26);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.text(profile.fullname || 'Resume', margin, yPosition);
+      yPosition += 8;
+
+      // Role
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(14);
+      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+      doc.text(targetRole, margin, yPosition);
+      yPosition += 8;
+
+      // Contact Details Row
+      doc.setFontSize(9);
+      doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+      const locationText = `Location: ${profile.location || 'Remote'}`;
+      const emailText = `Email: ${profile.email || 'N/A'}`;
+      const phoneText = `Phone: ${profile.countryCode || '+91'} ${profile.phoneNumber || 'N/A'}`;
+      doc.text(`${locationText}  |  ${emailText}  |  ${phoneText}`, margin, yPosition);
+      yPosition += 6;
+
+      // Horizontal Divider
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, 210 - margin, yPosition);
+      yPosition += 10;
+
+      // Summary/Bio
+      if (profile.bio) {
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('PROFESSIONAL SUMMARY', margin, yPosition);
+        yPosition += 5;
+
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+        const splitBio = doc.splitTextToSize(profile.bio, 210 - margin * 2);
+        doc.text(splitBio, margin, yPosition);
+        yPosition += (splitBio.length * 5) + 6;
+      }
+
+      // Skills & Expertise
+      if (profile.skills && profile.skills.length > 0) {
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('SKILLS & EXPERTISE', margin, yPosition);
+        yPosition += 6;
+
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+        const skillsText = profile.skills.join(', ');
+        const splitSkills = doc.splitTextToSize(skillsText, 210 - margin * 2);
+        doc.text(splitSkills, margin, yPosition);
+        yPosition += (splitSkills.length * 5) + 8;
+      }
+
+      // Projects Showcase
+      if (profile.projects && profile.projects.length > 0) {
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('FEATURED PROJECTS', margin, yPosition);
+        yPosition += 8;
+
+        profile.projects.forEach((proj: any, index: number) => {
+          // Page boundary check
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+
+          // Project Title
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(11);
+          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+          doc.text(`${index + 1}. ${proj.title}`, margin, yPosition);
+          
+          if (proj.link) {
+            // Measure title width while current bold size 11 font is active
+            const titleWidth = doc.getTextWidth(`${index + 1}. ${proj.title}`);
+            
+            doc.setFont('Helvetica', 'italic');
+            doc.setFontSize(9);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            const linkText = ` [Link: ${proj.link}]`;
+            doc.text(linkText, margin + titleWidth + 2, yPosition);
+          }
+          yPosition += 5;
+
+          // Tech stack
+          if (proj.stack && proj.stack.length > 0) {
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+            doc.text(`Tech Stack: ${proj.stack.join(', ')}`, margin, yPosition);
+            yPosition += 5;
+          }
+
+          // Description
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(9.5);
+          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+          const splitProjDesc = doc.splitTextToSize(proj.description, 210 - margin * 2);
+          doc.text(splitProjDesc, margin, yPosition);
+          yPosition += (splitProjDesc.length * 4.5) + 6;
+        });
+      }
+
+      // Work Experience
+      if (profile.workExperience && profile.workExperience.length > 0) {
+        if (yPosition > 230) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('PROFESSIONAL EXPERIENCE', margin, yPosition);
+        yPosition += 8;
+
+        profile.workExperience.forEach((exp: any) => {
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+
+          // Role & Company
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(11);
+          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+          doc.text(`${exp.role} at ${exp.company}`, margin, yPosition);
+          
+          // Duration right-aligned
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(9.5);
+          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+          doc.text(exp.duration || '', 210 - margin - doc.getTextWidth(exp.duration || ''), yPosition);
+          yPosition += 5;
+
+          // Exp Desc
+          if (exp.description) {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(9.5);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            const splitExpDesc = doc.splitTextToSize(exp.description, 210 - margin * 2);
+            doc.text(splitExpDesc, margin, yPosition);
+            yPosition += (splitExpDesc.length * 4.5) + 6;
+          }
+        });
+      }
+
+      // Save the generated document
+      const filename = `${(profile.fullname || 'Resume').replace(/\s+/g, '_')}_Resume.pdf`;
+      doc.save(filename);
+      toast.success('Resume downloaded successfully!');
+    } catch (pdfErr: any) {
+      console.error('PDF generation failed:', pdfErr);
+      toast.error('Failed to compile PDF resume.');
     }
   };
 
@@ -171,7 +365,10 @@ const PortfolioView = () => {
           >
             <Edit3 className="w-4 h-4" /> Edit Profile
           </button>
-          <button className="flex-1 md:flex-none gradient-button text-white px-6 py-2.5 rounded-2xl text-sm font-black shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+          <button 
+            onClick={exportToPDF}
+            className="flex-1 md:flex-none gradient-button text-white px-6 py-2.5 rounded-2xl text-sm font-black shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+          >
             <Download className="w-4 h-4" /> Download Resume
           </button>
         </div>
@@ -274,28 +471,36 @@ const PortfolioView = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {profile.projects?.length > 0 ? profile.projects.map((proj: any, i: number) => (
-                <div key={i} className="bg-surface-container/30 border border-outline-variant/10 rounded-[28px] p-6 hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="p-3 bg-primary/10 rounded-2xl text-primary">
-                      <Code2 className="w-6 h-6" />
+                <div key={i} className="bg-[#5a6578] dark:bg-[#121620]/60 border border-slate-500/20 dark:border-[#1b2336]/60 rounded-[32px] p-8 hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1 flex flex-col justify-between min-h-[220px]">
+                  <div>
+                    <div className="flex justify-between items-center mb-6">
+                      <div className="w-12 h-12 rounded-full bg-[#111827] dark:bg-[#1b2336] flex items-center justify-center text-blue-400 dark:text-primary border border-slate-700/50 dark:border-primary/20 shadow-inner">
+                        <Code2 className="w-5 h-5" />
+                      </div>
+                      {proj.link ? (
+                        <a href={proj.link} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-white/10 dark:hover:bg-primary/10 rounded-full transition-colors">
+                          <ArrowRight className="w-5 h-5 text-blue-400 dark:text-primary/60 dark:group-hover:text-primary transition-colors transform group-hover:translate-x-1 duration-300" />
+                        </a>
+                      ) : (
+                        <div className="p-2">
+                          <ArrowRight className="w-5 h-5 text-blue-400/40 dark:text-primary/20 transform group-hover:translate-x-1 transition-all duration-300" />
+                        </div>
+                      )}
                     </div>
-                    {proj.link && (
-                      <a href={proj.link} target="_blank" className="p-2 hover:bg-primary/10 rounded-xl transition-colors">
-                        <ArrowRight className="w-5 h-5 text-on-surface-variant" />
-                      </a>
-                    )}
+                    <h4 className="text-xl font-bold text-white mb-3 tracking-tight group-hover:text-blue-300 dark:group-hover:text-primary transition-colors duration-300">{proj.title}</h4>
+                    <p className="text-sm text-slate-200/90 dark:text-slate-300 leading-relaxed line-clamp-3 mb-2 font-medium opacity-90">
+                      {proj.description}
+                    </p>
                   </div>
-                  <h4 className="text-lg font-black text-on-surface mb-3 tracking-tight">{proj.title}</h4>
-                  <p className="text-sm text-on-surface-variant line-clamp-3 mb-6 font-medium leading-relaxed">
-                    {proj.description}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {proj.stack?.map((s: string, j: number) => (
-                      <span key={j} className="text-[9px] font-black px-2.5 py-1 bg-surface rounded-lg text-primary border border-outline-variant/10 uppercase tracking-widest">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
+                  {proj.stack && proj.stack.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-500/30 dark:border-[#1b2336]/30">
+                      {proj.stack.map((s: string, j: number) => (
+                        <span key={j} className="text-[9px] font-black px-2.5 py-1 bg-[#111827] dark:bg-[#1b2336] rounded-lg text-blue-400 dark:text-primary border border-slate-700/30 dark:border-primary/10 uppercase tracking-widest">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )) : (
                 <div className="col-span-full py-10 text-center text-on-surface-variant/50 font-bold italic">No projects added yet.</div>

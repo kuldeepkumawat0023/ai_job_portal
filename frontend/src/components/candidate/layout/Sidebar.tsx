@@ -211,14 +211,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             );
           })}
         </nav>
-
-        {/* Bottom AI Action */}
-        <div className="mt-auto pt-6 border-t border-outline-variant/10">
-          <button className="w-full gradient-button text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-95 group">
-            <Bot className="w-5 h-5 transition-transform group-hover:rotate-12" />
-            <span>Ask AI Coach</span>
-          </button>
-        </div>
       </aside>
     </>
   );
