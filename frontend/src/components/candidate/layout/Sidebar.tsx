@@ -42,14 +42,7 @@ const navLinks: NavLink[] = [
   { name: 'Messages', href: '/candidate/messages', icon: MessageSquare },
   { name: 'AI Suggestions', href: '/candidate/ai-suggestions', icon: Lightbulb },
   { name: 'AI Mock Interview', href: '/candidate/aimock-interview', icon: Mic2 },
-  {
-    name: 'Portfolio',
-    href: '/candidate/portfolio',
-    icon: UserCircle,
-    children: [
-      { name: 'Builder', href: '/candidate/portfolio/builder', icon: FileSearch },
-    ]
-  },
+  { name: 'AI Portfolio Builder', href: '/candidate/portfolio', icon: UserCircle },
   {
     name: 'Settings',
     href: '/candidate/settings',

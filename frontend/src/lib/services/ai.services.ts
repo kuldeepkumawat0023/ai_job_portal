@@ -99,4 +99,13 @@ export const aiService = {
     const response = await apiClient.get('/ai/chat-history');
     return response.data;
   },
+
+  /**
+   * Optimize portfolio text content (bio or project description)
+   * POST /api/v1/ai/optimize-portfolio
+   */
+  optimizePortfolio: async (content: string, type: 'bio' | 'project', targetRole: string): Promise<ApiResponse<string>> => {
+    const response = await apiClient.post('/ai/optimize-portfolio', { content, type, targetRole });
+    return response.data;
+  },
 };
