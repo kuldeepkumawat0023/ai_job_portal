@@ -13,7 +13,8 @@ import {
   Play,
   Sparkles,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Lightbulb
 } from 'lucide-react';
 import Link from 'next/link';
 import { aiService } from '@/lib/services/ai.services';
@@ -21,17 +22,26 @@ import { toast } from 'react-hot-toast';
 
 const AISuggestionsView = () => {
   const [data, setData] = useState<any>(null);
+  const [coachingTips, setCoachingTips] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
       try {
-        const response = await aiService.getCareerSuggestions();
-        if (response.success) {
-          setData(response.data);
+        const [suggestionsRes, coachingRes] = await Promise.all([
+          aiService.getCareerSuggestions(),
+          aiService.getCoachingTips()
+        ]);
+
+        if (suggestionsRes.success) {
+          setData(suggestionsRes.data);
         } else {
-          setError(response.message || 'Failed to fetch suggestions');
+          setError(suggestionsRes.message || 'Failed to fetch suggestions');
+        }
+
+        if (coachingRes.success) {
+          setCoachingTips(coachingRes.data);
         }
       } catch (err: any) {
         setError(err.message || 'Something went wrong');
@@ -163,6 +173,36 @@ const AISuggestionsView = () => {
               </Link>
             </div>
           ))}
+
+          {/* AI Career Coaching Tips Section */}
+          {coachingTips && coachingTips.length > 0 && (
+            <div className="glass-card rounded-[32px] p-6 md:p-10 border border-outline-variant/30 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 mt-6 md:mt-8">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-primary via-secondary to-tertiary"></div>
+              
+              <h3 className="text-xl md:text-2xl font-black text-on-surface mb-6 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+                  <Lightbulb className="w-5 h-5 md:w-6 md:h-6" />
+                </div>
+                AI Career Coaching Tips
+              </h3>
+
+              <div className="space-y-4">
+                {coachingTips.map((tip, index) => (
+                  <div 
+                    key={index}
+                    className="flex gap-4 items-start p-4 md:p-6 rounded-2xl bg-surface-container/20 border border-outline-variant/10 hover:border-amber-500/30 hover:bg-amber-500/[0.02] transition-all"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 font-bold flex items-center justify-center shrink-0 text-sm">
+                      {index + 1}
+                    </div>
+                    <p className="text-sm md:text-base text-on-surface-variant font-medium leading-relaxed">
+                      {tip}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {(!data?.priorityActions || data.priorityActions.length === 0) && (
             <div className="p-12 md:p-20 text-center glass-card rounded-[32px] border-dashed border-2 border-outline-variant/30">

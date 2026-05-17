@@ -256,13 +256,43 @@ exports.getCoachingTips = async (req, res, next) => {
       }
     `;
 
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "gpt-3.5-turbo",
-      response_format: { type: "json_object" },
-    });
+    let aiTips;
+    try {
+      const completion = await openai.chat.completions.create({
+        messages: [{ role: "user", content: prompt }],
+        model: "gpt-3.5-turbo",
+        response_format: { type: "json_object" },
+      });
 
-    const aiTips = JSON.parse(completion.choices[0].message.content);
+      aiTips = JSON.parse(completion.choices[0].message.content);
+      console.log('Coaching tips generated successfully (Real AI)');
+    } catch (apiError) {
+      console.warn('OpenAI API Error for Coaching Tips (Using Smart Mock):', apiError.message);
+      
+      // Determine profile indicators to tailor mock tips
+      const resumeLower = resumeText.toLowerCase();
+      if (resumeLower.includes('javascript') || resumeLower.includes('web') || resumeLower.includes('react')) {
+        aiTips = {
+          tips: [
+            "Deepen your expertise in asynchronous JavaScript, Event Loop, and advanced React patterns (like Compound Components or Custom Hooks).",
+            "Build and deploy a full-stack project demonstrating database orchestration (SQL/NoSQL) and state management to stand out.",
+            "Incorporate unit and integration tests (using Jest or React Testing Library) into your projects to showcase production-grade practices.",
+            "Contribute to open-source repositories or build NPM packages to exhibit collaboration skills and modern developer workflows.",
+            "Refactor your resume bullet points to emphasize architectural contributions and performance improvements (e.g. optimized queries, reduced load times)."
+          ]
+        };
+      } else {
+        aiTips = {
+          tips: [
+            "Highlight core system architecture decisions and design patterns utilized in your major projects.",
+            "Add quantitative metrics to your resume projects (e.g., 'scaled performance by 40%', 'reduced infrastructure costs by 15%').",
+            "Familiarize yourself with automated testing and continuous integration (CI/CD) pipelines.",
+            "Engage in tech discussions and network with engineering leaders on LinkedIn to seek mentorship and internal referrals.",
+            "Prepare STAR-method examples for behavioral interviews, emphasizing conflict resolution, leadership, and adaptability."
+          ]
+        };
+      }
+    }
 
     res.status(200).json({
       success: true,
