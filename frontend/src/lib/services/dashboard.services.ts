@@ -23,4 +23,13 @@ export const dashboardService = {
     const response = await apiClient.get('/dashboard/recruiter');
     return response.data;
   },
+
+  /**
+   * Get detailed analytics for recruiter (Funnel, Quality, Trends)
+   * GET /api/v1/dashboard/analytics
+   */
+  getRecruiterAnalytics: async (): Promise<ApiResponse<any>> => {
+    const response = await apiClient.get('/dashboard/analytics');
+    return response.data;
+  },
 };

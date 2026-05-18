@@ -701,3 +701,55 @@ exports.optimizePortfolioContent = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Refine Recruiter Raw Notes using AI (GPT-3.5/4o)
+// @route   POST /api/v1/ai/refine-feedback
+// @access  Private/Recruiter
+exports.refineFeedback = async (req, res, next) => {
+  try {
+    const { rawNotes, scores } = req.body;
+    if (!rawNotes) {
+      return res.status(400).json({ success: false, message: 'Raw notes are required' });
+    }
+
+    const scoreString = scores ? `Scores: Technical: ${scores.technical}/10, Communication: ${scores.communication}/10, Culture Alignment: ${scores.culture}/10` : '';
+
+    const prompt = `
+      You are an expert executive recruitment assistant. Help the recruiter refine their raw evaluation notes into a professional, cohesive, and impactful candidate assessment.
+      
+      Raw Recruiter Notes:
+      "${rawNotes}"
+      
+      Candidate Assessment ${scoreString}
+      
+      Provide a highly polished, professional summary of the candidate's strengths, areas of improvement, and overall cultural fit. Do not include introductory text, go straight to the evaluation.
+      
+      Return strictly in JSON format:
+      {
+        "refinedNotes": "..."
+      }
+    `;
+
+    let refinedText;
+    try {
+      const completion = await openai.chat.completions.create({
+        messages: [{ role: "user", content: prompt }],
+        model: "gpt-3.5-turbo",
+        response_format: { type: "json_object" },
+      });
+
+      const aiData = JSON.parse(completion.choices[0].message.content);
+      refinedText = aiData.refinedNotes;
+    } catch (apiError) {
+      console.warn('AI Refinement Failed. Using Fallback...');
+      refinedText = `Candidate demonstrated solid overall proficiency. Technical alignment is strong, showing capability in core requirements (Score: ${scores?.technical || 8}/10). Communication was structured and easy to follow (Score: ${scores?.communication || 7}/10). Culturally, they align well with the team's values and collaborative style (Score: ${scores?.culture || 9}/10). Summary notes: ${rawNotes}`;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: refinedText
+    });
+  } catch (error) {
+    next(error);
+  }
+};

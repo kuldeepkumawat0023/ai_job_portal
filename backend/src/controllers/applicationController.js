@@ -192,10 +192,10 @@ exports.getApplicants = async (req, res, next) => {
 // @access  Private/Recruiter
 exports.updateStatus = async (req, res, next) => {
   try {
-    const { status } = req.body;
+    const { status, technicalScore, communicationScore, cultureScore, recruiterNotes, recruiterRefinedNotes } = req.body;
     const applicationId = req.params.id;
 
-    const allowedStatuses = ['pending', 'shortlisted', 'interview', 'hired', 'rejected'];
+    const allowedStatuses = ['pending', 'shortlisted', 'interview', 'interviewing', 'hired', 'rejected'];
     if (!status || !allowedStatuses.includes(status.toLowerCase())) {
       return res.status(400).json({ success: false, statusCode: 400, message: `Status must be one of: ${allowedStatuses.join(', ')}`, data: null });
     }
@@ -210,6 +210,14 @@ exports.updateStatus = async (req, res, next) => {
     }
 
     application.status = status.toLowerCase();
+
+    // Save evaluation metrics if provided
+    if (technicalScore !== undefined) application.technicalScore = Number(technicalScore);
+    if (communicationScore !== undefined) application.communicationScore = Number(communicationScore);
+    if (cultureScore !== undefined) application.cultureScore = Number(cultureScore);
+    if (recruiterNotes !== undefined) application.recruiterNotes = recruiterNotes;
+    if (recruiterRefinedNotes !== undefined) application.recruiterRefinedNotes = recruiterRefinedNotes;
+
     await application.save();
 
     res.status(200).json({ success: true, statusCode: 200, message: 'Application status updated successfully', data: application });

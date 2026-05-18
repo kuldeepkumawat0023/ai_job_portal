@@ -18,5 +18,6 @@ router.post('/optimize-portfolio', protect, aiController.optimizePortfolioConten
 
 // Recruiter & Admin
 router.post('/generate-job-desc', authorize('recruiter', 'admin'), aiController.generateJobDescription);
+router.post('/refine-feedback', authorize('recruiter', 'admin'), aiController.refineFeedback);
 
 module.exports = router;

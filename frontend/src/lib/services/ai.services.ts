@@ -90,4 +90,13 @@ export const aiService = {
     const response = await apiClient.post('/ai/optimize-portfolio', { content, type, targetRole });
     return response.data;
   },
+
+  /**
+   * Refine recruiter raw feedback notes using AI
+   * POST /api/v1/ai/refine-feedback
+   */
+  refineFeedback: async (rawNotes: string, scores?: { technical: number, communication: number, culture: number }): Promise<ApiResponse<string>> => {
+    const response = await apiClient.post('/ai/refine-feedback', { rawNotes, scores });
+    return response.data;
+  },
 };

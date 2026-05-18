@@ -9,8 +9,13 @@ export interface Application {
   _id: string;
   jobId: Job | string;
   applicantId: AuthUser | string;
-  status: 'pending' | 'accepted' | 'rejected' | 'interview' | 'shortlisted' | 'hired' | 'applied';
+  status: 'pending' | 'accepted' | 'rejected' | 'interview' | 'interviewing' | 'shortlisted' | 'hired' | 'applied';
   aiScore?: number;
+  technicalScore?: number;
+  communicationScore?: number;
+  cultureScore?: number;
+  recruiterNotes?: string;
+  recruiterRefinedNotes?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -75,8 +80,21 @@ export const applicationService = {
    * Update application status (ATS)
    * PUT /api/v1/application/status/:id/update
    */
-  updateStatus: async (applicationId: string, status: string): Promise<ApiResponse<Application>> => {
-    const response = await apiClient.put(`/application/status/${applicationId}/update`, { status });
+  updateStatus: async (
+    applicationId: string, 
+    status: string,
+    extraData?: {
+      technicalScore?: number;
+      communicationScore?: number;
+      cultureScore?: number;
+      recruiterNotes?: string;
+      recruiterRefinedNotes?: string;
+    }
+  ): Promise<ApiResponse<Application>> => {
+    const response = await apiClient.put(`/application/status/${applicationId}/update`, { 
+      status,
+      ...extraData 
+    });
     return response.data;
   },
 };

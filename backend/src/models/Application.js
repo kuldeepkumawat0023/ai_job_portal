@@ -13,12 +13,30 @@ const applicationSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['applied', 'shortlisted', 'interviewing', 'hired', 'rejected'],
+    enum: ['applied', 'pending', 'shortlisted', 'interview', 'interviewing', 'hired', 'rejected'],
     default: 'applied'
   },
   aiScore: {
     type: Number,
     default: 0
+  },
+  technicalScore: {
+    type: Number,
+    default: 0
+  },
+  communicationScore: {
+    type: Number,
+    default: 0
+  },
+  cultureScore: {
+    type: Number,
+    default: 0
+  },
+  recruiterNotes: {
+    type: String
+  },
+  recruiterRefinedNotes: {
+    type: String
   }
 }, {
   timestamps: true
