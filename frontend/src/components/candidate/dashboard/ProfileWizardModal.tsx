@@ -22,7 +22,8 @@ import {
   Mail,
   Phone,
   MapPin,
-  Globe
+  Globe,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { userService } from '@/lib/services/user.services';
