@@ -63,6 +63,15 @@ export const applicationService = {
   },
 
   /**
+   * Get all applications for recruiter's company jobs
+   * GET /api/v1/application/recruiter/all
+   */
+  getRecruiterApplications: async (): Promise<ApiResponse<Application[]>> => {
+    const response = await apiClient.get('/application/recruiter/all');
+    return response.data;
+  },
+
+  /**
    * Update application status (ATS)
    * PUT /api/v1/application/status/:id/update
    */
