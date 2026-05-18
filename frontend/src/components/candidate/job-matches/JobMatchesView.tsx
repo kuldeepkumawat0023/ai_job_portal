@@ -29,6 +29,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { jobService, Job } from '@/lib/services/job.services';
 import { aiService } from '@/lib/services/ai.services';
 import { applicationService } from '@/lib/services/application.services';
+import { userService } from '@/lib/services/user.services';
+import { resumeService } from '@/lib/services/resume.services';
 import { Button } from '@/components/common/Button';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/utils/cn';
@@ -41,6 +43,11 @@ const JobMatchesView = () => {
   const [aiMatchLoading, setAiMatchLoading] = useState(false);
   const [aiMatchData, setAiMatchData] = useState<any>(null);
   
+  // Profile & Resume States
+  const [profile, setProfile] = useState<any>(null);
+  const [defaultResume, setDefaultResume] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('All');
@@ -51,6 +58,43 @@ const JobMatchesView = () => {
     }, 500); // Debounce search
     return () => clearTimeout(timer);
   }, [searchQuery, selectedLocation]);
+
+  useEffect(() => {
+    const fetchProfileAndResumes = async () => {
+      try {
+        setProfileLoading(true);
+        const userStr = localStorage.getItem('portal_user');
+        if (!userStr) {
+          setProfileLoading(false);
+          return;
+        }
+        const user = JSON.parse(userStr);
+        const userId = user._id || user.id;
+        if (!userId) {
+          setProfileLoading(false);
+          return;
+        }
+
+        const [profileRes, resumesRes] = await Promise.all([
+          userService.getProfile(userId),
+          resumeService.getMyResumes()
+        ]);
+        if (profileRes.success) {
+          setProfile(profileRes.data);
+        }
+        if (resumesRes.success) {
+          const list = resumesRes.data;
+          const def = list.find((r: any) => r.isDefault) || list[0] || null;
+          setDefaultResume(def);
+        }
+      } catch (err) {
+        console.error('Failed to load profile or resumes:', err);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+    fetchProfileAndResumes();
+  }, []);
 
   const fetchJobs = async () => {
     try {
@@ -74,9 +118,20 @@ const JobMatchesView = () => {
     setAiMatchLoading(true);
     try {
       const res = await aiService.matchJob(job._id);
-      if (res.success) setAiMatchData(res.data);
-    } catch (error) {
+      if (res.success) {
+        setAiMatchData(res.data);
+      } else {
+        setAiMatchData({
+          error: true,
+          message: res.message || 'Please upload a resume or complete your profile first'
+        });
+      }
+    } catch (error: any) {
       console.error('AI Match failed:', error);
+      setAiMatchData({
+        error: true,
+        message: error.response?.data?.message || 'Please upload a resume or complete your profile first'
+      });
     } finally {
       setAiMatchLoading(false);
     }
@@ -198,13 +253,38 @@ const JobMatchesView = () => {
                         </div>
                       </div>
                       <div className="flex gap-3">
-                        <button className="p-3 rounded-2xl border border-outline-variant/40 text-on-surface-variant hover:bg-surface-container-low transition-all">
-                          <Bookmark className="w-5 h-5" />
-                        </button>
-                        <Button variant="outline" onClick={() => handleViewDetails(job)}>
-                          Details
-                          <ArrowRight className="ml-2 w-4 h-4" />
-                        </Button>
+                        <motion.button
+                          className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white font-black text-xs md:text-sm rounded-2xl relative overflow-hidden transition-all shadow-xl shadow-primary/20 hover:shadow-primary/30"
+                          style={{ position: 'relative', zIndex: 1 }}
+                          onClick={() => handleViewDetails(job)}
+                          whileHover={{ 
+                            scale: 1.05, 
+                            boxShadow: "0 15px 20px -5px rgba(59, 130, 246, 0.4), 0 8px 8px -5px rgba(59, 130, 246, 0.25)" 
+                          }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {/* Infinite looping glass highlight sweep from left to right */}
+                          <motion.div
+                            className="absolute inset-0 w-[50%] h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
+                            style={{ zIndex: 0 }}
+                            animate={{
+                              x: ["-180%", "280%"]
+                            }}
+                            transition={{
+                              repeat: Infinity,
+                              repeatType: "loop",
+                              duration: 2,
+                              ease: "easeInOut",
+                              repeatDelay: 1.2
+                            }}
+                          />
+
+                          {/* Text and icon with relative layer to stay on top */}
+                          <span className="relative z-10 flex items-center justify-center gap-1.5">
+                            Details
+                            <ArrowRight className="w-4 h-4" />
+                          </span>
+                        </motion.button>
                       </div>
                     </div>
                   </div>
@@ -238,14 +318,93 @@ const JobMatchesView = () => {
             </div>
           </section>
 
-          <section className="glass-card rounded-[32px] p-8">
+          <section className="glass-card rounded-[32px] p-8 border border-primary/10">
             <h4 className="text-xl font-black text-on-surface mb-6 flex items-center gap-2">
-              <Bookmark className="text-secondary w-5 h-5" />
-              Saved for later
+              <BrainCircuit className="text-primary w-5 h-5 animate-pulse" />
+              Resume & ATS Status
             </h4>
-            <div className="space-y-4 opacity-40">
-               <p className="text-center py-10 text-xs font-bold uppercase tracking-widest">No saved jobs</p>
-            </div>
+            {profileLoading ? (
+              <div className="space-y-4 animate-pulse">
+                <div className="h-6 w-3/4 bg-surface-container rounded" />
+                <div className="h-12 bg-surface-container rounded-2xl" />
+                <div className="h-12 bg-surface-container rounded-2xl" />
+              </div>
+            ) : defaultResume ? (
+              <div className="space-y-6">
+                <div className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/20 flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Active Resume</div>
+                    <div className="text-sm font-bold text-on-surface truncate pr-2">{defaultResume.fileName}</div>
+                  </div>
+                  <span className="px-2.5 py-1 text-[9px] font-black uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full flex items-center gap-1 shrink-0">
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
+                    Active
+                  </span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/20">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">ATS Compatibility Score</div>
+                    <div className="text-lg font-black text-primary">{defaultResume.score || 85}%</div>
+                  </div>
+                  <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-primary to-secondary rounded-full" 
+                      style={{ width: `${defaultResume.score || 85}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/20 space-y-3">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">ATS Highlights</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {defaultResume.skills && defaultResume.skills.length > 0 ? (
+                      defaultResume.skills.slice(0, 5).map((skill: string) => (
+                        <span key={skill} className="px-2 py-0.5 rounded-lg bg-primary/5 text-primary text-[10px] font-bold border border-primary/10">{skill}</span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-on-surface-variant italic">No skills extracted yet</span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                    AI matched this resume with your profile. You can re-analyze in Resume Analysis page to update scores.
+                  </p>
+                </div>
+              </div>
+            ) : profile?.resume ? (
+              <div className="space-y-6">
+                <div className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/20 flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Resume File</div>
+                    <div className="text-sm font-bold text-on-surface">PDF Uploaded</div>
+                  </div>
+                  <span className="px-2.5 py-1 text-[9px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full">
+                    Pending Analysis
+                  </span>
+                </div>
+                <p className="text-xs text-on-surface-variant text-center leading-relaxed">
+                  Please analyze your resume to get a detailed ATS Score and matching statistics.
+                </p>
+                <Button className="w-full bg-gradient-to-r from-primary to-secondary text-white" onClick={() => router.push('/candidate/resume-analysis')}>
+                  Analyze Resume Now
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6 text-center py-6">
+                <div className="w-16 h-16 mx-auto rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-2">
+                  <Sparkles className="w-8 h-8 text-amber-500 animate-pulse" />
+                </div>
+                <div>
+                  <h5 className="text-sm font-black text-on-surface uppercase tracking-wider mb-1">Profile Fallback Mode</h5>
+                  <p className="text-xs text-on-surface-variant max-w-[240px] mx-auto leading-relaxed">
+                    No resume PDF uploaded. We are matching jobs using your dynamic profile skills & experiences.
+                  </p>
+                </div>
+                <Button className="w-full bg-gradient-to-r from-primary to-secondary text-white" onClick={() => router.push('/candidate/resume-analysis')}>
+                  Upload Resume PDF
+                </Button>
+              </div>
+            )}
           </section>
         </div>
       </div>
@@ -312,6 +471,27 @@ const JobMatchesView = () => {
                           <div className="w-12 h-12 rounded-full bg-primary/10" />
                           <div className="h-4 w-48 bg-surface-container-high rounded" />
                         </div>
+                      ) : aiMatchData?.error ? (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3 text-amber-500">
+                            <Sparkles className="w-5 h-5 animate-pulse shrink-0" />
+                            <span className="text-sm font-black uppercase tracking-wider">Awaiting Profile Details</span>
+                          </div>
+                          <p className="text-sm text-on-surface-variant leading-relaxed font-medium">
+                            To generate a detailed compatibility score and personalized fit checklist, please upload your resume PDF or fill in your skills and experiences in your profile settings.
+                          </p>
+                          <div className="pt-2">
+                            <Button 
+                              onClick={() => {
+                                setSelectedJob(null);
+                                router.push('/candidate/resume-analysis');
+                              }}
+                              className="bg-gradient-to-r from-primary to-secondary text-white text-xs font-black shadow-lg"
+                            >
+                              Complete Setup Now
+                            </Button>
+                          </div>
+                        </div>
                       ) : aiMatchData ? (
                         <div className="space-y-4">
                           <div className="flex items-end gap-3">
@@ -367,10 +547,6 @@ const JobMatchesView = () => {
                       <div className="space-y-4">
                         <Button variant="gradient" size="lg" className="w-full py-4 shadow-xl shadow-primary/20" onClick={() => handleApply(selectedJob._id)}>
                           Apply Now
-                        </Button>
-                        <Button variant="outline" size="lg" className="w-full py-4">
-                          <Bookmark className="mr-2 w-5 h-5" />
-                          Save for later
                         </Button>
                       </div>
                       <p className="text-[10px] text-center text-on-surface-variant font-bold uppercase tracking-widest mt-6 opacity-60">

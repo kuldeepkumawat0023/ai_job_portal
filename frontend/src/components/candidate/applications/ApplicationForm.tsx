@@ -126,13 +126,13 @@ const ApplicationForm = () => {
       ></div>
 
       {/* Back Button */}
-      <Link 
-        href="/candidate/job-matches"
-        className="inline-flex items-center gap-2 text-sm font-bold text-on-surface-variant hover:text-primary transition-colors group"
+      <button 
+        onClick={() => router.back()}
+        className="inline-flex items-center gap-2 text-sm font-bold text-on-surface-variant hover:text-primary transition-colors group cursor-pointer outline-none border-none bg-transparent"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        Back to Jobs list
-      </Link>
+        Back to previous page
+      </button>
 
       {/* Application Header */}
       <div className="text-center space-y-3">

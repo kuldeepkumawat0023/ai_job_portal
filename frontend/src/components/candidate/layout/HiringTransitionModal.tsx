@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -35,6 +36,12 @@ const HiringTransitionModal: React.FC<HiringTransitionModalProps> = ({ isOpen, o
   const [loading, setLoading] = useState(false);
   const { user, updateUser } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   const [companyData, setCompanyData] = useState({
     name: '',
@@ -115,10 +122,12 @@ const HiringTransitionModal: React.FC<HiringTransitionModalProps> = ({ isOpen, o
     window.location.href = '/recruiter/dashboard';
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -253,7 +262,7 @@ const HiringTransitionModal: React.FC<HiringTransitionModalProps> = ({ isOpen, o
                         key={i}
                         id={`otp-${i}`}
                         type="text"
-                        maxLength={1}
+                        maxLength={ digit ? 1 : 1 }
                         className="w-16 h-20 text-3xl font-black text-center bg-surface-container border-2 border-outline-variant/30 rounded-2xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
                         value={digit}
                         onChange={e => handleOtpChange(i, e.target.value)}
@@ -299,7 +308,8 @@ const HiringTransitionModal: React.FC<HiringTransitionModalProps> = ({ isOpen, o
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

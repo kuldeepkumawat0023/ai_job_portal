@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
+import { useRouter } from 'next/navigation';
+import {
   Send, 
   MessageSquare, 
   GraduationCap, 
@@ -40,6 +41,7 @@ interface DashboardStats {
 
 const DashboardView = () => {
   const { user } = useSelector((state: RootState) => state.auth);
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
   const [appliedJobs, setAppliedJobs] = useState<any[]>([]);
@@ -294,7 +296,7 @@ const DashboardView = () => {
       {/* Bento Grid: Analysis & Matches */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Resume Analysis */}
-        <div className="lg:col-span-5 glass-card p-6 md:p-8 flex flex-col">
+        <div className="lg:col-span-5 glass-card p-6 md:p-8 flex flex-col h-fit">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-bold text-on-surface flex items-center gap-3">
               <Target className="text-primary w-6 h-6" />
@@ -365,7 +367,11 @@ const DashboardView = () => {
               </div>
             ) : (
               recommendedJobs.map((job) => (
-                <div key={job._id} className="bg-surface-container-low/50 rounded-2xl p-4 border border-outline-variant/5 flex items-center gap-5 hover:bg-surface-container-high transition-colors group cursor-pointer">
+                <div 
+                  key={job._id} 
+                  onClick={() => router.push('/candidate/job-matches')}
+                  className="bg-surface-container-low/50 rounded-2xl p-4 border border-outline-variant/5 flex items-center gap-5 hover:bg-surface-container-high transition-colors group cursor-pointer"
+                >
                   <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-2 shrink-0 border border-outline-variant/10 shadow-sm transition-transform group-hover:scale-105 overflow-hidden">
                     <img src={(job.companyId as any)?.logo || 'https://api.dicebear.com/7.x/initials/svg?seed=' + job.title} alt="Company" className="w-full h-full object-contain" />
                   </div>
@@ -375,7 +381,15 @@ const DashboardView = () => {
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
                     <span className="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full border border-tertiary/20">AI Recommended</span>
-                    <button className="text-xs font-bold text-primary hover:opacity-80">Apply Now</button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/candidate/applications/${job._id}`);
+                      }}
+                      className="text-xs font-bold text-primary hover:opacity-80"
+                    >
+                      Apply Now
+                    </button>
                   </div>
                 </div>
               ))

@@ -12,13 +12,20 @@ const app = express();
 // 1. Trust Proxy (Important for Rate Limiting behind Load Balancers like Heroku/Vercel/Nginx)
 app.set('trust proxy', 1);
 
-// 2. Performance Middleware
+// 2. CORS config (Must be first to avoid generic Network Errors on rate limit hits/errors)
+const corsOptions = {
+  origin: [process.env.FRONTEND_URL, process.env.ADMIN_URL, 'http://localhost:3000'], // Added localhost for testing
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
+// 3. Performance Middleware
 app.use(compression()); // Gzip compression for faster responses
 
-// 3. Rate Limiting (Traffic Control)
+// 4. Rate Limiting (Traffic Control)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: process.env.NODE_ENV === 'development' ? 10000 : 100, // Increase max requests to 10000 in development to prevent dev lockouts
   message: {
     success: false,
     statusCode: 429,
@@ -31,15 +38,8 @@ const limiter = rateLimit({
 // Apply limiter to all API routes
 app.use('/api', limiter);
 
-// 4. Security Middleware
+// 5. Security Middleware
 app.use(helmet());
-
-// CORS config
-const corsOptions = {
-  origin: [process.env.FRONTEND_URL, process.env.ADMIN_URL, 'http://localhost:3000'], // Added localhost for testing
-  credentials: true,
-};
-app.use(cors(corsOptions));
 
 // Parsing Middleware (Stripe Webhook MUST come before express.json for raw body access)
 app.post('/api/v1/payment/webhook', express.raw({ type: 'application/json' }), require('./controllers/paymentController').stripeWebhook);

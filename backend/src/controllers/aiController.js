@@ -33,8 +33,9 @@ exports.matchJobWithResume = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'User not found', data: null });
     }
-    if (!user.resume) {
-      return res.status(400).json({ success: false, statusCode: 400, message: 'Please upload a resume first', data: null });
+    // Allow matching if the candidate has either a resume OR has populated their skills/experience
+    if (!user.resume && (!user.skills || user.skills.length === 0) && (!user.workExperience || user.workExperience.length === 0)) {
+      return res.status(200).json({ success: false, statusCode: 200, message: 'Please upload a resume or complete your profile first', data: null });
     }
     if (!job) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'Job not found', data: null });
@@ -178,8 +179,8 @@ exports.getCoachingTips = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'User not found', data: null });
     }
-    if (!user.resume) {
-      return res.status(400).json({ success: false, statusCode: 400, message: 'Please upload a resume first', data: null });
+    if (!user.resume && (!user.skills || user.skills.length === 0) && (!user.workExperience || user.workExperience.length === 0)) {
+      return res.status(200).json({ success: false, statusCode: 200, message: 'Please upload a resume or complete your profile first', data: null });
     }
 
     let resumeText = "";
@@ -436,8 +437,8 @@ exports.getCareerSuggestions = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'User not found', data: null });
     }
-    if (!user.resume) {
-      return res.status(400).json({ success: false, statusCode: 400, message: 'Please upload a resume first', data: null });
+    if (!user.resume && (!user.skills || user.skills.length === 0) && (!user.workExperience || user.workExperience.length === 0)) {
+      return res.status(200).json({ success: false, statusCode: 200, message: 'Please upload a resume or complete your profile first', data: null });
     }
 
     let resumeText = "";

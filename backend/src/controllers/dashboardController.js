@@ -4,6 +4,7 @@ const Interview = require('../models/Interview');
 const MockInterview = require('../models/MockInterview');
 const User = require('../models/User');
 const Resume = require('../models/Resume');
+const Company = require('../models/Company');
 
 // @desc    Get Candidate Dashboard Stats
 // @route   GET /api/v1/dashboard/candidate
@@ -86,6 +87,9 @@ exports.getRecruiterStats = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
+    // Find company profile associated with this recruiter
+    const company = await Company.findOne({ userId });
+
     // Find jobs posted by this recruiter
     const jobs = await Job.find({ postedBy: userId }).select('_id');
     const jobIds = jobs.map(j => j._id);
@@ -93,18 +97,76 @@ exports.getRecruiterStats = async (req, res, next) => {
     const totalJobsPosted = jobs.length;
     const totalApplicants = await Application.countDocuments({ jobId: { $in: jobIds } });
     const hiredCount = await Application.countDocuments({ jobId: { $in: jobIds }, status: 'hired' });
+    const shortlistedCount = await Application.countDocuments({ jobId: { $in: jobIds }, status: 'shortlisted' });
     const scheduledInterviews = await Interview.countDocuments({ jobId: { $in: jobIds }, status: 'scheduled' });
+
+    // AI Talent Matcher (Top 5 applications by AI Score)
+    const topCandidates = await Application.find({ jobId: { $in: jobIds } })
+      .populate('applicantId', 'fullname email skills profilePhoto experience location workExperience projects')
+      .populate('jobId', 'title')
+      .sort({ aiScore: -1 })
+      .limit(5);
+
+    // Pipeline Candidates (Applications in stages)
+    const pipelineCandidates = await Application.find({
+      jobId: { $in: jobIds },
+      status: { $in: ['applied', 'shortlisted', 'interviewing'] }
+    })
+      .populate('applicantId', 'fullname email skills profilePhoto experience location')
+      .populate('jobId', 'title')
+      .sort({ createdAt: -1 });
+
+    // Application trend for the last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const trendData = await Application.aggregate([
+      {
+        $match: {
+          jobId: { $in: jobIds },
+          createdAt: { $gte: sevenDaysAgo }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    const dailyTrend = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateString = d.toISOString().split('T')[0];
+      const match = trendData.find(t => t._id === dateString);
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+      dailyTrend.push({
+        day: dayName,
+        applications: match ? match.count : 0
+      });
+    }
 
     res.status(200).json({
       success: true,
       statusCode: 200,
       message: 'Recruiter dashboard stats fetched',
       data: {
-        totalJobsPosted,
-        totalApplicants,
-        totalHired: hiredCount,
-        scheduledInterviews,
-        activeJobs: await Job.countDocuments({ postedBy: userId, status: 'active' }) // Assuming a status field
+        stats: {
+          activeJobs: totalJobsPosted,
+          totalApplicants,
+          shortlisted: shortlistedCount,
+          hired: hiredCount,
+          scheduledInterviews
+        },
+        topCandidates,
+        pipeline: pipelineCandidates,
+        company,
+        trend: dailyTrend
       }
     });
   } catch (error) {
