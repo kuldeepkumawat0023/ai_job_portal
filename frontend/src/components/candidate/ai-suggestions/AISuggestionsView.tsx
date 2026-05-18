@@ -165,12 +165,6 @@ const AISuggestionsView = () => {
                 </div>
               </div>
 
-              <Link href={action.actionLink || '#'}>
-                <button className="w-full md:w-fit gradient-button text-white font-black text-sm px-8 py-4 md:py-5 rounded-2xl flex items-center justify-center gap-3 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95">
-                  {action.actionText}
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </Link>
             </div>
           ))}
 
