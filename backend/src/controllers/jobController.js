@@ -43,7 +43,7 @@ exports.getAllJobs = async (req, res, next) => {
   try {
     const { keyword, location, category, jobType } = req.query;
     
-    let query = {};
+    let query = { isDeleted: { $ne: true } };
     
     // Keyword search (title or description)
     if (keyword) {
@@ -92,6 +92,7 @@ exports.getRecommendedJobs = async (req, res, next) => {
     // Recommendation logic: match by skills and experience
     // Simple version: find jobs that have at least one skill in common
     const jobs = await Job.find({
+      isDeleted: { $ne: true },
       $or: [
         { category: user.role === 'candidate' ? { $regex: user.skills.join('|'), $options: 'i' } : '' },
         { title: { $regex: user.skills.join('|'), $options: 'i' } }
@@ -115,7 +116,7 @@ exports.getRecommendedJobs = async (req, res, next) => {
 // @access  Public
 exports.getJobById = async (req, res, next) => {
   try {
-    const job = await Job.findById(req.params.id).populate('companyId', 'name logo website location description');
+    const job = await Job.findOne({ _id: req.params.id, isDeleted: { $ne: true } }).populate('companyId', 'name logo website location description');
     
     if (!job) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'Job not found', data: null });
@@ -137,7 +138,7 @@ exports.getJobById = async (req, res, next) => {
 // @access  Private/Recruiter
 exports.getAdminJobs = async (req, res, next) => {
   try {
-    const jobs = await Job.find({ postedBy: req.user.id }).populate('companyId', 'name');
+    const jobs = await Job.find({ postedBy: req.user.id, isDeleted: { $ne: true } }).populate('companyId', 'name');
     res.status(200).json({
       success: true,
       statusCode: 200,
@@ -154,7 +155,7 @@ exports.getAdminJobs = async (req, res, next) => {
 // @access  Private/Recruiter
 exports.updateJob = async (req, res, next) => {
   try {
-    let job = await Job.findById(req.params.id);
+    let job = await Job.findOne({ _id: req.params.id, isDeleted: { $ne: true } });
     
     if (!job) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'Job not found', data: null });
@@ -183,7 +184,7 @@ exports.updateJob = async (req, res, next) => {
 // @access  Private/Recruiter
 exports.deleteJob = async (req, res, next) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await Job.findOne({ _id: req.params.id, isDeleted: { $ne: true } });
     
     if (!job) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'Job not found', data: null });
@@ -194,7 +195,8 @@ exports.deleteJob = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized to delete this job', data: null });
     }
 
-    await job.deleteOne();
+    job.isDeleted = true;
+    await job.save();
 
     res.status(200).json({
       success: true,

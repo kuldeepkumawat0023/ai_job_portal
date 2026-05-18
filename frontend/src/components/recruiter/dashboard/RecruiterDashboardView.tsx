@@ -124,7 +124,7 @@ const RecruiterDashboardView = () => {
         requirements: draftRequirements.split('\n').filter(r => r.trim().length > 0),
         salary: 'Competitive',
         location: company?.location || 'Remote',
-        jobType: 'Full-time' as const,
+        jobType: ['Full-time'],
         experience: 2,
         category: draftDepartment,
         companyId: company?._id || '6646875084931a001b9fa7d1'

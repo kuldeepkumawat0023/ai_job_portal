@@ -91,7 +91,7 @@ exports.getRecruiterStats = async (req, res, next) => {
     const company = await Company.findOne({ userId });
 
     // Find jobs posted by this recruiter
-    const jobs = await Job.find({ postedBy: userId }).select('_id');
+    const jobs = await Job.find({ postedBy: userId, isDeleted: { $ne: true } }).select('_id');
     const jobIds = jobs.map(j => j._id);
 
     const totalJobsPosted = jobs.length;

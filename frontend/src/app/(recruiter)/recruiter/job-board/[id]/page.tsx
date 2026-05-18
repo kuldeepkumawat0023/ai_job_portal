@@ -1,7 +1,8 @@
 import React from 'react';
+import JobDetailView from '@/components/recruiter/job-board/JobDetailView';
 
 const Page = ({ params }: { params: { id: string } }) => {
-  return <div>Job Stats for ID: {params.id}</div>;
+  return <JobDetailView jobId={params.id} />;
 };
 
 export default Page;

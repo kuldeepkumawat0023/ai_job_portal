@@ -22,9 +22,8 @@ const jobSchema = new mongoose.Schema({
     required: [true, 'Please add a job location']
   },
   jobType: {
-    type: String,
-    enum: ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship'],
-    default: 'Full-time'
+    type: [String],
+    default: ['Full-time']
   },
   experience: {
     type: Number, // in years
@@ -49,7 +48,15 @@ const jobSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Application'
     }
-  ]
+  ],
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
+  perks: {
+    type: [String],
+    default: []
+  }
 }, {
   timestamps: true
 });

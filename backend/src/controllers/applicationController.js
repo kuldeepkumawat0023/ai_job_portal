@@ -1,6 +1,7 @@
 const Application = require('../models/Application');
 const Job = require('../models/Job');
 const User = require('../models/User');
+const Company = require('../models/Company');
 const sendEmail = require('../config/email');
 
 // @desc    Apply for a job
@@ -212,6 +213,43 @@ exports.updateStatus = async (req, res, next) => {
     await application.save();
 
     res.status(200).json({ success: true, statusCode: 200, message: 'Application status updated successfully', data: application });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get all applications for recruiter's company jobs
+// @route   GET /api/v1/application/recruiter/all
+// @access  Private/Recruiter
+exports.getRecruiterApplications = async (req, res, next) => {
+  try {
+    // 1. Find all companies owned by this user/recruiter
+    const companies = await Company.find({ userId: req.user.id }).select('_id');
+    const companyIds = companies.map(c => c._id);
+
+    // 2. Find all active jobs belonging to those companies or posted by the user
+    const jobs = await Job.find({ 
+      $or: [
+        { postedBy: req.user.id },
+        { companyId: { $in: companyIds } }
+      ],
+      isDeleted: { $ne: true }
+    }).select('_id');
+    
+    const jobIds = jobs.map(j => j._id);
+
+    // 3. Find all applications for these jobs
+    const applications = await Application.find({ jobId: { $in: jobIds } })
+      .populate('jobId', 'title category location')
+      .populate('applicantId', 'fullname email profilePhoto resume skills experience bio')
+      .sort('-createdAt');
+
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: 'Recruiter applications fetched successfully',
+      data: applications
+    });
   } catch (error) {
     next(error);
   }

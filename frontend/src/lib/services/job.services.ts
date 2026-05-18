@@ -11,12 +11,13 @@ export interface Job {
   requirements: string[];
   salary: string; 
   location: string;
-  jobType: 'Full-time' | 'Part-time' | 'Contract' | 'Freelance' | 'Internship';
+  jobType: string[];
   experience: number;
   category: string;
   companyId: any; // Populated company details (name, logo, etc.)
   postedBy: string;
   applications: string[];
+  perks?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -63,10 +64,11 @@ export const jobService = {
     requirements?: string | string[];
     salary?: string;
     location: string;
-    jobType?: string;
+    jobType?: string[];
     experience?: number;
     category: string;
     companyId: string;
+    perks?: string[];
   }): Promise<ApiResponse<Job>> => {
     const response = await apiClient.post('/job/post', data);
     return response.data;

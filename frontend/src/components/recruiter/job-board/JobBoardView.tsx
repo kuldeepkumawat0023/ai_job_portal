@@ -13,7 +13,7 @@ import {
   Building2, 
   ArrowUpRight, 
   Edit3, 
-  Lightbulb, 
+  Eye, 
   MoreVertical,
   ChevronRight,
   TrendingUp,
@@ -37,6 +37,7 @@ interface JobDisplay {
   title: string;
   dept: string;
   location: string;
+  jobType: string[];
   status: string;
   applicants: number;
   matchRate: number | null;
@@ -82,6 +83,7 @@ const JobBoardView = () => {
           title: j.title,
           dept: j.category || 'General',
           location: j.location || 'Remote',
+          jobType: Array.isArray(j.jobType) ? j.jobType : [j.jobType || 'Full-time'],
           status: 'Active', // Defaulting to Active since no status field in DB yet
           applicants: j.applications?.length || 0,
           matchRate: null, // Pending AI calculation feature
@@ -163,7 +165,7 @@ const JobBoardView = () => {
             </div>
             <div className="relative z-10">
               <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">{stat.label}</p>
-              <h3 className="text-3xl font-black text-on-surface">{isLoading ? '-' : stat.value}</h3>
+              <div className="text-3xl font-black text-on-surface">{isLoading ? '-' : stat.value}</div>
             </div>
             <div className="absolute right-0 top-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none group-hover:bg-primary/10 transition-colors" />
           </motion.article>
@@ -183,7 +185,7 @@ const JobBoardView = () => {
             <Sparkles className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-xl font-black text-on-surface mb-2">AI JD Optimizer</h3>
+            <h2 className="text-xl font-black text-on-surface mb-2">AI JD Optimizer</h2>
             <p className="text-sm text-on-surface-variant leading-relaxed">
               2 active postings have lower than average engagement. Let AI refine the language to attract better candidates.
             </p>
@@ -244,76 +246,124 @@ const JobBoardView = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className="glass-card rounded-3xl p-8 flex flex-col group hover:bg-surface-container-low transition-all duration-500 relative overflow-hidden border border-white/10"
+                  className="glass-card rounded-[2rem] p-8 flex flex-col group hover:bg-surface-container-low/70 transition-all duration-500 relative overflow-hidden border border-white/[0.08] hover:border-primary/20 shadow-lg hover:shadow-primary/5 hover:-translate-y-1.5"
                 >
-                  {/* Background Decorative Image */}
+                  {/* Glowing background gradient on hover */}
+                  <div className="absolute -right-10 -top-10 w-44 h-44 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+                  {/* Background Decorative Logo watermark */}
                   <img 
                     src={job.img} 
-                    alt="" 
-                    className="absolute top-0 right-0 w-40 h-40 object-cover opacity-[0.03] rounded-bl-full pointer-events-none group-hover:opacity-[0.06] transition-opacity" 
+                    alt={`${job.title} company logo`} 
+                    className="absolute top-0 right-0 w-36 h-36 object-cover opacity-[0.02] rounded-bl-full pointer-events-none group-hover:opacity-[0.04] transition-opacity duration-500" 
                   />
 
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="space-y-3">
-                      <h3 className="text-xl font-black text-on-surface group-hover:text-primary transition-colors">{job.title}</h3>
-                      <div className="flex flex-wrap items-center gap-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest">
-                        <div className="flex items-center gap-1.5 bg-surface-container px-2 py-1 rounded-lg">
-                          <Building2 className="w-3.5 h-3.5" />
-                          {job.dept}
+                  <div className="flex justify-between items-start gap-4 mb-6 relative z-10">
+                    <div className="space-y-4">
+                      <h3 
+                        onClick={() => router.push(`/recruiter/job-board/${job.id}`)}
+                        className="text-2xl font-black text-on-surface hover:text-primary tracking-tight leading-tight transition-colors cursor-pointer"
+                      >
+                        {job.title}
+                      </h3>
+                      <div className="space-y-2">
+                        {/* Row 1: Dept & Location */}
+                        <div className="flex flex-wrap items-center gap-2.5 text-[9px] font-black text-on-surface-variant uppercase tracking-widest">
+                          <div className="flex items-center gap-1.5 bg-surface-container/60 px-3 py-1.5 rounded-xl border border-outline-variant/10">
+                            <Building2 className="w-3.5 h-3.5 text-primary" />
+                            <span>{job.dept}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 bg-surface-container/60 px-3 py-1.5 rounded-xl border border-outline-variant/10">
+                            <MapPin className="w-3.5 h-3.5 text-secondary" />
+                            <span>{job.location}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 bg-surface-container px-2 py-1 rounded-lg">
-                          <MapPin className="w-3.5 h-3.5" />
-                          {job.location}
-                        </div>
+
+                        {/* Row 2: Job Types (nicha set kar diya labels ke saath) */}
+                        {job.jobType && job.jobType.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-2 text-[9px] font-black uppercase tracking-widest">
+                            <span className="text-[9px] font-black text-on-surface-variant/70 uppercase tracking-widest mr-1 select-none">Job Types:</span>
+                            {job.jobType.map((type: string) => (
+                              <div key={type} className="flex items-center gap-1.5 bg-secondary/10 text-secondary px-3 py-1.5 rounded-xl border border-secondary/15">
+                                <Briefcase className="w-3.5 h-3.5" />
+                                <span>{type}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
+
                     <span className={cn(
-                      "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shrink-0",
                       job.status === 'Active' 
                         ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" 
                         : "bg-orange-500/10 text-orange-600 border-orange-500/20"
                     )}>
+                      <span className={cn("w-1.5 h-1.5 rounded-full", job.status === 'Active' ? "bg-emerald-500 animate-pulse" : "bg-orange-500")} />
                       {job.status}
                     </span>
                   </div>
 
-                  <div className="flex gap-8 my-8 border-y border-outline-variant/10 py-6">
-                    <div>
-                      <p className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Applicants</p>
-                      <p className="text-2xl font-black text-on-surface">{job.applicants || '-'}</p>
+                  {/* Micro-Bento Analytics Panel */}
+                  <div className="grid grid-cols-2 gap-4 my-6 py-4 border-y border-outline-variant/10 relative z-10">
+                    <div className="bg-surface-container/20 p-4 rounded-2xl border border-outline-variant/5 hover:bg-surface-container/40 transition-colors">
+                      <p className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Total Applicants</p>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-3xl font-black text-on-surface">{job.applicants || '0'}</span>
+                        <span className="text-[9px] font-extrabold text-emerald-500 flex items-center gap-0.5">
+                          <TrendingUp size={11} />
+                          +8%
+                        </span>
+                      </div>
                     </div>
-                    <div className="border-l border-outline-variant/10 pl-8">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Sparkles className={cn("w-3.5 h-3.5", job.matchRate ? "text-secondary" : "text-on-surface-variant/30")} />
+                    <div className="bg-surface-container/20 p-4 rounded-2xl border border-outline-variant/5 hover:bg-surface-container/40 transition-colors">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Sparkles className={cn("w-3.5 h-3.5", job.matchRate ? "text-secondary animate-pulse" : "text-on-surface-variant/30")} />
                         <p className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">AI Match Rate</p>
                       </div>
-                      <p className={cn("text-2xl font-black", job.matchRate ? "text-secondary" : "text-on-surface-variant/30")}>
-                        {job.matchRate ? `${job.matchRate}% Avg` : 'Pending'}
+                      <p className={cn("text-3xl font-black", job.matchRate ? "text-secondary" : "text-on-surface-variant/30")}>
+                        {job.matchRate ? `${job.matchRate}%` : 'Pending'}
                       </p>
                     </div>
                   </div>
 
+                  {/* Modern Actions Controls Bar */}
                   <div className="flex gap-3 mt-auto relative z-10">
-                    <Button variant="ghost" className="flex-1 bg-primary/10 hover:bg-primary/20 text-primary font-black text-[10px] uppercase tracking-widest py-3.5 group/btn">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => router.push(`/recruiter/applications?jobId=${job.id}`)}
+                      className="flex-1 bg-primary/10 hover:bg-primary/20 text-primary font-black text-[10px] uppercase tracking-widest py-3.5 rounded-2xl group/btn"
+                    >
                       View Applicants
                       <ChevronRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
                     </Button>
-                    <Button variant="ghost" className="p-3 bg-surface-container hover:bg-surface-container-high text-on-surface-variant" title="Edit Role">
-                      <Edit3 className="w-5 h-5" />
-                    </Button>
-                    <Button variant="ghost" className="p-3 bg-secondary/10 hover:bg-secondary/20 text-secondary" title="AI Insight">
-                      <Lightbulb className="w-5 h-5" />
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => router.push(`/recruiter/job-board/${job.id}/edit`)}
+                      className="p-3.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-2xl transition-all hover:scale-[1.05] active:scale-[0.95]" 
+                      title="Edit Role"
+                    >
+                      <Edit3 className="w-4.5 h-4.5" />
                     </Button>
                     <Button 
                       variant="ghost" 
-                      className="p-3 bg-error/10 hover:bg-error/20 text-error" 
+                      onClick={() => router.push(`/recruiter/job-board/${job.id}`)}
+                      className="p-3.5 bg-secondary/15 hover:bg-secondary/25 text-secondary rounded-2xl transition-all hover:scale-[1.05] active:scale-[0.95]" 
+                      title="View Job Details"
+                    >
+                      <Eye className="w-4.5 h-4.5" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="p-3.5 bg-error/10 hover:bg-error/20 text-error rounded-2xl transition-all hover:scale-[1.05] active:scale-[0.95]" 
                       title="Delete Role"
                       onClick={() => {
                         setSelectedJobId(job.id);
                         setIsDeleteModalOpen(true);
                       }}
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-4.5 h-4.5" />
                     </Button>
                   </div>
                 </motion.article>

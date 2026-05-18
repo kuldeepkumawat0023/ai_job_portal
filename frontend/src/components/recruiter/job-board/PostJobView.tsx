@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { 
   Briefcase, 
   MapPin, 
@@ -28,8 +28,40 @@ import { dashboardService } from '@/lib/services/dashboard.services';
 // Components
 import { Button } from '@/components/common/Button';
 
-const PostJobView = () => {
+const parseSalary = (salaryStr: string) => {
+  if (!salaryStr) return { salaryMin: '', salaryMax: '', currency: 'USD' };
+  let currency = 'USD';
+  let cleanStr = salaryStr.trim();
+  
+  const parts = cleanStr.split(' ');
+  if (parts.length > 1) {
+    currency = parts[parts.length - 1];
+    cleanStr = parts.slice(0, -1).join(' ').trim();
+  }
+
+  const rangeParts = cleanStr.split('-');
+  const salaryMin = rangeParts[0] ? rangeParts[0].trim() : '';
+  const salaryMax = rangeParts[1] ? rangeParts[1].trim() : '';
+  return { salaryMin, salaryMax, currency };
+};
+
+const getExperienceLevelFromYears = (years: number): string => {
+  if (years === 0) return 'Entry Level';
+  if (years === 1) return 'Junior';
+  if (years === 3) return 'Mid Level';
+  if (years === 5) return 'Senior';
+  if (years >= 7) return 'Lead / Manager';
+  return 'Mid Level';
+};
+
+interface PostJobViewProps {
+  jobId?: string;
+}
+
+const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
   const router = useRouter();
+  const params = useParams();
+  const jobId = propJobId || (params?.id as string | undefined);
   const [step, setStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -40,6 +72,7 @@ const PostJobView = () => {
     title: '',
     dept: 'Engineering',
     location: '',
+    jobType: ['Full-time'] as string[],
     description: '',
     skills: ['React', 'TypeScript', 'System Design'],
     experienceLevel: 'Mid Level',
@@ -50,6 +83,7 @@ const PostJobView = () => {
   });
 
   const [newSkill, setNewSkill] = useState('');
+  const [newJobType, setNewJobType] = useState('');
 
   const experienceMap: Record<string, number> = {
     'Internship': 0,
@@ -67,18 +101,93 @@ const PostJobView = () => {
   ];
 
   useEffect(() => {
-    const fetchCompany = async () => {
+    const loadJobAndCompany = async () => {
       try {
         const statsRes = await dashboardService.getRecruiterStats();
         if (statsRes.success && statsRes.data?.company?._id) {
           setCompanyId(statsRes.data.company._id);
         }
+
+        if (jobId) {
+          const jobRes = await jobService.getJobById(jobId);
+          if (jobRes.success && jobRes.data) {
+            const job = jobRes.data;
+            const parsedSalary = parseSalary(job.salary || '');
+            setFormData({
+              title: job.title || '',
+              dept: job.category || 'Engineering',
+              location: job.location || '',
+              jobType: Array.isArray(job.jobType) ? job.jobType : [job.jobType || 'Full-time'],
+              description: job.description || '',
+              skills: Array.isArray(job.requirements) ? job.requirements : [],
+              experienceLevel: getExperienceLevelFromYears(job.experience || 0),
+              salaryMin: parsedSalary.salaryMin,
+              salaryMax: parsedSalary.salaryMax,
+              currency: parsedSalary.currency,
+              perks: Array.isArray(job.perks) ? job.perks : []
+            });
+          }
+        }
       } catch (error) {
-        console.error("Failed to fetch company info", error);
+        console.error("Failed to load initial data", error);
       }
     };
-    fetchCompany();
-  }, []);
+    loadJobAndCompany();
+  }, [jobId]);
+
+  const handleAddJobType = () => {
+    const trimmed = newJobType.trim();
+    if (trimmed && !formData.jobType.includes(trimmed)) {
+      setFormData(prev => ({
+        ...prev,
+        jobType: [...prev.jobType, trimmed]
+      }));
+      setNewJobType('');
+      if (errors.jobType) {
+        setErrors(prev => {
+          const newE = { ...prev };
+          delete newE.jobType;
+          return newE;
+        });
+      }
+    }
+  };
+
+  const handleRemoveJobType = (typeToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      jobType: prev.jobType.filter(t => t !== typeToRemove)
+    }));
+  };
+
+  const toggleJobType = (type: string) => {
+    setFormData(prev => {
+      const exists = prev.jobType.includes(type);
+      const updated = exists 
+        ? prev.jobType.filter(t => t !== type)
+        : [...prev.jobType, type];
+      
+      if (!exists && errors.jobType) {
+        setErrors(err => {
+          const newE = { ...err };
+          delete newE.jobType;
+          return newE;
+        });
+      }
+
+      return {
+        ...prev,
+        jobType: updated
+      };
+    });
+  };
+
+  const handleKeyDownJobType = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddJobType();
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -100,6 +209,7 @@ const PostJobView = () => {
       if (!formData.title.trim()) newErrors.title = 'Required';
       if (!formData.dept.trim()) newErrors.dept = 'Required';
       if (!formData.location.trim()) newErrors.location = 'Required';
+      if (formData.jobType.length === 0) newErrors.jobType = 'Required';
       if (!formData.description.trim()) newErrors.description = 'Required';
       
       if (Object.keys(newErrors).length > 0) {
@@ -181,6 +291,7 @@ const PostJobView = () => {
     if (!formData.title.trim()) newErrors.title = 'Required';
     if (!formData.dept.trim()) newErrors.dept = 'Required';
     if (!formData.location.trim()) newErrors.location = 'Required';
+    if (formData.jobType.length === 0) newErrors.jobType = 'Required';
     if (!formData.description.trim()) newErrors.description = 'Required';
     
     if (Object.keys(newErrors).length > 0) {
@@ -216,22 +327,29 @@ const PostJobView = () => {
         requirements: formData.skills,
         salary: `${formData.salaryMin}-${formData.salaryMax} ${formData.currency.split(' ')[0]}`,
         location: formData.location,
-        jobType: 'Full-time',
+        jobType: formData.jobType,
         experience: experienceMap[formData.experienceLevel] || 0,
         category: formData.dept,
-        companyId: companyId
+        companyId: companyId,
+        perks: formData.perks
       };
 
-      const res = await jobService.postJob(payload);
+      let res;
+      if (jobId) {
+        res = await jobService.updateJob(jobId, payload);
+      } else {
+        res = await jobService.postJob(payload);
+      }
+
       if (res.success) {
-        toast.success('Job posted successfully!');
+        toast.success(jobId ? 'Job updated successfully!' : 'Job posted successfully!');
         router.push('/recruiter/dashboard'); 
       } else {
-        toast.error('Failed to post job');
+        toast.error(jobId ? 'Failed to update job' : 'Failed to post job');
       }
     } catch (error: any) {
       console.error(error);
-      toast.error(error.response?.data?.message || 'Failed to post job');
+      toast.error(error.response?.data?.message || (jobId ? 'Failed to update job' : 'Failed to post job'));
     } finally {
       setIsPublishing(false);
     }
@@ -283,7 +401,9 @@ const PostJobView = () => {
           <Sparkles size={14} className="animate-pulse" />
           <span className="text-[10px] font-black uppercase tracking-widest">AI Assisted Posting</span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-black text-on-surface tracking-tighter">Create a New <span className="gradient-text">Opportunity</span></h1>
+        <h1 className="text-4xl md:text-5xl font-black text-on-surface tracking-tighter">
+          {jobId ? 'Edit Your' : 'Create a New'} <span className="gradient-text">{jobId ? 'Posting' : 'Opportunity'}</span>
+        </h1>
         <p className="text-on-surface-variant font-medium">Define your role requirements and let AI help you find the perfect match.</p>
       </div>
 
@@ -387,6 +507,74 @@ const PostJobView = () => {
                           type="text" 
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Types</label>
+                      {errors.jobType && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.jobType}</span>}
+                    </div>
+                    
+                    {/* Selected Tags */}
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {formData.jobType.map(type => (
+                        <span key={type} className="px-3 py-1.5 bg-secondary/5 text-secondary rounded-xl text-xs font-bold border border-secondary/10 flex items-center gap-2 group">
+                          {type}
+                          <button 
+                            type="button"
+                            onClick={() => handleRemoveJobType(type)} 
+                            className="hover:text-error transition-colors"
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Quick Toggles */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {['Full-time', 'Part-time', 'Contract', 'Remote', 'Internship', 'Freelance'].map(type => {
+                        const isSelected = formData.jobType.includes(type);
+                        return (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => toggleJobType(type)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all",
+                              isSelected 
+                                ? "bg-secondary border-secondary text-white shadow-md shadow-secondary/10" 
+                                : "border-outline-variant/10 text-on-surface-variant hover:border-secondary/40 hover:text-on-surface"
+                            )}
+                          >
+                            {type}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Custom Input */}
+                    <div className="flex gap-2">
+                      <input 
+                        value={newJobType}
+                        onChange={(e) => setNewJobType(e.target.value)}
+                        onKeyDown={handleKeyDownJobType}
+                        placeholder="Add a custom job type..."
+                        className={cn(
+                          "flex-1 bg-transparent border-b py-2 font-medium text-sm text-on-surface transition-all placeholder:text-on-surface-variant/30 focus:ring-0",
+                          errors.jobType ? "border-red-500 focus:border-red-500" : "border-outline-variant focus:border-primary"
+                        )}
+                      />
+                      <Button 
+                        type="button"
+                        onClick={handleAddJobType} 
+                        variant="outline" 
+                        size="sm" 
+                        className="rounded-xl flex items-center gap-2"
+                      >
+                        <Plus size={14} /> Add
+                      </Button>
                     </div>
                   </div>
 
@@ -616,7 +804,7 @@ const PostJobView = () => {
                 onClick={handlePublish}
                 className="px-10 py-4 font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-xl shadow-primary/30"
               >
-                Publish Posting
+                {jobId ? 'Update Posting' : 'Publish Posting'}
                 <Sparkles size={16} />
               </Button>
             )}
@@ -633,7 +821,7 @@ const PostJobView = () => {
                 <BrainCircuit size={20} />
               </div>
               <div>
-                <h3 className="text-sm font-black text-on-surface uppercase tracking-widest">Posting Health</h3>
+                <h2 className="text-sm font-black text-on-surface uppercase tracking-widest">Posting Health</h2>
                 <p className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest opacity-60">Real-time AI Insights</p>
               </div>
             </div>
@@ -669,7 +857,7 @@ const PostJobView = () => {
               </div>
 
               <div className="space-y-4 pt-4">
-                <h4 className="text-[10px] font-black text-on-surface uppercase tracking-widest opacity-40">Talent Pool Estimate</h4>
+                <h3 className="text-[10px] font-black text-on-surface uppercase tracking-widest opacity-40">Talent Pool Estimate</h3>
                 <div className="flex items-end gap-2">
                   <span className="text-4xl font-black text-on-surface transition-all">{getTalentPool()}</span>
                   <span className="text-[10px] font-bold text-emerald-500 uppercase mb-1.5 tracking-widest">Potential Matches</span>
