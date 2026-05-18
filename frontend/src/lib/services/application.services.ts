@@ -9,7 +9,8 @@ export interface Application {
   _id: string;
   jobId: Job | string;
   applicantId: AuthUser | string;
-  status: 'pending' | 'accepted' | 'rejected' | 'interview' | 'shortlisted' | 'hired';
+  status: 'pending' | 'accepted' | 'rejected' | 'interview' | 'shortlisted' | 'hired' | 'applied';
+  aiScore?: number;
   createdAt: string;
   updatedAt: string;
 }

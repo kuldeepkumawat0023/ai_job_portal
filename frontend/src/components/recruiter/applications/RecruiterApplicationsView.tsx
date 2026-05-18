@@ -220,7 +220,32 @@ const RecruiterApplicationsView = () => {
                   </div>
                   <ChevronRight size={16} className="text-on-surface-variant group-hover:translate-x-1 transition-transform" />
                 </div>
-              ))}
+              ) : (
+                topPicks.map(pick => {
+                  const applicant = typeof pick.applicantId === 'object' ? (pick.applicantId as any) : null;
+                  return (
+                    <div 
+                      key={pick._id} 
+                      className="bg-white/50 hover:bg-white/80 rounded-2xl p-4 flex items-center gap-4 border border-white/60 shadow-sm cursor-pointer hover:border-primary/20 transition-all group"
+                      id={`top-pick-item-${pick._id}`}
+                    >
+                      <img 
+                        src={applicant?.profilePhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150&h=150'} 
+                        alt={applicant?.fullname || 'Candidate'} 
+                        className="w-10 h-10 rounded-full object-cover border border-primary/20" 
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-black text-on-surface truncate">{applicant?.fullname || 'Name'}</p>
+                        <p className="text-[9px] font-black text-primary mt-1 uppercase tracking-widest flex items-center gap-1">
+                          <Sparkles className="w-2.5 h-2.5" />
+                          MATCH {pick.aiScore}%
+                        </p>
+                      </div>
+                      <ChevronRight size={16} className="text-on-surface-variant group-hover:translate-x-1 transition-transform shrink-0" />
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             <button className="w-full mt-6 py-3 bg-surface-container hover:bg-surface-container-high rounded-xl text-[10px] font-black uppercase tracking-widest text-on-surface-variant transition-all">
