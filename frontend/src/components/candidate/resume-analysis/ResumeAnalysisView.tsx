@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { resumeService, Resume } from '@/lib/services/resume.services';
 import { aiService } from '@/lib/services/ai.services';
 import { Button } from '@/components/common/Button';
+import DeleteModal from '@/components/common/DeleteModal';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/utils/cn';
 
@@ -40,6 +41,11 @@ const ResumeAnalysisView = () => {
   const [currentResume, setCurrentResume] = useState<Resume | null>(null);
   const [interviewQuestions, setInterviewQuestions] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Custom Delete Modal States
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const generatePDFReport = (data: Resume) => {
     const doc = new jsPDF();
@@ -188,16 +194,26 @@ const ResumeAnalysisView = () => {
     }
   };
 
-  const deleteResume = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this analysis?')) return;
+  const handleDeleteClick = (id: string) => {
+    setDeleteTargetId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetId) return;
     try {
-      const res = await resumeService.deleteResume(id);
+      setIsDeleting(true);
+      const res = await resumeService.deleteResume(deleteTargetId);
       if (res.success) {
-        toast.success('Deleted');
+        toast.success('Resume analysis deleted successfully!');
         fetchHistory();
       }
     } catch (error) {
-      toast.error('Delete failed');
+      toast.error('Failed to delete resume analysis.');
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+      setDeleteTargetId(null);
     }
   };
 
@@ -414,7 +430,7 @@ const ResumeAnalysisView = () => {
                 <p className="text-on-surface-variant">AI-generated questions based on your resume and target roles.</p>
               </div>
               <div className="flex gap-4 w-full sm:w-auto">
-                <Link href="/candidate/mock-interview" className="flex-1 sm:flex-none gradient-button text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
+                <Link href="/candidate/aimock-interview" className="flex-1 sm:flex-none gradient-button text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
                   <Zap className="w-4 h-4" />
                   Start Live Interview
                 </Link>
@@ -492,7 +508,7 @@ const ResumeAnalysisView = () => {
                       {item.score}% ATS
                     </span>
                     <button
-                      onClick={() => deleteResume(item._id)}
+                      onClick={() => handleDeleteClick(item._id)}
                       className="p-1.5 text-on-surface-variant hover:text-red-500 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -523,6 +539,20 @@ const ResumeAnalysisView = () => {
           )}
         </div>
       </section>
+      {/* Custom Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeleteTargetId(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Analysis"
+        message="Are you sure you want to permanently delete this resume analysis? This action cannot be undone."
+        confirmText="Yes, Delete"
+        cancelText="No, Keep it"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

@@ -127,33 +127,43 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
         )}
 
         <div className="hidden md:flex items-center ml-2">
-          <div className="relative inline-block group">
-            {/* Pulsing sound waves/vibration ripples with dual-gradient energy */}
+          <motion.div
+            className="relative inline-block group"
+            whileHover="hover"
+            initial="initial"
+          >
+            {/* Magnetic Energy Ripples - expanding only on hover for maximum premium interaction */}
             <motion.div
-              className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/30 to-secondary/30 pointer-events-none blur-[2px]"
+              className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/40 to-secondary/40 pointer-events-none blur-[4px]"
               style={{ zIndex: 0 }}
-              animate={{
-                scale: [1, 1.3],
-                opacity: [0.6, 0]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeOut"
+              variants={{
+                initial: { scale: 1, opacity: 0 },
+                hover: {
+                  scale: [1, 1.35],
+                  opacity: [0.8, 0],
+                  transition: {
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeOut"
+                  }
+                }
               }}
             />
             <motion.div
-              className="absolute inset-0 rounded-xl bg-gradient-to-r from-secondary/20 to-tertiary/20 pointer-events-none blur-[2px]"
+              className="absolute inset-0 rounded-xl bg-gradient-to-r from-secondary/30 to-primary/30 pointer-events-none blur-[4px]"
               style={{ zIndex: 0 }}
-              animate={{
-                scale: [1, 1.5],
-                opacity: [0.4, 0]
-              }}
-              transition={{
-                duration: 2,
-                delay: 0.7,
-                repeat: Infinity,
-                ease: "easeOut"
+              variants={{
+                initial: { scale: 1, opacity: 0 },
+                hover: {
+                  scale: [1, 1.5],
+                  opacity: [0.6, 0],
+                  transition: {
+                    duration: 1.5,
+                    delay: 0.5,
+                    repeat: Infinity,
+                    ease: "easeOut"
+                  }
+                }
               }}
             />
 
@@ -161,15 +171,37 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
               variant="gradient"
               size="sm"
               onClick={() => setIsHiringModalOpen(true)}
-              className="relative overflow-hidden rounded-xl text-white font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-primary/30 active:scale-95"
+              className="relative overflow-hidden rounded-xl text-white font-extrabold text-xs tracking-wider flex items-center gap-2 shadow-lg shadow-primary/30 cursor-pointer border border-white/10"
               style={{ position: 'relative', zIndex: 1 }}
+              whileHover={{
+                scale: 1.06,
+                boxShadow: "0 20px 25px -5px rgba(59, 130, 246, 0.4), 0 10px 10px -5px rgba(59, 130, 246, 0.3)"
+              }}
+              whileTap={{ scale: 0.95 }}
             >
-              {/* Glowing shimmer reflection */}
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
-              <Briefcase className="w-3.5 h-3.5 group-hover:animate-bounce" />
-              Start Hiring
+              {/* Infinite looping glass highlight sweep from left to right */}
+              <motion.div
+                className="absolute inset-0 w-[50%] h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
+                style={{ zIndex: 0 }}
+                animate={{
+                  x: ["-180%", "280%"]
+                }}
+                transition={{
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  duration: 2,
+                  ease: "easeInOut",
+                  repeatDelay: 1.2 // Delay between sweeps to make it look extremely premium
+                }}
+              />
+
+              {/* Text and Icon with explicit relative layering to stay on top */}
+              <span className="relative z-10 flex items-center gap-2">
+                <Briefcase className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
+                Start Hiring
+              </span>
             </Button>
-          </div>
+          </motion.div>
         </div>
 
         <div className="h-8 w-[1px] bg-outline-variant/20 mx-1 hidden sm:block" />

@@ -151,54 +151,86 @@ const DashboardView = () => {
                 : "Your AI readiness score is looking strong today. We found new matches for your profile."}
             </p>
             {isProfileIncomplete && (
-              <div className="relative inline-block mt-6 group">
-                {/* Concentric sound wave/vibration ripples with dual-gradient energy */}
+              <motion.div
+                className="relative inline-block mt-6 group"
+                whileHover="hover"
+                initial="initial"
+              >
+                {/* Magnetic Energy Ripples - expanding only on hover for maximum premium interaction */}
                 <motion.div
                   className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/40 to-secondary/40 pointer-events-none blur-sm"
                   style={{ zIndex: 0 }}
-                  animate={{
-                    scale: [1, 1.45],
-                    opacity: [0.8, 0]
-                  }}
-                  transition={{
-                    duration: 1.8,
-                    repeat: Infinity,
-                    ease: "easeOut"
+                  variants={{
+                    initial: { scale: 1, opacity: 0 },
+                    hover: {
+                      scale: [1, 1.45],
+                      opacity: [0.8, 0],
+                      transition: {
+                        duration: 1.8,
+                        repeat: Infinity,
+                        ease: "easeOut"
+                      }
+                    }
                   }}
                 />
                 <motion.div
                   className="absolute inset-0 rounded-2xl bg-gradient-to-r from-secondary/30 to-tertiary/30 pointer-events-none blur-sm"
                   style={{ zIndex: 0 }}
-                  animate={{
-                    scale: [1, 1.85],
-                    opacity: [0.6, 0]
-                  }}
-                  transition={{
-                    duration: 1.8,
-                    delay: 0.6,
-                    repeat: Infinity,
-                    ease: "easeOut"
+                  variants={{
+                    initial: { scale: 1, opacity: 0 },
+                    hover: {
+                      scale: [1, 1.85],
+                      opacity: [0.6, 0],
+                      transition: {
+                        duration: 1.8,
+                        delay: 0.6,
+                        repeat: Infinity,
+                        ease: "easeOut"
+                      }
+                    }
                   }}
                 />
                 
                 <Button 
                   variant="gradient" 
                   size="sm" 
-                  className="shadow-2xl shadow-primary/50 hover:shadow-secondary/50 active:scale-95 transition-all relative overflow-hidden flex items-center gap-2 font-black tracking-wide"
+                  className="shadow-2xl shadow-primary/50 hover:shadow-secondary/50 cursor-pointer relative overflow-hidden flex items-center gap-2 font-black tracking-wide border border-white/10"
                   style={{ position: 'relative', zIndex: 1 }}
                   onClick={() => setIsProfileWizardOpen(true)}
+                  whileHover={{ 
+                    scale: 1.06, 
+                    boxShadow: "0 20px 25px -5px rgba(59, 130, 246, 0.4), 0 10px 10px -5px rgba(59, 130, 246, 0.3)" 
+                  }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  {/* Glowing shimmer reflection */}
-                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
-                  Complete Profile
-                  <motion.span
-                    animate={{ rotate: [0, 15, -15, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                  >
-                    🚀
-                  </motion.span>
+                  {/* Infinite looping glass highlight sweep from left to right */}
+                  <motion.div
+                    className="absolute inset-0 w-[50%] h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
+                    style={{ zIndex: 0 }}
+                    animate={{
+                      x: ["-180%", "280%"]
+                    }}
+                    transition={{
+                      repeat: Infinity,
+                      repeatType: "loop",
+                      duration: 2,
+                      ease: "easeInOut",
+                      repeatDelay: 1.2 // Delay between sweeps to make it look extremely premium
+                    }}
+                  />
+
+                  {/* Text and emoji with relative layer to stay on top */}
+                  <span className="relative z-10 flex items-center gap-2">
+                    Complete Profile
+                    <motion.span
+                      animate={{ rotate: [0, 15, -15, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                    >
+                      🚀
+                    </motion.span>
+                  </span>
                 </Button>
-              </div>
+              </motion.div>
             )}
           </div>
           
