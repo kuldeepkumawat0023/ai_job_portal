@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Briefcase, 
   MapPin, 
@@ -18,11 +19,46 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
+import { toast } from 'react-hot-toast';
+
+// Services
+import { jobService } from '@/lib/services/job.services';
+import { dashboardService } from '@/lib/services/dashboard.services';
+
+// Components
+import { Button } from '@/components/common/Button';
 
 const PostJobView = () => {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [companyId, setCompanyId] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [formData, setFormData] = useState({
+    title: '',
+    dept: 'Engineering',
+    location: '',
+    description: '',
+    skills: ['React', 'TypeScript', 'System Design'],
+    experienceLevel: 'Mid Level',
+    salaryMin: '120,000',
+    salaryMax: '180,000',
+    currency: 'USD',
+    perks: [] as string[]
+  });
+
+  const [newSkill, setNewSkill] = useState('');
+
+  const experienceMap: Record<string, number> = {
+    'Internship': 0,
+    'Entry Level': 0,
+    'Junior': 1,
+    'Mid Level': 3,
+    'Senior': 5,
+    'Lead / Manager': 7
+  };
 
   const steps = [
     { id: 1, label: 'Role Details' },
@@ -30,33 +66,215 @@ const PostJobView = () => {
     { id: 3, label: 'Compensation' }
   ];
 
+  useEffect(() => {
+    const fetchCompany = async () => {
+      try {
+        const statsRes = await dashboardService.getRecruiterStats();
+        if (statsRes.success && statsRes.data?.company?._id) {
+          setCompanyId(statsRes.data.company._id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch company info", error);
+      }
+    };
+    fetchCompany();
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error when typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleNextStep = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (step === 1) {
+      if (!formData.title.trim()) newErrors.title = 'Required';
+      if (!formData.dept.trim()) newErrors.dept = 'Required';
+      if (!formData.location.trim()) newErrors.location = 'Required';
+      if (!formData.description.trim()) newErrors.description = 'Required';
+      
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+      }
+    } else if (step === 2) {
+      if (formData.skills.length === 0) {
+        newErrors.skills = 'Add at least one skill';
+        setErrors(newErrors);
+        return;
+      }
+    }
+    
+    setErrors({});
+    setStep(step + 1);
+  };
+
+  const handleAddSkill = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const skill = newSkill.trim();
+    if (skill && !formData.skills.includes(skill)) {
+      setFormData(prev => ({ ...prev, skills: [...prev.skills, skill] }));
+      setNewSkill('');
+      if (errors.skills) {
+        setErrors(prev => {
+          const newE = { ...prev };
+          delete newE.skills;
+          return newE;
+        });
+      }
+    }
+  };
+
+  const handleKeyDownSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddSkill();
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      skills: prev.skills.filter(s => s !== skillToRemove)
+    }));
+  };
+
+  const togglePerk = (perk: string) => {
+    setFormData(prev => ({
+      ...prev,
+      perks: prev.perks.includes(perk) 
+        ? prev.perks.filter(p => p !== perk)
+        : [...prev.perks, perk]
+    }));
+  };
+
   const handleAiGenerate = () => {
     setIsGenerating(true);
-    setTimeout(() => setIsGenerating(false), 2000);
+    setTimeout(() => {
+      setFormData(prev => ({
+        ...prev,
+        description: prev.description + "\n\nWe are looking for an exceptional candidate who can drive impact, lead by example, and thrive in a fast-paced environment. You will be responsible for architecture, mentoring junior devs, and collaborating cross-functionally."
+      }));
+      if (errors.description) {
+        setErrors(prev => {
+          const newE = { ...prev };
+          delete newE.description;
+          return newE;
+        });
+      }
+      setIsGenerating(false);
+      toast.success("AI refined your job description!");
+    }, 2000);
   };
+
+  const handlePublish = async () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.title.trim()) newErrors.title = 'Required';
+    if (!formData.dept.trim()) newErrors.dept = 'Required';
+    if (!formData.location.trim()) newErrors.location = 'Required';
+    if (!formData.description.trim()) newErrors.description = 'Required';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setStep(1);
+      return;
+    }
+    
+    if (formData.skills.length === 0) {
+      setErrors({ skills: 'Required' });
+      setStep(2);
+      return;
+    }
+    
+    if (!formData.salaryMin) newErrors.salaryMin = 'Required';
+    if (!formData.salaryMax) newErrors.salaryMax = 'Required';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    if (!companyId) {
+      toast.error('Company profile not found. Please ensure your recruiter profile is complete.');
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        requirements: formData.skills,
+        salary: `${formData.salaryMin}-${formData.salaryMax} ${formData.currency.split(' ')[0]}`,
+        location: formData.location,
+        jobType: 'Full-time',
+        experience: experienceMap[formData.experienceLevel] || 0,
+        category: formData.dept,
+        companyId: companyId
+      };
+
+      const res = await jobService.postJob(payload);
+      if (res.success) {
+        toast.success('Job posted successfully!');
+        router.push('/recruiter/dashboard'); 
+      } else {
+        toast.error('Failed to post job');
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to post job');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  // --- Dynamic AI Insights Logic ---
+  const getCompetitiveness = () => {
+    const maxSalary = parseInt(formData.salaryMax.replace(/,/g, '')) || 0;
+    if (maxSalary >= 150000) return { label: 'Strong', percent: 92, textClass: 'text-emerald-500', bgClass: 'bg-emerald-500', shadowClass: 'shadow-[0_0_12px_rgba(16,185,129,0.3)]' };
+    if (maxSalary >= 80000) return { label: 'Average', percent: 65, textClass: 'text-yellow-500', bgClass: 'bg-yellow-500', shadowClass: 'shadow-[0_0_12px_rgba(234,179,8,0.3)]' };
+    return { label: 'Low', percent: 35, textClass: 'text-orange-500', bgClass: 'bg-orange-500', shadowClass: 'shadow-[0_0_12px_rgba(249,115,22,0.3)]' };
+  };
+
+  const getTalentPool = () => {
+    const base = 5000;
+    const skillReduction = formData.skills.length * 400;
+    const experienceReduction = (experienceMap[formData.experienceLevel] || 0) * 300;
+    const pool = Math.max(120, base - skillReduction - experienceReduction);
+    return pool >= 1000 ? `${(pool/1000).toFixed(1)}k+` : `${pool}+`;
+  };
+
+  const getJDTip = () => {
+    if (formData.description.length < 50) return "Your job description is quite short. Adding more details about day-to-day responsibilities increases applicant quality.";
+    if (!formData.description.toLowerCase().includes('culture') && !formData.description.toLowerCase().includes('team')) {
+      return "Consider adding a section about company culture and team dynamics to increase candidate conversion by up to 14%.";
+    }
+    return "Great job description! It's clear, detailed, and highlights your expectations perfectly.";
+  };
+
+  const competitiveness = getCompetitiveness();
 
   return (
     <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in duration-700">
       
       {/* Navigation Header */}
       <div className="flex items-center justify-between">
-        <button className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+        <button 
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group"
+        >
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-[10px] font-black uppercase tracking-widest">Back to Board</span>
         </button>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setShowPreview(!showPreview)}
-            className="flex items-center gap-2 px-6 py-2.5 glass-card rounded-xl text-xs font-bold text-on-surface-variant hover:text-on-surface transition-all"
-          >
-            <Eye size={18} />
-            {showPreview ? 'Edit Mode' : 'Preview'}
-          </button>
-          <button className="flex items-center gap-2 px-6 py-2.5 bg-surface-container hover:bg-surface-container-high rounded-xl text-xs font-bold text-on-surface transition-all">
-            <Save size={18} />
-            Save Draft
-          </button>
-        </div>
       </div>
 
       {/* Main Title */}
@@ -112,34 +330,72 @@ const PostJobView = () => {
               >
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Title</label>
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Title</label>
+                      {errors.title && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.title}</span>}
+                    </div>
                     <div className="relative">
-                      <Briefcase className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
-                      <input className="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 pl-7 py-3 font-medium text-on-surface transition-all placeholder:text-on-surface-variant/30" placeholder="e.g. Senior Staff Frontend Engineer" type="text" />
+                      <Briefcase className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.title ? "text-red-500" : "text-on-surface-variant")} size={18} />
+                      <input 
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        className={cn(
+                          "w-full bg-transparent border-b pl-7 py-3 font-medium text-on-surface transition-all placeholder:text-on-surface-variant/30 focus:ring-0",
+                          errors.title ? "border-red-500 focus:border-red-500" : "border-outline-variant focus:border-primary"
+                        )}
+                        placeholder="e.g. Senior Staff Frontend Engineer" 
+                        type="text" 
+                      />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Department</label>
-                      <select className="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 py-3 font-medium text-on-surface transition-all">
-                        <option>Engineering</option>
-                        <option>Product</option>
-                        <option>Design</option>
-                      </select>
+                      <div className="flex justify-between items-center">
+                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Department</label>
+                        {errors.dept && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.dept}</span>}
+                      </div>
+                      <input 
+                        name="dept"
+                        value={formData.dept}
+                        onChange={handleChange}
+                        className={cn(
+                          "w-full bg-transparent border-b py-3 font-medium text-on-surface transition-all placeholder:text-on-surface-variant/30 focus:ring-0",
+                          errors.dept ? "border-red-500 focus:border-red-500" : "border-outline-variant focus:border-primary"
+                        )}
+                        placeholder="e.g. Engineering"
+                        type="text" 
+                      />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Location</label>
+                      <div className="flex justify-between items-center">
+                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Location</label>
+                        {errors.location && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.location}</span>}
+                      </div>
                       <div className="relative">
-                        <MapPin className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
-                        <input className="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 pl-7 py-3 font-medium text-on-surface transition-all placeholder:text-on-surface-variant/30" placeholder="Remote or City" type="text" />
+                        <MapPin className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.location ? "text-red-500" : "text-on-surface-variant")} size={18} />
+                        <input 
+                          name="location"
+                          value={formData.location}
+                          onChange={handleChange}
+                          className={cn(
+                            "w-full bg-transparent border-b pl-7 py-3 font-medium text-on-surface transition-all placeholder:text-on-surface-variant/30 focus:ring-0",
+                            errors.location ? "border-red-500 focus:border-red-500" : "border-outline-variant focus:border-primary"
+                          )} 
+                          placeholder="Remote or City" 
+                          type="text" 
+                        />
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center mb-2">
-                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Description</label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Description</label>
+                        {errors.description && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.description}</span>}
+                      </div>
                       <button 
                         onClick={handleAiGenerate}
                         disabled={isGenerating}
@@ -150,7 +406,13 @@ const PostJobView = () => {
                       </button>
                     </div>
                     <textarea 
-                      className="w-full bg-transparent border border-outline-variant/30 rounded-2xl p-6 font-medium text-on-surface focus:border-primary focus:ring-0 transition-all resize-none min-h-[200px] leading-relaxed"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      className={cn(
+                        "w-full bg-transparent border rounded-2xl p-6 font-medium text-on-surface focus:ring-0 transition-all resize-none min-h-[200px] leading-relaxed",
+                        errors.description ? "border-red-500 focus:border-red-500" : "border-outline-variant/30 focus:border-primary"
+                      )}
                       placeholder="Describe the role, impact, and day-to-day responsibilities..."
                     />
                   </div>
@@ -168,28 +430,49 @@ const PostJobView = () => {
               >
                 <div className="space-y-8">
                   <div className="space-y-4">
-                    <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Required Skills</label>
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Required Skills</label>
+                      {errors.skills && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.skills}</span>}
+                    </div>
                     <div className="flex flex-wrap gap-2">
-                      {['React', 'TypeScript', 'System Design'].map(skill => (
+                      {formData.skills.map(skill => (
                         <span key={skill} className="px-4 py-2 bg-primary/5 text-primary rounded-xl text-xs font-bold border border-primary/10 flex items-center gap-2 group">
                           {skill}
-                          <button className="hover:text-error transition-colors"><X size={14} /></button>
+                          <button onClick={() => handleRemoveSkill(skill)} className="hover:text-error transition-colors"><X size={14} /></button>
                         </span>
                       ))}
-                      <button className="px-4 py-2 border-2 border-dashed border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <input 
+                        value={newSkill}
+                        onChange={(e) => setNewSkill(e.target.value)}
+                        onKeyDown={handleKeyDownSkill}
+                        placeholder="Add a required skill..."
+                        className={cn(
+                          "flex-1 bg-transparent border-b py-2 font-medium text-sm text-on-surface transition-all placeholder:text-on-surface-variant/30 focus:ring-0",
+                          errors.skills ? "border-red-500 focus:border-red-500" : "border-outline-variant focus:border-primary"
+                        )}
+                      />
+                      <Button onClick={handleAddSkill} variant="outline" size="sm" className="rounded-xl flex items-center gap-2">
                         <Plus size={14} /> Add Skill
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Experience Level</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      {['Entry', 'Junior', 'Mid', 'Senior'].map(level => (
-                        <button key={level} className={cn(
-                          "py-4 rounded-2xl border-2 font-black text-[10px] uppercase tracking-widest transition-all",
-                          level === 'Senior' ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "border-outline-variant/10 text-on-surface-variant hover:border-primary/40 hover:text-on-surface"
-                        )}>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {['Internship', 'Entry Level', 'Junior', 'Mid Level', 'Senior', 'Lead / Manager'].map(level => (
+                        <button 
+                          key={level} 
+                          onClick={() => setFormData(prev => ({ ...prev, experienceLevel: level }))}
+                          className={cn(
+                            "py-4 rounded-2xl border-2 font-black text-[10px] uppercase tracking-widest transition-all",
+                            formData.experienceLevel === level 
+                              ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" 
+                              : "border-outline-variant/10 text-on-surface-variant hover:border-primary/40 hover:text-on-surface"
+                          )}
+                        >
                           {level}
                         </button>
                       ))}
@@ -204,7 +487,7 @@ const PostJobView = () => {
                       </div>
                       <span className="text-2xl font-black text-primary">85%</span>
                     </div>
-                    <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden cursor-pointer">
                       <div className="h-full bg-primary w-[85%] rounded-full shadow-[0_0_12px_rgba(var(--primary-rgb),0.3)]" />
                     </div>
                   </div>
@@ -223,25 +506,51 @@ const PostJobView = () => {
                 <div className="space-y-8">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Annual Salary Range</label>
+                      <div className="flex justify-between items-center">
+                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Annual Salary Range</label>
+                        {(errors.salaryMin || errors.salaryMax) && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">Required</span>}
+                      </div>
                       <div className="flex items-center gap-3">
                         <div className="relative flex-1">
-                          <DollarSign className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant" size={16} />
-                          <input className="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 pl-6 py-3 font-black text-lg text-on-surface transition-all" defaultValue="120,000" type="text" />
+                          <DollarSign className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.salaryMin ? "text-red-500" : "text-on-surface-variant")} size={16} />
+                          <input 
+                            name="salaryMin"
+                            value={formData.salaryMin}
+                            onChange={handleChange}
+                            className={cn(
+                              "w-full bg-transparent border-b pl-6 py-3 font-black text-lg text-on-surface transition-all focus:ring-0",
+                              errors.salaryMin ? "border-red-500 focus:border-red-500" : "border-outline-variant focus:border-primary"
+                            )} 
+                            type="text" 
+                          />
                         </div>
                         <span className="text-on-surface-variant font-black">to</span>
                         <div className="relative flex-1">
-                          <DollarSign className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant" size={16} />
-                          <input className="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 pl-6 py-3 font-black text-lg text-on-surface transition-all" defaultValue="180,000" type="text" />
+                          <DollarSign className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.salaryMax ? "text-red-500" : "text-on-surface-variant")} size={16} />
+                          <input 
+                            name="salaryMax"
+                            value={formData.salaryMax}
+                            onChange={handleChange}
+                            className={cn(
+                              "w-full bg-transparent border-b pl-6 py-3 font-black text-lg text-on-surface transition-all focus:ring-0",
+                              errors.salaryMax ? "border-red-500 focus:border-red-500" : "border-outline-variant focus:border-primary"
+                            )} 
+                            type="text" 
+                          />
                         </div>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Currency</label>
-                      <select className="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 py-4 font-black text-sm text-on-surface transition-all">
-                        <option>USD - United States Dollar</option>
-                        <option>EUR - Euro</option>
-                        <option>INR - Indian Rupee</option>
+                      <select 
+                        name="currency"
+                        value={formData.currency}
+                        onChange={handleChange}
+                        className="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 py-4 font-black text-sm text-on-surface transition-all [&>option]:bg-surface"
+                      >
+                        <option value="USD">USD - United States Dollar</option>
+                        <option value="EUR">EUR - Euro</option>
+                        <option value="INR">INR - Indian Rupee</option>
                       </select>
                     </div>
                   </div>
@@ -250,9 +559,24 @@ const PostJobView = () => {
                     <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Perks & Benefits</label>
                     <div className="grid grid-cols-2 gap-4">
                       {['Health Insurance', 'Equity/Stock', 'Unlimited PTO', 'Home Office Stipend'].map(perk => (
-                        <div key={perk} className="flex items-center gap-3 p-4 rounded-2xl bg-surface-container/30 border border-outline-variant/10 group cursor-pointer hover:bg-surface-container/50 transition-all">
-                          <div className="w-5 h-5 rounded border-2 border-outline-variant group-hover:border-primary transition-colors flex items-center justify-center">
-                            <CheckCircle2 size={12} className="text-primary scale-0 group-hover:scale-100 transition-transform" />
+                        <div 
+                          key={perk} 
+                          onClick={() => togglePerk(perk)}
+                          className={cn(
+                            "flex items-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer",
+                            formData.perks.includes(perk)
+                              ? "bg-primary/10 border-primary/30"
+                              : "bg-surface-container/30 border-outline-variant/10 hover:bg-surface-container/50"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-5 h-5 rounded border-2 transition-colors flex items-center justify-center",
+                            formData.perks.includes(perk) ? "border-primary" : "border-outline-variant"
+                          )}>
+                            <CheckCircle2 size={12} className={cn(
+                              "text-primary transition-transform",
+                              formData.perks.includes(perk) ? "scale-100" : "scale-0"
+                            )} />
                           </div>
                           <span className="text-xs font-bold text-on-surface">{perk}</span>
                         </div>
@@ -266,37 +590,42 @@ const PostJobView = () => {
 
           {/* Action Buttons */}
           <div className="flex justify-between pt-4">
-            <button 
+            <Button 
+              variant="outline"
               onClick={() => setStep(Math.max(1, step - 1))}
               className={cn(
                 "px-8 py-4 font-black text-[10px] uppercase tracking-[0.2em] transition-all",
-                step === 1 ? "opacity-0 pointer-events-none" : "text-on-surface-variant hover:text-on-surface"
+                step === 1 ? "opacity-0 pointer-events-none" : ""
               )}
             >
               Previous Step
-            </button>
+            </Button>
             {step < 3 ? (
-              <button 
-                onClick={() => setStep(step + 1)}
-                className="gradient-button text-white font-black text-[10px] uppercase tracking-[0.2em] px-10 py-4 rounded-2xl shadow-xl shadow-primary/20 flex items-center gap-3 group"
+              <Button 
+                variant="gradient"
+                onClick={handleNextStep}
+                className="px-10 py-4 font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-xl shadow-primary/20"
               >
                 Continue
-                <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
+                <ChevronRight size={16} />
+              </Button>
             ) : (
-              <button 
-                className="gradient-button text-white font-black text-[10px] uppercase tracking-[0.2em] px-10 py-4 rounded-2xl shadow-xl shadow-primary/30 flex items-center gap-3"
+              <Button 
+                variant="gradient"
+                isLoading={isPublishing}
+                onClick={handlePublish}
+                className="px-10 py-4 font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-xl shadow-primary/30"
               >
                 Publish Posting
                 <Sparkles size={16} />
-              </button>
+              </Button>
             )}
           </div>
         </div>
 
         {/* Right: AI Analysis Sidebar */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="glass-card rounded-[2rem] p-8 border border-white/10 relative overflow-hidden">
+          <div className="glass-card rounded-[2rem] p-8 border border-white/10 relative overflow-hidden transition-all duration-500">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16" />
             
             <div className="flex items-center gap-3 mb-8 relative z-10">
@@ -311,31 +640,38 @@ const PostJobView = () => {
 
             <div className="space-y-8 relative z-10">
               <div className="space-y-4">
-                <div className="flex justify-between text-[11px] font-black uppercase tracking-widest">
+                <div className="flex justify-between text-[11px] font-black uppercase tracking-widest transition-colors">
                   <span className="text-on-surface-variant">Market Competitiveness</span>
-                  <span className="text-emerald-500">Strong</span>
+                  <span className={competitiveness.textClass}>{competitiveness.label}</span>
                 </div>
                 <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 w-[92%] rounded-full shadow-[0_0_12px_rgba(16,185,129,0.3)]" />
+                  <div 
+                    className={cn("h-full rounded-full transition-all duration-1000", competitiveness.bgClass, competitiveness.shadowClass)} 
+                    style={{ width: `${competitiveness.percent}%` }}
+                  />
                 </div>
               </div>
 
               <div className="p-5 rounded-2xl bg-surface-container/50 border border-outline-variant/10 space-y-4">
                 <p className="text-[11px] font-bold text-on-surface leading-relaxed">
                   <span className="text-primary font-black uppercase italic mr-1">AI Recommendation:</span> 
-                  Your salary range is in the **top 10%** for this role. Expect a high volume of quality applicants.
+                  {competitiveness.label === 'Strong' 
+                    ? "Your salary range is highly competitive for this role. Expect a high volume of quality applicants."
+                    : competitiveness.label === 'Average'
+                    ? "Your salary is aligned with market averages. Adding more perks could boost your applicant pool."
+                    : "Consider increasing the salary range to attract top-tier talent in the current market."}
                 </p>
                 <div className="h-px bg-outline-variant/10" />
                 <p className="text-[11px] font-bold text-on-surface leading-relaxed">
                   <span className="text-secondary font-black uppercase italic mr-1">JD Tip:</span> 
-                  Adding a "Day in the life" section could increase candidate conversion by **14%**.
+                  {getJDTip()}
                 </p>
               </div>
 
               <div className="space-y-4 pt-4">
                 <h4 className="text-[10px] font-black text-on-surface uppercase tracking-widest opacity-40">Talent Pool Estimate</h4>
                 <div className="flex items-end gap-2">
-                  <span className="text-4xl font-black text-on-surface">1.2k+</span>
+                  <span className="text-4xl font-black text-on-surface transition-all">{getTalentPool()}</span>
                   <span className="text-[10px] font-bold text-emerald-500 uppercase mb-1.5 tracking-widest">Potential Matches</span>
                 </div>
               </div>
