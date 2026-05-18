@@ -1,13 +1,14 @@
 const Company = require('../models/Company');
 const User = require('../models/User');
 const ROLES = require('../utils/roles');
+const { uploadToCloudinary } = require('../config/cloudinary');
 
 // @desc    Register a new company
 // @route   POST /api/v1/company/register
 // @access  Private
 exports.registerCompany = async (req, res, next) => {
   try {
-    const { name, description, website, location } = req.body;
+    const { name, description, website, location, industry } = req.body;
 
     if (!name || !location) {
       return res.status(400).json({ success: false, statusCode: 400, message: 'Company name and location are required', data: null });
@@ -25,16 +26,18 @@ exports.registerCompany = async (req, res, next) => {
       description,
       website,
       location,
+      industry,
       userId: req.user.id
     });
 
-    // Update user's hasCompanyProfile flag and change role to recruiter
+    // Update user's hasCompanyProfile flag, companyId, and change role to recruiter
     const updatedUser = await User.findByIdAndUpdate(req.user.id, { 
       hasCompanyProfile: true,
+      companyId: company._id,
       role: ROLES.RECRUITER
     }, { new: true });
 
-    console.log(`[Role Update] User ${updatedUser._id} role changed to: ${updatedUser.role}`);
+    console.log(`[Role & Company Update] User ${updatedUser._id} companyId set to ${updatedUser.companyId} and role changed to: ${updatedUser.role}`);
 
     res.status(201).json({
       success: true,
@@ -89,7 +92,7 @@ exports.getCompanyById = async (req, res, next) => {
 // @access  Private
 exports.updateCompany = async (req, res, next) => {
   try {
-    const { name, description, website, location } = req.body;
+    const { name, description, website, location, industry } = req.body;
     
     let company = await Company.findById(req.params.id);
     if (!company) {
@@ -101,11 +104,12 @@ exports.updateCompany = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized to update this company', data: null });
     }
 
-    const updateData = { name, description, website, location };
+    const updateData = { name, description, website, location, industry };
     
     // Handle logo upload if provided
     if (req.file) {
-      updateData.logo = req.file.path;
+      const uploadResult = await uploadToCloudinary(req.file.buffer, 'ai_job_portal/companies', 'image');
+      updateData.logo = uploadResult.secure_url || uploadResult.url;
     }
 
     company = await Company.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });

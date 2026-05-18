@@ -3,15 +3,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Bell, 
-  Sun, 
-  Moon, 
-  Menu, 
-  ChevronDown, 
-  User, 
-  LogOut, 
-  Globe, 
+import {
+  Bell,
+  Sun,
+  Moon,
+  Menu,
+  ChevronDown,
+  User,
+  LogOut,
+  Globe,
   Settings,
   Search,
   Calendar as CalendarIcon,
@@ -248,7 +248,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
 
                 <div className="px-2 space-y-0.5">
                   <Link
-                    href="/recruiter/profile"
+                    href="/recruiter/settings/personal"
                     onClick={() => setIsDropdownOpen(false)}
                     className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-on-surface hover:bg-primary/10 hover:text-primary rounded-xl transition-colors group/item"
                   >
@@ -256,17 +256,6 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
                       <User size={16} />
                     </div>
                     Recruiter Profile
-                  </Link>
-
-                  <Link
-                    href="/"
-                    onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-on-surface hover:bg-primary/10 hover:text-primary rounded-xl transition-colors group/item"
-                  >
-                    <div className="p-1.5 rounded-lg bg-surface-container text-on-surface-variant group-hover/item:bg-primary/20 group-hover/item:text-primary transition-colors">
-                      <Globe size={16} />
-                    </div>
-                    Main Website
                   </Link>
 
                   <Link

@@ -20,7 +20,8 @@ import {
   ShieldAlert,
   Loader2,
   Key,
-  X
+  X,
+  Pencil
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -46,6 +47,10 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
     profilePhoto: user?.profilePhoto || 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=300&h=300'
   });
 
+  // Rollback backup state and editing toggle
+  const [originalProfileData, setOriginalProfileData] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
+
   // Team Management State
   const [team, setTeam] = useState<any[]>([]);
   const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'Recruiter' });
@@ -54,8 +59,6 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
   // Billing State
   const [billingUsage, setBillingUsage] = useState<any>(null);
 
-  // Security & Password Form State
-  const [securityForm, setSecurityForm] = useState({ currentPassword: '', newPassword: '' });
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(user?.twoFactorEnabled || false);
 
   // Notification Preferences State
@@ -75,14 +78,16 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
   // Load team, billing, and current profile settings on mount
   useEffect(() => {
     if (user) {
-      setProfileData({
+      const activeData = {
         fullname: user.fullname || '',
         email: user.email || '',
         jobRole: user.jobRole || 'Lead Recruiter',
         department: user.department || 'Talent Acquisition',
         bio: user.bio || '',
         profilePhoto: user.profilePhoto || 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=300&h=300'
-      });
+      };
+      setProfileData(activeData);
+      setOriginalProfileData(activeData);
       setTwoFactorEnabled(user.twoFactorEnabled || false);
       setNotificationPrefs({
         newApplications: user.notificationPreferences?.newApplications ?? true,
@@ -92,10 +97,10 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
         teamMentions: user.notificationPreferences?.teamMentions ?? true,
         candidateActivity: user.notificationPreferences?.candidateActivity ?? true
       });
-    }
 
-    fetchTeamMembers();
-    fetchBillingUsage();
+      fetchTeamMembers();
+      fetchBillingUsage();
+    }
   }, [user]);
 
   const fetchTeamMembers = async () => {
@@ -125,6 +130,11 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
     const file = e.target.files?.[0];
     if (!file || !user?._id) return;
 
+    if (!isEditing) {
+      toast.error('Please click Edit Profile first to update your profile photo.');
+      return;
+    }
+
     try {
       setUpdating(true);
       const formData = new FormData();
@@ -132,10 +142,17 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
 
       const response = await userService.updateProfile(user._id, formData);
       if (response.success && response.data) {
+        const nextPhoto = response.data.profilePhoto || profileData.profilePhoto;
         setProfileData(prev => ({
           ...prev,
-          profilePhoto: response.data.profilePhoto || prev.profilePhoto
+          profilePhoto: nextPhoto
         }));
+        if (originalProfileData) {
+          setOriginalProfileData({
+            ...originalProfileData,
+            profilePhoto: nextPhoto
+          });
+        }
         updateUser({ profilePhoto: response.data.profilePhoto });
         toast.success('Avatar updated on Cloudinary successfully!');
       } else {
@@ -147,6 +164,15 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
     } finally {
       setUpdating(false);
     }
+  };
+
+  // Discard edits and reset back to dynamic db variables
+  const handleCancelEdit = () => {
+    if (originalProfileData) {
+      setProfileData(originalProfileData);
+    }
+    setIsEditing(false);
+    toast.success('Changes discarded');
   };
 
   // Profile Information update handler
@@ -164,6 +190,18 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
       });
 
       if (response.success && response.data) {
+        const savedData = {
+          fullname: response.data.fullname || '',
+          email: profileData.email,
+          jobRole: response.data.jobRole || '',
+          department: response.data.department || '',
+          bio: response.data.bio || '',
+          profilePhoto: profileData.profilePhoto
+        };
+        setProfileData(savedData);
+        setOriginalProfileData(savedData);
+        setIsEditing(false);
+
         updateUser({
           fullname: response.data.fullname,
           bio: response.data.bio,
@@ -345,20 +383,33 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
               className="space-y-8 animate-in fade-in duration-500"
             >
               <section className="glass-card rounded-[2rem] p-8 md:p-10 border border-white/10" aria-labelledby="profile-title">
-                <h2 className="sr-only" id="profile-title">Personal Profile Settings</h2>
+                <div className="flex justify-between items-center mb-6 border-b border-outline-variant/20 pb-4">
+                  <h2 className="text-xl font-black text-on-surface uppercase tracking-wider" id="profile-title">Personal Profile Settings</h2>
+                  {!isEditing && (
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-600 bg-emerald-500/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-emerald-500/20">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Account Verified
+                    </span>
+                  )}
+                </div>
+
                 <div className="flex flex-col lg:flex-row gap-12">
                   {/* Avatar Upload */}
                   <div className="flex flex-col items-center gap-6">
-                    <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                    <div 
+                      className={`relative group ${isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-90'}`} 
+                      onClick={() => isEditing && fileInputRef.current?.click()}
+                    >
                       <div className="w-40 h-40 rounded-[2.5rem] bg-surface-container overflow-hidden ring-4 ring-primary/5 shadow-2xl relative">
                         <img 
                           src={profileData.profilePhoto} 
                           alt="Recruiter Avatar" 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <Camera className="text-white" size={32} />
-                        </div>
+                        {isEditing && (
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Camera className="text-white" size={32} />
+                          </div>
+                        )}
                       </div>
                       <input 
                         type="file" 
@@ -377,61 +428,118 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
                   {/* Form */}
                   <form onSubmit={handleUpdateProfile} className="flex-1 space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Full Name */}
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Full Name</label>
                         <input 
-                          className="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 py-3 font-medium text-on-surface transition-all" 
+                          className={`w-full bg-transparent border-b py-3 font-medium transition-all focus:outline-none focus:ring-0 ${
+                            isEditing 
+                              ? 'border-outline-variant focus:border-primary text-on-surface' 
+                              : 'border-transparent text-on-surface-variant/90 cursor-not-allowed'
+                          }`}
                           value={profileData.fullname} 
                           onChange={(e) => setProfileData({...profileData, fullname: e.target.value})}
                           type="text" 
                           required
+                          disabled={!isEditing}
                         />
                       </div>
+
+                      {/* Email Address */}
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Email Address</label>
                         <input 
-                          className="w-full bg-transparent border-b border-outline-variant py-3 font-medium text-on-surface-variant opacity-75 cursor-not-allowed outline-none" 
+                          className="w-full bg-transparent border-b border-transparent py-3 font-medium text-on-surface-variant opacity-75 cursor-not-allowed outline-none" 
                           value={profileData.email} 
                           type="email" 
                           disabled 
                         />
                       </div>
+
+                      {/* Job Role */}
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Role</label>
                         <input 
-                          className="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 py-3 font-medium text-on-surface transition-all" 
+                          className={`w-full bg-transparent border-b py-3 font-medium transition-all focus:outline-none focus:ring-0 ${
+                            isEditing 
+                              ? 'border-outline-variant focus:border-primary text-on-surface' 
+                              : 'border-transparent text-on-surface-variant/90 cursor-not-allowed'
+                          }`}
                           value={profileData.jobRole} 
                           onChange={(e) => setProfileData({...profileData, jobRole: e.target.value})}
                           type="text" 
+                          disabled={!isEditing}
                         />
                       </div>
+
+                      {/* Department */}
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Department</label>
                         <input 
-                          className="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 py-3 font-medium text-on-surface transition-all" 
+                          className={`w-full bg-transparent border-b py-3 font-medium transition-all focus:outline-none focus:ring-0 ${
+                            isEditing 
+                              ? 'border-outline-variant focus:border-primary text-on-surface' 
+                              : 'border-transparent text-on-surface-variant/90 cursor-not-allowed'
+                          }`}
                           value={profileData.department} 
                           onChange={(e) => setProfileData({...profileData, department: e.target.value})}
                           type="text" 
+                          disabled={!isEditing}
                         />
                       </div>
                     </div>
+
+                    {/* Bio */}
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Professional Bio</label>
                       <textarea 
-                        className="w-full bg-transparent border border-outline-variant/30 rounded-2xl p-6 font-medium text-on-surface focus:border-primary focus:ring-0 transition-all resize-none min-h-[120px]"
+                        className={`w-full bg-transparent border rounded-2xl p-6 font-medium transition-all resize-none min-h-[120px] focus:outline-none focus:ring-0 ${
+                          isEditing 
+                            ? 'border-outline-variant/30 focus:border-primary text-on-surface' 
+                            : 'border-transparent bg-surface-container/20 text-on-surface-variant/90 cursor-not-allowed'
+                        }`}
                         value={profileData.bio}
                         onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
                         placeholder="Add a bio to show your recruiting background..."
+                        disabled={!isEditing}
                       />
                     </div>
-                    <div className="flex justify-end">
-                      <button 
-                        type="submit"
-                        disabled={updating}
-                        className="gradient-button text-white font-black text-[10px] uppercase tracking-[0.2em] px-10 py-4 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all disabled:opacity-50 cursor-pointer"
-                      >
-                        {updating ? 'Saving...' : 'Update Profile'}
-                      </button>
+
+                    {/* Buttons */}
+                    <div className="flex justify-end gap-3">
+                      {!isEditing ? (
+                        <button 
+                          type="button"
+                          onClick={() => setIsEditing(true)}
+                          className="gradient-button text-white font-black text-[10px] uppercase tracking-[0.2em] px-10 py-4 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                          <Pencil size={12} /> Edit Profile
+                        </button>
+                      ) : (
+                        <>
+                          <button 
+                            type="button"
+                            onClick={handleCancelEdit}
+                            disabled={updating}
+                            className="bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface font-black text-[10px] uppercase tracking-[0.2em] px-8 py-4 rounded-2xl transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                          >
+                            <X size={12} /> Cancel
+                          </button>
+                          <button 
+                            type="submit"
+                            disabled={updating}
+                            className="gradient-button text-white font-black text-[10px] uppercase tracking-[0.2em] px-10 py-4 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                          >
+                            {updating ? (
+                              <>
+                                <Loader2 size={12} className="animate-spin animate-infinite" /> Saving...
+                              </>
+                            ) : (
+                              'Save Changes'
+                            )}
+                          </button>
+                        </>
+                      )}
                     </div>
                   </form>
                 </div>

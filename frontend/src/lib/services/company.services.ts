@@ -8,6 +8,7 @@ export interface Company {
   website: string;
   location: string;
   logo?: string;
+  industry?: string;
   userId: string;
   createdAt: string;
   updatedAt: string;

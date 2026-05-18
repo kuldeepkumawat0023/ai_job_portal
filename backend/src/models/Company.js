@@ -20,6 +20,10 @@ const companySchema = new mongoose.Schema({
   logo: {
     type: String, // Cloudinary URL
   },
+  industry: {
+    type: String,
+    default: 'Artificial Intelligence'
+  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

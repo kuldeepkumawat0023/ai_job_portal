@@ -39,9 +39,9 @@ interface NavLink {
 
 const recruiterNavLinks: NavLink[] = [
   { name: 'Dashboard', href: '/recruiter/dashboard', icon: LayoutDashboard },
-  { 
-    name: 'Job Management', 
-    href: '/recruiter/job-board', 
+  {
+    name: 'Job Management',
+    href: '/recruiter/job-board',
     icon: Briefcase,
     children: [
       { name: 'Active Jobs', href: '/recruiter/job-board', icon: Briefcase },
@@ -53,9 +53,9 @@ const recruiterNavLinks: NavLink[] = [
   { name: 'Interviews', href: '/recruiter/interviews', icon: Calendar },
   { name: 'Feedback', href: '/recruiter/feedback', icon: Star },
   { name: 'Analytics', href: '/recruiter/analytics', icon: BarChart3 },
-  { 
-    name: 'Settings', 
-    href: '/recruiter/settings', 
+  {
+    name: 'Settings',
+    href: '/recruiter/settings',
     icon: Settings,
     children: [
       { name: 'Team Management', href: '/recruiter/settings', icon: Users },
@@ -76,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const pathname = usePathname();
   const router = useRouter();
   const [openSubMenus, setOpenSubMenus] = React.useState<string[]>([]);
-  
+
   const { conversations } = useSelector((state: RootState) => state.chat);
   const totalUnreadCount = conversations.reduce((acc, conv) => acc + (conv.unreadCount || 0), 0);
 
@@ -185,7 +185,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       isActive ? "text-primary" : "text-on-surface-variant group-hover:text-primary"
                     )} />
                     <span className="text-sm font-semibold flex-1">{link.name}</span>
-                    
+
                     {isMessages && totalUnreadCount > 0 && (
                       <span className="px-2 py-0.5 rounded-full bg-error text-white text-[10px] font-black animate-pulse shadow-sm">
                         {totalUnreadCount}
@@ -225,14 +225,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             );
           })}
         </nav>
-
-        {/* Bottom AI Action */}
-        <div className="mt-auto pt-6 border-t border-outline-variant/10">
-          <button className="w-full gradient-button text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-95 group">
-            <Sparkles className="w-5 h-5 transition-transform group-hover:rotate-12" />
-            <span>Ask AI Recruiter</span>
-          </button>
-        </div>
       </aside>
     </>
   );

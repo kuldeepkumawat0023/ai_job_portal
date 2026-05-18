@@ -48,6 +48,7 @@ export interface AuthUser {
   projects: Project[];
   experience: number;
   hasCompanyProfile: boolean;
+  companyId?: string;
   isPremium: boolean;
   resume?: string;
   isFresher?: boolean;
