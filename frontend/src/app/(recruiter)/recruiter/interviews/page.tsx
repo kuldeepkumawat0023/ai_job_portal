@@ -1,4 +1,4 @@
-import InterviewsView from "@/components/recruiter/interviews/InterviewsView";
+import InterviewsView from "@/components/recruiter/interviews/RecruiterInterviewsView";
 
 export default function InterviewsPage() {
   return <InterviewsView />;

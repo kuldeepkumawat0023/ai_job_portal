@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Briefcase,
@@ -74,6 +74,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [openSubMenus, setOpenSubMenus] = React.useState<string[]>([]);
   
   const { conversations } = useSelector((state: RootState) => state.chat);
@@ -145,7 +146,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div key={link.name} className="flex flex-col gap-1">
                 {hasChildren ? (
                   <button
-                    onClick={() => toggleSubMenu(link.name)}
+                    onClick={() => {
+                      toggleSubMenu(link.name);
+                      router.push(link.href);
+                    }}
                     className={cn(
                       "group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 w-full",
                       isChildActive || isActive
@@ -187,9 +191,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         {totalUnreadCount}
                       </span>
                     )}
-
-                    {isActive && !isMessages && <ChevronRight className="w-4 h-4 opacity-50" />}
-                    {isMessages && isActive && totalUnreadCount === 0 && <ChevronRight className="w-4 h-4 opacity-50" />}
                   </Link>
                 )}
 
