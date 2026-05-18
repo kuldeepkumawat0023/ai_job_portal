@@ -153,61 +153,56 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
         <nav className="w-full md:w-64 flex-shrink-0">
           <ul className="space-y-1">
             <li>
-              <button 
+              <button
                 onClick={() => { setActiveTab('profile'); window.history.pushState(null, '', '/candidate/settings?tab=profile'); }}
-                className={`w-full text-left block px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
-                  activeTab === 'profile' 
-                    ? 'bg-surface-container text-primary font-bold border-l-4 border-primary shadow-sm' 
-                    : 'text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface font-medium'
-                }`}
+                className={`w-full text-left block px-4 py-2.5 rounded-xl transition-all cursor-pointer ${activeTab === 'profile'
+                  ? 'bg-surface-container text-primary font-bold border-l-4 border-primary shadow-sm'
+                  : 'text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface font-medium'
+                  }`}
               >
                 Profile Settings
               </button>
             </li>
             <li>
-              <button 
+              <button
                 onClick={() => { setActiveTab('security'); window.history.pushState(null, '', '/candidate/settings?tab=security'); }}
-                className={`w-full text-left block px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
-                  activeTab === 'security' 
-                    ? 'bg-surface-container text-primary font-bold border-l-4 border-primary shadow-sm' 
-                    : 'text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface font-medium'
-                }`}
+                className={`w-full text-left block px-4 py-2.5 rounded-xl transition-all cursor-pointer ${activeTab === 'security'
+                  ? 'bg-surface-container text-primary font-bold border-l-4 border-primary shadow-sm'
+                  : 'text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface font-medium'
+                  }`}
               >
                 Account Security & Privacy
               </button>
             </li>
             <li>
-              <button 
+              <button
                 onClick={() => { setActiveTab('ai'); window.history.pushState(null, '', '/candidate/settings?tab=ai'); }}
-                className={`w-full text-left block px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
-                  activeTab === 'ai' 
-                    ? 'bg-surface-container text-primary font-bold border-l-4 border-primary shadow-sm' 
-                    : 'text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface font-medium'
-                }`}
+                className={`w-full text-left block px-4 py-2.5 rounded-xl transition-all cursor-pointer ${activeTab === 'ai'
+                  ? 'bg-surface-container text-primary font-bold border-l-4 border-primary shadow-sm'
+                  : 'text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface font-medium'
+                  }`}
               >
                 AI Preferences
               </button>
             </li>
             <li>
-              <button 
+              <button
                 onClick={() => { setActiveTab('notifications'); window.history.pushState(null, '', '/candidate/settings?tab=notifications'); }}
-                className={`w-full text-left block px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
-                  activeTab === 'notifications' 
-                    ? 'bg-surface-container text-primary font-bold border-l-4 border-primary shadow-sm' 
-                    : 'text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface font-medium'
-                }`}
+                className={`w-full text-left block px-4 py-2.5 rounded-xl transition-all cursor-pointer ${activeTab === 'notifications'
+                  ? 'bg-surface-container text-primary font-bold border-l-4 border-primary shadow-sm'
+                  : 'text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface font-medium'
+                  }`}
               >
                 Notifications
               </button>
             </li>
             <li>
-              <button 
+              <button
                 onClick={() => { setActiveTab('billing'); window.history.pushState(null, '', '/candidate/settings?tab=billing'); }}
-                className={`w-full text-left block px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
-                  activeTab === 'billing' 
-                    ? 'bg-surface-container text-primary font-bold border-l-4 border-primary shadow-sm' 
-                    : 'text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface font-medium'
-                }`}
+                className={`w-full text-left block px-4 py-2.5 rounded-xl transition-all cursor-pointer ${activeTab === 'billing'
+                  ? 'bg-surface-container text-primary font-bold border-l-4 border-primary shadow-sm'
+                  : 'text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface font-medium'
+                  }`}
               >
                 Subscription & Billing
               </button>
@@ -290,7 +285,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                       <h3 className="text-lg font-bold text-on-surface">Change Account Password</h3>
                       <p className="text-sm text-on-surface-variant mt-1">If you want to update or reset your login credentials, you can securely change your password via our recovery flow.</p>
                     </div>
-                    <Link 
+                    <Link
                       href="/forgot-password"
                       className="inline-flex items-center gap-2 px-5 py-2.5 bg-surface-container-highest hover:bg-outline/25 text-on-surface text-sm font-bold rounded-xl transition-all border border-outline-variant/30 cursor-pointer"
                     >
@@ -299,7 +294,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                   </div>
 
                   <div className="pt-4 flex justify-end">
-                    <button 
+                    <button
                       onClick={handleSaveProfile}
                       disabled={updating}
                       className="px-8 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
@@ -330,7 +325,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                     <h3 className="text-lg font-bold text-on-surface">Password</h3>
                     <p className="text-sm text-on-surface-variant">Set a unique password to protect your account.</p>
                   </div>
-                  <Link 
+                  <Link
                     href="/forgot-password"
                     className="px-5 py-2.5 bg-surface-container-highest text-on-surface text-sm font-bold rounded-xl hover:bg-surface-container-highest/80 transition-all border border-outline-variant/30 flex items-center gap-2 cursor-pointer"
                   >
@@ -365,9 +360,9 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                     </label>
                   </div>
                 </div>
-                
+
                 <div className="pt-4 flex justify-end">
-                  <button 
+                  <button
                     onClick={handleSaveSecurity}
                     className="px-8 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 hover:shadow-md transition-all cursor-pointer"
                   >
@@ -426,18 +421,18 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                     <p className="text-xs text-on-surface-variant mt-1">Allow JobFit AI to instantly draft high-relevance cover letters upon matching job postings.</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={autoOptimize} 
-                      onChange={(e) => setAutoOptimize(e.target.checked)} 
-                      className="sr-only peer" 
+                    <input
+                      type="checkbox"
+                      checked={autoOptimize}
+                      onChange={(e) => setAutoOptimize(e.target.checked)}
+                      className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
 
                 <div className="pt-4 flex justify-end">
-                  <button 
+                  <button
                     onClick={handleSaveAIPrefs}
                     className="px-8 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 hover:shadow-md transition-all cursor-pointer"
                   >
@@ -461,7 +456,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
 
               <div className="space-y-6">
                 <h3 className="text-sm font-bold text-on-surface uppercase tracking-wider text-primary border-b border-outline-variant/15 pb-2">Email Notifications</h3>
-                
+
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -469,11 +464,11 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                       <p className="text-xs text-on-surface-variant mt-0.5">Daily digest email when jobs matching &gt;80% are found.</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={notifyJobMatch} 
-                        onChange={(e) => setNotifyJobMatch(e.target.checked)} 
-                        className="sr-only peer" 
+                      <input
+                        type="checkbox"
+                        checked={notifyJobMatch}
+                        onChange={(e) => setNotifyJobMatch(e.target.checked)}
+                        className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                     </label>
@@ -485,11 +480,11 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                       <p className="text-xs text-on-surface-variant mt-0.5">Receive immediate notification updates when an application is reviewed or updated.</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={notifyAppStatus} 
-                        onChange={(e) => setNotifyAppStatus(e.target.checked)} 
-                        className="sr-only peer" 
+                      <input
+                        type="checkbox"
+                        checked={notifyAppStatus}
+                        onChange={(e) => setNotifyAppStatus(e.target.checked)}
+                        className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                     </label>
@@ -501,11 +496,11 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                       <p className="text-xs text-on-surface-variant mt-0.5">Get email alerts when a recruiter sends you a direct message or invitation.</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={notifyRecruiterMessage} 
-                        onChange={(e) => setNotifyRecruiterMessage(e.target.checked)} 
-                        className="sr-only peer" 
+                      <input
+                        type="checkbox"
+                        checked={notifyRecruiterMessage}
+                        onChange={(e) => setNotifyRecruiterMessage(e.target.checked)}
+                        className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                     </label>
@@ -520,18 +515,18 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                     <p className="text-xs text-on-surface-variant mt-0.5">Receive browser alerts for scheduled live or mock interviews.</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={notifyInterviewInvitation} 
-                      onChange={(e) => setNotifyInterviewInvitation(e.target.checked)} 
-                      className="sr-only peer" 
+                    <input
+                      type="checkbox"
+                      checked={notifyInterviewInvitation}
+                      onChange={(e) => setNotifyInterviewInvitation(e.target.checked)}
+                      className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
 
                 <div className="pt-4 flex justify-end">
-                  <button 
+                  <button
                     onClick={handleSaveNotifications}
                     className="px-8 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 hover:shadow-md transition-all cursor-pointer"
                   >
@@ -556,7 +551,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
               {/* Current Plan Card */}
               <div className="bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20 rounded-2xl p-6 mb-8 relative overflow-hidden">
                 <div className="absolute -top-12 -right-12 w-32 h-32 bg-primary/20 rounded-full blur-2xl pointer-events-none"></div>
-                
+
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
@@ -566,7 +561,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                       </span>
                     </div>
                     <p className="text-sm text-on-surface-variant font-medium">Your plan renews on <span className="font-bold text-on-surface">Oct 24, 2026</span> for $19.99/month.</p>
-                    
+
                     <ul className="mt-4 space-y-2">
                       <li className="flex items-center gap-2 text-sm text-on-surface-variant">
                         <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Unlimited AI Mock Interviews
@@ -579,7 +574,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                       </li>
                     </ul>
                   </div>
-                  
+
                   <div className="flex flex-col gap-3 md:min-w-[140px]">
                     <button className="w-full px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-all shadow-md cursor-pointer">
                       Upgrade Plan
@@ -594,7 +589,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
               {/* Payment Method */}
               <div className="space-y-6">
                 <h3 className="text-lg font-bold text-on-surface border-b border-outline-variant/10 pb-2">Payment Method</h3>
-                
+
                 <div className="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/30 rounded-xl">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-8 bg-surface-container-high rounded flex items-center justify-center border border-outline-variant/50">
@@ -607,7 +602,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                   </div>
                   <button className="text-sm font-bold text-primary hover:underline cursor-pointer">Edit</button>
                 </div>
-                
+
                 <button className="text-sm font-bold text-on-surface flex items-center gap-2 hover:text-primary transition-colors cursor-pointer">
                   + Add new payment method
                 </button>
@@ -616,7 +611,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
               {/* Billing History */}
               <div className="mt-8 space-y-4">
                 <h3 className="text-lg font-bold text-on-surface border-b border-outline-variant/10 pb-2">Billing History</h3>
-                
+
                 <div className="divide-y divide-outline-variant/10">
                   {[
                     { date: 'Sep 24, 2026', amount: '$19.99', status: 'Paid', invoice: '#INV-2026-09' },

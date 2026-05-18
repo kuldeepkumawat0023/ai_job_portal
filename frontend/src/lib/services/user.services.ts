@@ -51,4 +51,41 @@ export const userService = {
     const response = await apiClient.delete(`/user/profile/delete/${id}`);
     return response.data;
   },
+
+
+  /**
+   * Get team members
+   * GET /api/v1/user/team/all
+   */
+  getTeamMembers: async (): Promise<ApiResponse<any[]>> => {
+    const response = await apiClient.get('/user/team/all');
+    return response.data;
+  },
+
+  /**
+   * Invite team member
+   * POST /api/v1/user/team/invite
+   */
+  inviteTeamMember: async (data: any): Promise<ApiResponse<any>> => {
+    const response = await apiClient.post('/user/team/invite', data);
+    return response.data;
+  },
+
+  /**
+   * Remove team member
+   * DELETE /api/v1/user/team/remove/:id
+   */
+  removeTeamMember: async (id: string): Promise<ApiResponse<void>> => {
+    const response = await apiClient.delete(`/user/team/remove/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Get billing & subscription usage
+   * GET /api/v1/user/billing/usage
+   */
+  getBillingUsage: async (): Promise<ApiResponse<any>> => {
+    const response = await apiClient.get('/user/billing/usage');
+    return response.data;
+  },
 };

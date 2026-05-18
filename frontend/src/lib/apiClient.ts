@@ -53,6 +53,17 @@ export interface AuthUser {
   isFresher?: boolean;
   jobSearches: number;
   isActive: boolean;
+  jobRole?: string;
+  department?: string;
+  twoFactorEnabled?: boolean;
+  notificationPreferences?: {
+    newApplications?: boolean;
+    aiMatchAlerts?: boolean;
+    marketTrends?: boolean;
+    interviewReminders?: boolean;
+    teamMentions?: boolean;
+    candidateActivity?: boolean;
+  };
   createdAt: string;
   updatedAt: string;
 }

@@ -127,6 +127,30 @@ const userSchema = new mongoose.Schema({
   isFresher: {
     type: Boolean,
     default: false
+  },
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company'
+  },
+  jobRole: {
+    type: String,
+    default: 'Lead Recruiter'
+  },
+  department: {
+    type: String,
+    default: 'Talent Acquisition'
+  },
+  twoFactorEnabled: {
+    type: Boolean,
+    default: false
+  },
+  notificationPreferences: {
+    newApplications: { type: Boolean, default: true },
+    aiMatchAlerts: { type: Boolean, default: true },
+    marketTrends: { type: Boolean, default: false },
+    interviewReminders: { type: Boolean, default: true },
+    teamMentions: { type: Boolean, default: true },
+    candidateActivity: { type: Boolean, default: true }
   }
 }, {
   timestamps: true
