@@ -123,6 +123,10 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  isFresher: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

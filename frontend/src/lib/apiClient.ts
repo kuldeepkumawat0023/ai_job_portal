@@ -50,6 +50,7 @@ export interface AuthUser {
   hasCompanyProfile: boolean;
   isPremium: boolean;
   resume?: string;
+  isFresher?: boolean;
   jobSearches: number;
   isActive: boolean;
   createdAt: string;

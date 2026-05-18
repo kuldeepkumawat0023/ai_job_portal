@@ -57,6 +57,8 @@ interface WizardData {
   };
   projects: { title: string; stack: string[]; description: string; link: string }[];
   resumeStyle: string;
+  isFresher?: boolean;
+  experience?: number;
 }
 
 const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({ 
@@ -153,7 +155,9 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
       soft: user?.skills || []
     },
     projects: user?.projects?.length ? user.projects : [{ title: '', stack: [], description: '', link: '' }],
-    resumeStyle: 'modern'
+    resumeStyle: 'modern',
+    isFresher: user?.isFresher || false,
+    experience: user?.experience || 0
   });
 
   // Sync state with user data when modal opens
@@ -174,7 +178,9 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
           soft: user.skills || []
         },
         projects: user.projects?.length ? [...user.projects] : [{ title: '', stack: [], description: '', link: '' }],
-        resumeStyle: 'modern'
+        resumeStyle: 'modern',
+        isFresher: user.isFresher || false,
+        experience: user.experience || 0
       });
     }
   }, [user, isOpen]);
@@ -583,86 +589,135 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
 
                       {/* Step 3: Professional Path */}
                       {currentStep === 3 && (
-                        <div className="space-y-6">
-                          <div className="mb-8 flex justify-between items-end">
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                          <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                               <h3 className="text-2xl font-black text-on-surface">Professional Path</h3>
                               <p className="text-sm text-on-surface-variant">Your career trajectory so far.</p>
                             </div>
-                            <Button variant="outline" size="sm" onClick={addWork} className="rounded-xl border-dashed">
-                              <Plus className="w-4 h-4 mr-2" /> Add More
-                            </Button>
-                          </div>
-                          
-                          <div className="space-y-8">
-                            {formData.workExperience.map((work, idx) => (
-                              <div key={idx} className="relative p-6 rounded-[2.5rem] bg-surface-container-low/50 border border-outline-variant/10 group">
-                                {formData.workExperience.length > 1 && (
-                                  <button 
-                                    onClick={() => removeWork(idx)}
-                                    className="absolute -top-2 -right-2 p-2 bg-error text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                )}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] font-bold uppercase text-on-surface-variant ml-1">Job Role</label>
-                                    <input
-                                      className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
-                                      value={work.role}
-                                      onChange={e => {
-                                        const newList = [...formData.workExperience];
-                                        newList[idx].role = e.target.value;
-                                        setFormData({ ...formData, workExperience: newList });
-                                      }}
-                                      placeholder="Software Engineer"
-                                    />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] font-bold uppercase text-on-surface-variant ml-1">Company</label>
-                                    <input
-                                      className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
-                                      value={work.company}
-                                      onChange={e => {
-                                        const newList = [...formData.workExperience];
-                                        newList[idx].company = e.target.value;
-                                        setFormData({ ...formData, workExperience: newList });
-                                      }}
-                                      placeholder="Google Inc."
-                                    />
-                                  </div>
-                                  <div className="col-span-2 space-y-1">
-                                    <label className="text-[9px] font-bold uppercase text-on-surface-variant ml-1">Duration</label>
-                                    <input
-                                      className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
-                                      value={work.duration}
-                                      onChange={e => {
-                                        const newList = [...formData.workExperience];
-                                        newList[idx].duration = e.target.value;
-                                        setFormData({ ...formData, workExperience: newList });
-                                      }}
-                                      placeholder="Jan 2022 - Present"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-[9px] font-bold uppercase text-on-surface-variant ml-1">Key Contributions</label>
-                                  <textarea
-                                    rows={3}
-                                    className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none resize-none"
-                                    value={work.description}
-                                    onChange={e => {
-                                      const newList = [...formData.workExperience];
-                                      newList[idx].description = e.target.value;
-                                      setFormData({ ...formData, workExperience: newList });
-                                    }}
-                                    placeholder="Developed AI matching algorithms, reduced latency by 40%..."
+                            <div className="flex items-center gap-3">
+                              {/* Fresher Checkbox Option */}
+                              <label className="flex items-center gap-2 cursor-pointer bg-surface-container-low border border-outline-variant/30 rounded-2xl px-4 py-3 hover:bg-surface-container-high transition-all">
+                                <input 
+                                  type="checkbox" 
+                                  className="w-4.5 h-4.5 accent-primary rounded-lg cursor-pointer"
+                                  checked={formData.isFresher || false}
+                                  onChange={e => {
+                                    const val = e.target.checked;
+                                    setFormData({ 
+                                      ...formData, 
+                                      isFresher: val,
+                                      experience: val ? 0 : (formData.experience || 1)
+                                    });
+                                  }}
+                                />
+                                <span className="text-xs font-black text-on-surface select-none">I am a Fresher (No Experience)</span>
+                              </label>
+
+                              {!formData.isFresher && (
+                                <div className="flex items-center gap-2 bg-surface-container-low border border-outline-variant/30 rounded-2xl px-4 py-2 hover:bg-surface-container-high transition-all">
+                                  <span className="text-xs font-black text-on-surface select-none">Total Exp (Years):</span>
+                                  <input 
+                                    type="number"
+                                    min="1"
+                                    className="w-12 bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-2 py-1 text-xs text-center focus:border-primary outline-none"
+                                    value={formData.experience || 1}
+                                    onChange={e => setFormData({ ...formData, experience: Math.max(0, Number(e.target.value)) })}
                                   />
                                 </div>
-                              </div>
-                            ))}
+                              )}
+
+                              {!formData.isFresher && (
+                                <Button variant="outline" size="sm" onClick={addWork} className="rounded-xl border-dashed">
+                                  <Plus className="w-4 h-4 mr-2" /> Add More
+                                </Button>
+                              )}
+                            </div>
                           </div>
+                          
+                          {formData.isFresher ? (
+                            <div className="p-8 rounded-[2.5rem] bg-primary/5 border border-primary/20 text-center space-y-4 max-w-xl mx-auto py-12 animate-in zoom-in-95 duration-300">
+                              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                                <Sparkles className="w-8 h-8 animate-pulse" />
+                              </div>
+                              <div className="space-y-2">
+                                <h4 className="text-lg font-black text-on-surface">Welcome to your Career Journey! 🌟</h4>
+                                <p className="text-xs text-on-surface-variant leading-relaxed max-w-sm mx-auto">
+                                  Since you are a fresher, we will skip the work experience requirement. We will showcase your projects and education to grab recruiters' attention!
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-8">
+                              {formData.workExperience.map((work, idx) => (
+                                <div key={idx} className="relative p-6 rounded-[2.5rem] bg-surface-container-low/50 border border-outline-variant/10 group">
+                                  {formData.workExperience.length > 1 && (
+                                    <button 
+                                      onClick={() => removeWork(idx)}
+                                      className="absolute -top-2 -right-2 p-2 bg-error text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div className="space-y-1">
+                                      <label className="text-[9px] font-bold uppercase text-on-surface-variant ml-1">Job Role</label>
+                                      <input
+                                        className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
+                                        value={work.role}
+                                        onChange={e => {
+                                          const newList = [...formData.workExperience];
+                                          newList[idx].role = e.target.value;
+                                          setFormData({ ...formData, workExperience: newList });
+                                        }}
+                                        placeholder="Software Engineer"
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="text-[9px] font-bold uppercase text-on-surface-variant ml-1">Company</label>
+                                      <input
+                                        className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
+                                        value={work.company}
+                                        onChange={e => {
+                                          const newList = [...formData.workExperience];
+                                          newList[idx].company = e.target.value;
+                                          setFormData({ ...formData, workExperience: newList });
+                                        }}
+                                        placeholder="Google Inc."
+                                      />
+                                    </div>
+                                    <div className="col-span-2 space-y-1">
+                                      <label className="text-[9px] font-bold uppercase text-on-surface-variant ml-1">Duration</label>
+                                      <input
+                                        className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
+                                        value={work.duration}
+                                        onChange={e => {
+                                          const newList = [...formData.workExperience];
+                                          newList[idx].duration = e.target.value;
+                                          setFormData({ ...formData, workExperience: newList });
+                                        }}
+                                        placeholder="Jan 2022 - Present"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[9px] font-bold uppercase text-on-surface-variant ml-1">Key Contributions</label>
+                                    <textarea
+                                      rows={3}
+                                      className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none resize-none"
+                                      value={work.description}
+                                      onChange={e => {
+                                        const newList = [...formData.workExperience];
+                                        newList[idx].description = e.target.value;
+                                        setFormData({ ...formData, workExperience: newList });
+                                      }}
+                                      placeholder="Developed AI matching algorithms, reduced latency by 40%..."
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
 

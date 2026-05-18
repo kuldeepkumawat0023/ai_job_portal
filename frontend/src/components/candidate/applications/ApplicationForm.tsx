@@ -63,8 +63,10 @@ const ApplicationForm = () => {
     if (!u?.fullname) missing.push('Full Name');
     if (!u?.phoneNumber) missing.push('Phone Number');
     if (!u?.skills || u.skills.length === 0) missing.push('Skills Badges');
-    if (!u?.workExperience || u.workExperience.length === 0 || !u.workExperience[0]?.company) {
-      missing.push('Work Experience');
+    if (u?.experience !== 0 && !u?.isFresher) {
+      if (!u?.workExperience || u.workExperience.length === 0 || !u.workExperience[0]?.company) {
+        missing.push('Work Experience');
+      }
     }
     if (!u?.education || u.education.length === 0 || !u.education[0]?.university) {
       missing.push('Education Info');
@@ -192,7 +194,12 @@ const ApplicationForm = () => {
                   <Briefcase className="w-4 h-4" /> Latest Experience
                 </h4>
                 <div className="p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 space-y-2">
-                  {user?.workExperience?.[0] ? (
+                  {user?.experience === 0 || user?.isFresher ? (
+                    <div className="flex items-center gap-2 p-2 bg-primary/5 rounded-2xl border border-primary/10">
+                      <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                      <p className="text-[10px] font-black text-primary uppercase tracking-widest">Fresher (Ready to start career)</p>
+                    </div>
+                  ) : user?.workExperience?.[0] ? (
                     <>
                       <p className="text-sm text-on-surface font-black">{user.workExperience[0].role}</p>
                       <p className="text-xs text-on-surface-variant">{user.workExperience[0].company} • {user.workExperience[0].duration}</p>

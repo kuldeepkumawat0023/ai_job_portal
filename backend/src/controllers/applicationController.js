@@ -30,8 +30,10 @@ exports.applyJob = async (req, res, next) => {
     if (!user.fullname) missing.push('Full Name');
     if (!user.phoneNumber) missing.push('Phone Number');
     if (!user.skills || user.skills.length === 0) missing.push('Skills Badges');
-    if (!user.workExperience || user.workExperience.length === 0 || !user.workExperience[0]?.company) {
-      missing.push('Work Experience');
+    if (user.experience !== 0 && !user.isFresher) {
+      if (!user.workExperience || user.workExperience.length === 0 || !user.workExperience[0]?.company) {
+        missing.push('Work Experience');
+      }
     }
     if (!user.education || user.education.length === 0 || !user.education[0]?.university) {
       missing.push('Education Info');

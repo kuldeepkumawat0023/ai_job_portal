@@ -55,7 +55,7 @@ exports.updateProfile = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized update request', data: null });
     }
 
-    const { fullname, bio, skills, experience, education, workExperience, projects, role, location, phoneNumber, countryCode } = req.body;
+    const { fullname, bio, skills, experience, education, workExperience, projects, role, location, phoneNumber, countryCode, isFresher } = req.body;
 
     let user = await User.findById(req.params.id);
 
@@ -98,6 +98,10 @@ exports.updateProfile = async (req, res, next) => {
 
     if (experience !== undefined) {
       user.experience = Number(experience);
+    }
+
+    if (isFresher !== undefined) {
+      user.isFresher = isFresher === 'true' || isFresher === true;
     }
 
     // Update Arrays (Replacing with new data from frontend)
