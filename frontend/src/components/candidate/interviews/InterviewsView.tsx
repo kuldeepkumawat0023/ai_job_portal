@@ -15,7 +15,8 @@ import {
   Loader2, 
   Compass, 
   CheckCircle,
-  ExternalLink
+  ExternalLink,
+  User
 } from 'lucide-react';
 import { interviewService, Interview } from '@/lib/services/interview.services';
 import { toast } from 'react-hot-toast';
@@ -229,6 +230,12 @@ const InterviewsView = () => {
                       )}
                     </span>
                   </div>
+                  {item.interviewer && (
+                    <div className="flex items-center gap-3 text-sm font-semibold text-on-surface-variant">
+                      <User className="w-5 h-5 text-secondary" />
+                      <span>Interviewer: {item.interviewer}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -32,10 +32,6 @@ const interviewSchema = new mongoose.Schema({
   meetingLink: {
     type: String
   },
-  interviewer: {
-    type: String,
-    default: 'Recruiter'
-  },
   status: {
     type: String,
     enum: ['scheduled', 'completed', 'cancelled'],
@@ -48,6 +44,10 @@ const interviewSchema = new mongoose.Schema({
     type: Number,
     min: 1,
     max: 5
+  },
+  interviewer: {
+    type: String,
+    default: 'Recruiter'
   }
 }, {
   timestamps: true

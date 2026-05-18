@@ -25,6 +25,7 @@ export interface Interview {
   status: 'scheduled' | 'completed' | 'cancelled';
   feedback?: string;
   rating?: number;
+  interviewer?: string;
   createdAt: string;
   updatedAt: string;
 }

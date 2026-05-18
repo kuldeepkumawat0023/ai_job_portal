@@ -8,7 +8,7 @@ const sendEmail = require('../config/email');
 // @access  Private/Recruiter
 exports.scheduleInterview = async (req, res, next) => {
   try {
-    const { jobId, candidateId, companyId, date, time, mode, meetingLink } = req.body;
+    const { jobId, candidateId, companyId, date, time, mode, meetingLink, interviewer } = req.body;
 
     if (!jobId || !candidateId || !companyId || !date || !time) {
       return res.status(400).json({ success: false, statusCode: 400, message: 'Missing required fields', data: null });
@@ -21,7 +21,8 @@ exports.scheduleInterview = async (req, res, next) => {
       date,
       time,
       mode: 'Google Meet',
-      meetingLink: meetingLink || `https://meet.google.com/${Math.random().toString(36).substring(3, 6)}-${Math.random().toString(36).substring(3, 7)}-${Math.random().toString(36).substring(3, 6)}`
+      meetingLink: meetingLink || `https://meet.google.com/${Math.random().toString(36).substring(3, 6)}-${Math.random().toString(36).substring(3, 7)}-${Math.random().toString(36).substring(3, 6)}`,
+      interviewer: interviewer || 'Recruiter'
     });
 
     // Notify Candidate
@@ -36,6 +37,7 @@ exports.scheduleInterview = async (req, res, next) => {
         <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
         <li><strong>Time:</strong> ${time}</li>
         <li><strong>Mode:</strong> Google Meet</li>
+        <li><strong>Interviewer:</strong> ${interview.interviewer}</li>
         ${interview.meetingLink ? `<li><strong>Google Meet Link:</strong> <a href="${interview.meetingLink}">${interview.meetingLink}</a></li>` : ''}
       </ul>
       <p>Good luck!</p>

@@ -40,6 +40,7 @@ const InterviewsView = () => {
   const [selectedAppId, setSelectedAppId] = useState('');
   const [interviewDate, setInterviewDate] = useState('');
   const [interviewTime, setInterviewTime] = useState('');
+  const [interviewerName, setInterviewerName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
@@ -85,6 +86,7 @@ const InterviewsView = () => {
     setSelectedAppId('');
     setInterviewDate('');
     setInterviewTime('');
+    setInterviewerName('');
     setSubmitSuccess(false);
     setModalError(null);
     setIsModalOpen(true);
@@ -126,7 +128,8 @@ const InterviewsView = () => {
         companyId,
         date: interviewDate,
         time: interviewTime,
-        mode: 'Google Meet' // Enforced Exclusively
+        mode: 'Google Meet', // Enforced Exclusively
+        interviewer: interviewerName || 'Recruiter'
       };
 
       const res = await interviewService.scheduleInterview(postData);
@@ -305,7 +308,7 @@ const InterviewsView = () => {
                           </div>
                           <div className="flex flex-wrap items-center gap-4 text-[11px] font-semibold text-on-surface-variant">
                             <span className="flex items-center gap-1.5"><Clock size={14} className="text-primary" /> {formattedDate} at {item.time}</span>
-                            <span className="flex items-center gap-1.5"><User size={14} className="text-secondary" /> Technical Interview</span>
+                            <span className="flex items-center gap-1.5"><User size={14} className="text-secondary" /> {item.interviewer ? `Interviewer: ${item.interviewer}` : 'Technical Interview'}</span>
                           </div>
                         </div>
                       </div>
@@ -549,6 +552,21 @@ const InterviewsView = () => {
                         required
                       />
                     </div>
+                  </div>
+
+                  {/* Interviewer Name input */}
+                  <div className="space-y-2">
+                    <label htmlFor="input-interviewer" className="block text-[10px] font-black uppercase tracking-wider text-on-surface-variant">
+                      Interviewer / Recruiter Name
+                    </label>
+                    <input 
+                      type="text"
+                      id="input-interviewer"
+                      placeholder="e.g. Kuldeep Kumawat"
+                      value={interviewerName}
+                      onChange={(e) => setInterviewerName(e.target.value)}
+                      className="w-full bg-surface-container/60 hover:bg-surface-container border border-outline-variant/10 px-4 py-3.5 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-on-surface"
+                    />
                   </div>
 
                   {/* Channel type locked selection info */}
