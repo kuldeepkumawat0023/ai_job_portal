@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -25,6 +26,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { userService } from '@/lib/services/user.services';
+import { applicationService } from '@/lib/services/application.services';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-hot-toast';
 
@@ -33,6 +35,8 @@ import { jsPDF } from 'jspdf';
 interface ProfileWizardModalProps {
   isOpen: boolean;
   onClose: () => void;
+  jobId?: string;
+  onApplicationSubmit?: () => void;
 }
 
 type WizardStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -55,10 +59,83 @@ interface WizardData {
   resumeStyle: string;
 }
 
-const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({ isOpen, onClose }) => {
+const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  jobId, 
+  onApplicationSubmit 
+}) => {
+  const router = useRouter();
   const { user, updateUser } = useAuth();
   const [currentStep, setCurrentStep] = useState<WizardStep>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [uploadedResumeName, setUploadedResumeName] = useState<string | null>(null);
+
+
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast.error('Only PDF files are supported');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB Limit
+      toast.error('File size must be under 5MB');
+      return;
+    }
+
+    setUploadingResume(true);
+    const uploadToast = toast.loading('Uploading resume...');
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('resume', file);
+      
+      const res = await userService.updateResume(user?._id || '', formDataUpload);
+      if (res.success) {
+        setUploadedResumeName(file.name);
+        if (res.data) {
+          updateUser(res.data);
+        }
+        toast.success('Resume uploaded successfully!', { id: uploadToast });
+      } else {
+        toast.error('Failed to upload resume', { id: uploadToast });
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Resume upload failed', { id: uploadToast });
+    } finally {
+      setUploadingResume(false);
+    }
+  };
+
+  const [submittingApplication, setSubmittingApplication] = useState(false);
+
+  const handleSubmitApplication = async () => {
+    if (!jobId) return;
+    setSubmittingApplication(true);
+    const applyToast = toast.loading('Submitting application...');
+    try {
+      const res = await applicationService.applyJob(jobId);
+      if (res.success) {
+        toast.success('Application submitted successfully!', { id: applyToast });
+        if (onApplicationSubmit) {
+          onApplicationSubmit();
+        }
+        onClose();
+        router.push('/candidate/applications');
+      } else {
+        toast.error('Failed to submit application', { id: applyToast });
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Application submission failed', { id: applyToast });
+    } finally {
+      setSubmittingApplication(false);
+    }
+  };
+
+
 
   // Form State with explicit typing
   const [formData, setFormData] = useState<WizardData>({
@@ -837,29 +914,113 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({ isOpen, onClose
 
                       {/* Step 7: Final Flourish */}
                       {currentStep === 7 && (
-                        <div className="space-y-10 text-center py-10">
-                          <div className="w-24 h-24 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6">
-                            <FileCheck className="w-12 h-12" />
+                        <div className="space-y-10 text-center py-6">
+                          <div className="w-20 h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 animate-bounce">
+                            <FileCheck className="w-10 h-10" />
                           </div>
                           <div className="space-y-2">
                             <h3 className="text-3xl font-black text-on-surface">All Set!</h3>
-                            <p className="text-on-surface-variant max-w-md mx-auto">Your profile is now 100% complete and optimized. You can now download your professional resume or start applying for jobs.</p>
+                            <p className="text-on-surface-variant text-sm max-w-md mx-auto">Your profile is now 100% complete and optimized. You can now download your professional resume or start applying for jobs.</p>
                           </div>
                           
                           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-                            <Button 
-                              variant="gradient" 
-                              className="flex-1 py-6 shadow-xl shadow-primary/20" 
-                              onClick={() => {
-                                generatePDF();
-                                setTimeout(onClose, 1000); // Small delay to let download start
-                              }}
-                            >
-                              <Download className="w-5 h-5 mr-2" /> Download Resume
-                            </Button>
-                            <Button variant="outline" className="flex-1 py-6 border-2" onClick={onClose}>
-                              Done
-                            </Button>
+                            {jobId ? (
+                              <>
+                                <Button 
+                                  variant="gradient" 
+                                  className="flex-1 py-6 shadow-xl shadow-primary/20 font-black" 
+                                  onClick={handleSubmitApplication}
+                                  disabled={submittingApplication}
+                                >
+                                  {submittingApplication ? (
+                                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                  ) : (
+                                    <FileCheck className="w-5 h-5 mr-2" />
+                                  )}
+                                  Submit Application
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  className="flex-1 py-6 border-2 font-bold" 
+                                  onClick={() => generatePDF()}
+                                >
+                                  <Download className="w-4 h-4 mr-2" /> Download PDF
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button 
+                                  variant="gradient" 
+                                  className="flex-1 py-6 shadow-xl shadow-primary/20" 
+                                  onClick={() => {
+                                    generatePDF();
+                                    setTimeout(onClose, 1000); // Small delay to let download start
+                                  }}
+                                >
+                                  <Download className="w-5 h-5 mr-2" /> Download Resume
+                                </Button>
+                                <Button variant="outline" className="flex-1 py-6 border-2" onClick={onClose}>
+                                  Done
+                                </Button>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Dynamic Resume PDF File Uploader Card */}
+                          <div className="mt-8 border-t border-outline-variant/10 pt-8 max-w-md mx-auto">
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-4">
+                              Or Upload Your Custom Resume File
+                            </h4>
+                            
+                            <div className="relative group border-2 border-dashed border-outline-variant/30 hover:border-primary/50 rounded-[2rem] p-6 bg-surface-container-low transition-all flex flex-col items-center justify-center text-center cursor-pointer min-h-[140px]">
+                              <input 
+                                type="file" 
+                                accept=".pdf" 
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                onChange={handleResumeUpload}
+                                disabled={uploadingResume}
+                              />
+                              {uploadingResume ? (
+                                <div className="flex flex-col items-center gap-2">
+                                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                                  <span className="text-xs font-bold text-on-surface-variant">Uploading your resume...</span>
+                                </div>
+                              ) : user?.resume ? (
+                                <div className="flex flex-col items-center gap-3">
+                                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                                    <FileCheck className="w-6 h-6" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <span className="text-xs font-black text-on-surface block">Resume Uploaded! ✅</span>
+                                    {uploadedResumeName ? (
+                                      <span className="text-[10px] font-bold text-on-surface-variant block truncate max-w-[200px]">{uploadedResumeName}</span>
+                                    ) : (
+                                      <a 
+                                        href={user.resume} 
+                                        target="_blank" 
+                                        rel="noreferrer" 
+                                        className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1.5 justify-center"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        View Current Resume
+                                      </a>
+                                    )}
+                                  </div>
+                                  <span className="text-[9px] font-bold text-on-surface-variant/60 uppercase tracking-widest block border border-outline-variant/30 px-3 py-1 rounded-full bg-surface-container-high">Click to Replace File</span>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center gap-3">
+                                  <div className="w-12 h-12 rounded-2xl bg-primary/5 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Download className="w-6 h-6 rotate-180" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <span className="text-xs font-black text-on-surface block">Drop your PDF resume here</span>
+                                    <span className="text-[10px] font-bold text-on-surface-variant block">Max file size: 5MB</span>
+                                  </div>
+                                  <span className="text-[9px] font-bold text-primary uppercase tracking-widest block bg-primary/5 border border-primary/10 px-3 py-1 rounded-full group-hover:bg-primary group-hover:text-white transition-all">Browse File</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )}

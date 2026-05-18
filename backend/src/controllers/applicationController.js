@@ -1,5 +1,6 @@
 const Application = require('../models/Application');
 const Job = require('../models/Job');
+const User = require('../models/User');
 const sendEmail = require('../config/email');
 
 // @desc    Apply for a job
@@ -17,6 +18,33 @@ exports.applyJob = async (req, res, next) => {
     const job = await Job.findById(jobId);
     if (!job) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'Job not found', data: null });
+    }
+
+    // Backend Profile Completeness Verification
+    const user = await User.findById(applicantId);
+    if (!user) {
+      return res.status(404).json({ success: false, statusCode: 404, message: 'User not found', data: null });
+    }
+
+    const missing = [];
+    if (!user.fullname) missing.push('Full Name');
+    if (!user.phoneNumber) missing.push('Phone Number');
+    if (!user.skills || user.skills.length === 0) missing.push('Skills Badges');
+    if (!user.workExperience || user.workExperience.length === 0 || !user.workExperience[0]?.company) {
+      missing.push('Work Experience');
+    }
+    if (!user.education || user.education.length === 0 || !user.education[0]?.university) {
+      missing.push('Education Info');
+    }
+    if (!user.resume) missing.push('Resume File (PDF)');
+
+    if (missing.length > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        statusCode: 400, 
+        message: `Profile incomplete! Missing: ${missing.join(', ')}. Please complete your profile wizard.`, 
+        data: null 
+      });
     }
 
     const existingApplication = await Application.findOne({ jobId, applicantId });

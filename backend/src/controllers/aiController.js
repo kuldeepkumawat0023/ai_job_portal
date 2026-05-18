@@ -4,104 +4,10 @@ const pdf = require('pdf-parse');
 const User = require('../models/User');
 const Job = require('../models/Job');
 const Resume = require('../models/Resume');
-const AIChat = require('../models/AIChat');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-// Helper for Smart Mock AI responses when API fails
-const getMockAIResponse = (message) => {
-  const msg = message.toLowerCase();
-  if (msg.includes('javascript')) {
-    return "JavaScript is a versatile programming language primarily used for web development. It allows you to create interactive and dynamic content. For your career, I recommend mastering ES6+, React, and Node.js to become a high-demand full-stack developer.";
-  }
-  if (msg.includes('resume') || msg.includes('profile')) {
-    return "To make your resume stand out, focus on impact-driven bullet points. Use the STAR method (Situation, Task, Action, Result) and include quantifiable metrics like 'Improved performance by 20%'. I can help you analyze your specific resume if you upload it!";
-  }
-  if (msg.includes('java') && !msg.includes('script')) {
-    return "Java is a powerful, object-oriented language widely used for enterprise-level applications, Android development, and backend systems. It's a great choice for building scalable and robust software.";
-  }
-  if (msg.includes('hello') || msg.includes('hi')) {
-    return "Hello! I am your AI Career Coach. I can help you with job matching, resume tips, interview prep, or general career advice. What's on your mind today?";
-  }
-  if (msg.includes('job') || msg.includes('career')) {
-    return "The current job market values a mix of technical depth and soft skills. Based on your profile, focusing on Cloud computing or System Design could give you a significant edge. Would you like some specific learning resources?";
-  }
-  return "That's an interesting question! While I'm currently in a limited mode, I recommend exploring our 'Career Suggestions' tab for personalized insights based on your resume. Is there anything specific about your job search I can help with?";
-};
-
-// @desc    Generic AI Chat Assistant with history
-// @route   POST /api/v1/ai/chat
-// @access  Private
-exports.chatWithAI = async (req, res, next) => {
-  try {
-    const { message } = req.body;
-    console.log('--- AI Chat Request ---');
-    console.log('User ID:', req.user.id);
-    console.log('Message:', message);
-
-    if (!message) {
-      return res.status(400).json({ success: false, message: 'Message is required' });
-    }
-
-    // 1. Save user message to DB
-    await AIChat.create({
-      userId: req.user.id,
-      role: 'user',
-      content: message
-    });
-
-    let aiResponse;
-    try {
-      // 2. Get AI Response - Using gpt-3.5-turbo for better compatibility
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          { role: "system", content: "You are a professional AI Career Coach and Job Assistant. Provide helpful, concise, and career-oriented advice." },
-          { role: "user", content: message }
-        ]
-      });
-
-      aiResponse = completion.choices[0].message.content;
-      console.log('AI Response generated successfully');
-    } catch (apiError) {
-      console.error('OpenAI API Error (Using Smart Mock):', apiError.message);
-      // Use Smart Mock response when quota is exceeded or API fails
-      aiResponse = getMockAIResponse(message);
-    }
-
-    // 3. Save AI response to DB
-    await AIChat.create({
-      userId: req.user.id,
-      role: 'ai',
-      content: aiResponse
-    });
-
-    res.status(200).json({
-      success: true,
-      data: aiResponse
-    });
-  } catch (error) {
-    console.error('Overall Chat Error:', error);
-    next(error);
-  }
-};
-
-// @desc    Get Chat History for last 24 hours
-// @route   GET /api/v1/ai/chat-history
-// @access  Private
-exports.getAIChatHistory = async (req, res, next) => {
-  try {
-    const history = await AIChat.find({ userId: req.user.id }).sort({ createdAt: 1 });
-    res.status(200).json({
-      success: true,
-      data: history
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 // Helper to extract text from PDF URL
 const extractTextFromPDF = async (url) => {

@@ -7,8 +7,6 @@ const router = express.Router();
 router.use(protect);
 
 // Candidate & Admin
-router.post('/chat', aiController.chatWithAI);
-router.get('/chat-history', aiController.getAIChatHistory);
 router.post('/match-job/:jobId', aiController.matchJobWithResume);
 router.get('/coaching-tips', aiController.getCoachingTips);
 router.get('/career-suggestions', aiController.getCareerSuggestions);

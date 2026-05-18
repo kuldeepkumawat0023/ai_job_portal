@@ -45,4 +45,14 @@ export const interviewService = {
     const response = await apiClient.put(`/interview/${id}/status`, { status });
     return response.data;
   },
+
+  /**
+   * Submit interview feedback & rating (Candidate)
+   * PUT /api/v1/interview/:id/feedback
+   */
+  submitFeedback: async (id: string, feedback: string, rating: number): Promise<ApiResponse<any>> => {
+    const response = await apiClient.put(`/interview/${id}/feedback`, { feedback, rating });
+    return response.data;
+  },
 };
+

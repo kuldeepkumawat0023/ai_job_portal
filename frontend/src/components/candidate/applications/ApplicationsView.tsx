@@ -16,16 +16,21 @@ import {
   Building2,
   MapPin,
   ChevronRight,
-  Loader2
+  Loader2,
+  Video,
+  ExternalLink
 } from 'lucide-react';
 import { applicationService, Application } from '@/lib/services/application.services';
 import { aiService } from '@/lib/services/ai.services';
+import { interviewService } from '@/lib/services/interview.services';
 import { toast } from 'react-hot-toast';
 import { formatDistanceToNow, isValid } from 'date-fns';
 import { cn } from '@/utils/cn';
 
+
 const ApplicationsView = () => {
   const [applications, setApplications] = useState<Application[]>([]);
+  const [interviews, setInterviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Applied');
 
@@ -36,9 +41,15 @@ const ApplicationsView = () => {
   const fetchApplications = async () => {
     try {
       setLoading(true);
-      const res = await applicationService.getAppliedJobs();
-      if (res.success) {
-        setApplications(res.data);
+      const [appsRes, interviewsRes] = await Promise.all([
+        applicationService.getAppliedJobs(),
+        interviewService.getMyInterviews()
+      ]);
+      if (appsRes.success) {
+        setApplications(appsRes.data);
+      }
+      if (interviewsRes.success) {
+        setInterviews(interviewsRes.data);
       }
     } catch (error) {
       toast.error('Failed to load applications');
@@ -46,6 +57,7 @@ const ApplicationsView = () => {
       setLoading(false);
     }
   };
+
 
   const getAppsByStatus = (status: string | string[]) => {
     const statuses = Array.isArray(status) ? status : [status];
@@ -185,11 +197,43 @@ const ApplicationsView = () => {
               <h4 className="text-2xl font-black text-on-surface mb-2 group-hover:text-primary transition-colors leading-tight">
                 {job?.title || 'Unknown Role'}
               </h4>
-              <p className="text-lg font-bold text-on-surface-variant mb-10 flex items-center gap-2 group-hover:text-on-surface transition-colors">
+              <p className="text-lg font-bold text-on-surface-variant mb-6 flex items-center gap-2 group-hover:text-on-surface transition-colors">
                 {job?.companyId?.name || 'Unknown Company'} 
                 <span className="w-2 h-2 rounded-full bg-outline-variant/30 group-hover:bg-primary/30 transition-colors"></span>
                 {job?.location || 'Remote'}
               </p>
+
+              {(() => {
+                const matchingInterview = interviews.find(
+                  i => (i.jobId?._id === job?._id || i.jobId === job?._id) && i.status === 'scheduled'
+                );
+                if (!matchingInterview) return null;
+                return (
+                  <div className="bg-primary/5 rounded-[24px] border border-primary/10 p-5 mb-6 flex flex-col gap-3 animate-in fade-in">
+                    <div className="text-[9px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-1.5">
+                      <Video className="w-3.5 h-3.5" /> Scheduled Interview
+                    </div>
+                    <div className="text-xs font-bold text-on-surface-variant space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-3.5 h-3.5 text-primary" />
+                        {new Date(matchingInterview.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-3.5 h-3.5 text-secondary" />
+                        {matchingInterview.time}
+                      </div>
+                    </div>
+                    <a 
+                      href={matchingInterview.meetingLink || '#'} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="w-full text-center bg-primary text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-primary-dark transition-all flex items-center justify-center gap-1.5 shadow-md shadow-primary/10"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" /> Join Meet
+                    </a>
+                  </div>
+                );
+              })()}
 
               <div className="flex justify-between items-center pt-8 border-t border-outline-variant/10">
                 <div className="flex items-center gap-3 text-[12px] font-black uppercase tracking-widest text-on-surface-variant/60 group-hover:text-primary/70 transition-colors">

@@ -115,3 +115,43 @@ exports.updateInterviewStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Submit interview feedback & rating
+// @route   PUT /api/v1/interview/:id/feedback
+// @access  Private/Candidate
+exports.submitInterviewFeedback = async (req, res, next) => {
+  try {
+    const { feedback, rating } = req.body;
+
+    if (!rating) {
+      return res.status(400).json({ success: false, statusCode: 400, message: 'Please provide a rating', data: null });
+    }
+
+    let interview = await Interview.findById(req.params.id);
+
+    if (!interview) {
+      return res.status(404).json({ success: false, statusCode: 404, message: 'Interview not found', data: null });
+    }
+
+    // Check if logged-in user is the candidate of this interview
+    if (interview.candidateId.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, statusCode: 403, message: 'You are not authorized to submit feedback for this interview', data: null });
+    }
+
+    interview.feedback = feedback;
+    interview.rating = rating;
+    interview.status = 'completed'; // Automatically mark as completed when feedback is submitted
+
+    await interview.save();
+
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: 'Feedback submitted successfully',
+      data: interview
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

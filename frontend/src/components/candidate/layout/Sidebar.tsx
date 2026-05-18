@@ -19,7 +19,8 @@ import {
   X,
   Globe,
   User,
-  ShieldAlert
+  ShieldAlert,
+  Calendar
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Button } from '@/components/common/Button';
@@ -39,6 +40,7 @@ const navLinks: NavLink[] = [
   { name: 'Resume Analysis', href: '/candidate/resume-analysis', icon: FileSearch },
   { name: 'Job Matches', href: '/candidate/job-matches', icon: Briefcase },
   { name: 'Applications', href: '/candidate/applications', icon: CheckSquare },
+  { name: 'Interviews', href: '/candidate/interviews', icon: Calendar },
   { name: 'Messages', href: '/candidate/messages', icon: MessageSquare },
   { name: 'AI Suggestions', href: '/candidate/ai-suggestions', icon: Lightbulb },
   { name: 'AI Mock Interview', href: '/candidate/aimock-interview', icon: Mic2 },
@@ -53,6 +55,7 @@ const navLinks: NavLink[] = [
     ]
   },
 ];
+
 
 interface SidebarProps {
   isOpen: boolean;

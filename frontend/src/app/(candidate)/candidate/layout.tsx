@@ -6,7 +6,6 @@ import TopNavbar from "@/components/candidate/layout/TopNavbar";
 import AuthGuard from "@/components/auth/AuthGuard";
 import RoleGuard from "@/components/auth/RoleGuard";
 import { motion, AnimatePresence } from 'framer-motion';
-import AIFloatingAssistant from "@/components/common/AIFloatingAssistant";
 
 // import { ChatProvider } from "@/provider/ChatProvider";
 
@@ -48,7 +47,6 @@ export default function CandidateRootLayout({
             </div>
           </div>
         {/* </ChatProvider> */}
-        <AIFloatingAssistant />
       </RoleGuard>
     </AuthGuard>
   );
