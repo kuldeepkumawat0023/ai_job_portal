@@ -20,8 +20,8 @@ exports.scheduleInterview = async (req, res, next) => {
       companyId,
       date,
       time,
-      mode,
-      meetingLink: mode !== 'In-person' ? (meetingLink || `https://meet.google.com/${Math.random().toString(36).substring(7)}`) : null
+      mode: 'Google Meet',
+      meetingLink: meetingLink || `https://meet.google.com/${Math.random().toString(36).substring(3, 6)}-${Math.random().toString(36).substring(3, 7)}-${Math.random().toString(36).substring(3, 6)}`
     });
 
     // Notify Candidate
@@ -35,8 +35,8 @@ exports.scheduleInterview = async (req, res, next) => {
       <ul>
         <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
         <li><strong>Time:</strong> ${time}</li>
-        <li><strong>Mode:</strong> ${mode}</li>
-        ${interview.meetingLink ? `<li><strong>Link:</strong> <a href="${interview.meetingLink}">${interview.meetingLink}</a></li>` : ''}
+        <li><strong>Mode:</strong> Google Meet</li>
+        ${interview.meetingLink ? `<li><strong>Google Meet Link:</strong> <a href="${interview.meetingLink}">${interview.meetingLink}</a></li>` : ''}
       </ul>
       <p>Good luck!</p>
     `;

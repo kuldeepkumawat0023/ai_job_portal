@@ -26,11 +26,15 @@ const interviewSchema = new mongoose.Schema({
   },
   mode: {
     type: String,
-    enum: ['In-person', 'Google Meet', 'Zoom'],
+    enum: ['Google Meet'],
     default: 'Google Meet'
   },
   meetingLink: {
     type: String
+  },
+  interviewer: {
+    type: String,
+    default: 'Recruiter'
   },
   status: {
     type: String,

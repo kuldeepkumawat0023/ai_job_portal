@@ -3,13 +3,28 @@ import { ApiResponse } from '../apiClient';
 
 export interface Interview {
   _id: string;
-  jobId: string;
-  candidateId: string;
-  recruiterId: string;
-  scheduledAt: string;
+  jobId: {
+    _id: string;
+    title: string;
+  } | string;
+  candidateId: {
+    _id: string;
+    fullname: string;
+    email: string;
+    profilePhoto?: string;
+  } | string;
+  companyId: {
+    _id: string;
+    name: string;
+    logo?: string;
+  } | string;
+  date: string;
+  time: string;
+  mode: 'Google Meet';
   meetingLink?: string;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'rescheduled';
-  notes?: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+  feedback?: string;
+  rating?: number;
   createdAt: string;
   updatedAt: string;
 }
