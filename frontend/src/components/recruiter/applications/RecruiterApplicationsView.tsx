@@ -16,22 +16,39 @@ import {
   MapPin,
   Clock,
   Briefcase,
-  UserCheck2
+  UserCheck2,
+  X,
+  Mail,
+  FileText,
+  ExternalLink,
+  GraduationCap,
+  Code2,
+  Award,
+  BrainCircuit,
+  Save
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/cn';
 import { applicationService, Application } from '@/lib/services/application.services';
+import { aiService } from '@/lib/services/ai.services';
+import { toast } from 'react-hot-toast';
 
 /**
  * 💼 RecruiterApplicationsView - Premium & SEO-friendly recruiter dashboard
  */
 const RecruiterApplicationsView = () => {
+  const router = useRouter();
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [hoveredReasoning, setHoveredReasoning] = useState<string | null>(null);
+
+  const handleOpenDetails = (app: Application) => {
+    router.push(`/recruiter/applications/${app._id}`);
+  };
 
   // 🔄 Fetch all applications for the recruiter's company jobs
   const fetchApplications = useCallback(async () => {
@@ -234,7 +251,8 @@ const RecruiterApplicationsView = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ delay: Math.min(i * 0.05, 0.4) }}
-                      className="glass-card p-4 md:p-5 rounded-2.5xl flex flex-col md:flex-row md:items-center justify-between hover:bg-surface-container-low transition-all duration-300 group border border-white/5 gap-4"
+                      onClick={() => handleOpenDetails(app)}
+                      className="glass-card p-4 md:p-5 rounded-2.5xl flex flex-col md:flex-row md:items-center justify-between hover:bg-surface-container-low transition-all duration-300 group border border-white/5 gap-4 cursor-pointer"
                       id={`applicant-card-${app._id}`}
                     >
                       {/* Candidate Profile Details */}
@@ -268,7 +286,7 @@ const RecruiterApplicationsView = () => {
                       <div className="flex items-center justify-between md:contents">
                         
                         {/* AI Match Score */}
-                        <div className="md:w-1/5 flex flex-col items-start gap-0.5 relative">
+                        <div className="md:w-1/5 flex flex-col items-start gap-0.5 relative" onClick={(e) => e.stopPropagation()}>
                           <div className={cn(
                             "flex items-center gap-1.5",
                             score >= 90 ? "text-emerald-600" : score >= 70 ? "text-secondary" : "text-red-500"
@@ -307,7 +325,7 @@ const RecruiterApplicationsView = () => {
                         </div>
 
                         {/* ATS Pipeline Status Selector */}
-                        <div className="md:w-1/5 text-right md:text-left flex flex-col gap-1.5">
+                        <div className="md:w-1/5 text-right md:text-left flex flex-col gap-1.5" onClick={(e) => e.stopPropagation()}>
                           <span className={cn(
                             "inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border whitespace-nowrap self-start md:self-auto",
                             ['applied', 'pending'].includes(app.status) ? "bg-secondary/5 text-secondary border-secondary/10" :
@@ -336,15 +354,26 @@ const RecruiterApplicationsView = () => {
                         </div>
                       </div>
 
-                      {/* Quick Communication Actions */}
-                      <div className="flex items-center justify-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 md:transform md:translate-x-4 md:group-hover:translate-x-0 border-t md:border-t-0 pt-3 md:pt-0 border-outline-variant/5">
+                      {/* Quick Actions & Details */}
+                      <div 
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex items-center justify-end gap-2 border-t md:border-t-0 pt-3 md:pt-0 border-outline-variant/5 shrink-0"
+                      >
+                        <button 
+                          onClick={() => handleOpenDetails(app)}
+                          className="px-4 py-2 bg-primary text-white hover:bg-primary-high rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 shadow-sm shrink-0 cursor-pointer"
+                          id={`btn-details-${app._id}`}
+                        >
+                          Details
+                          <ChevronRight size={12} />
+                        </button>
                         <a 
                           href={`mailto:${applicant?.email || ''}`}
                           className="p-2.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-xl transition-all" 
                           title="Message Candidate"
                           id={`btn-email-${app._id}`}
                         >
-                          <MessageSquare size={18} />
+                          <Mail size={18} />
                         </a>
                         <button 
                           className="p-2.5 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded-xl transition-all" 
@@ -391,6 +420,7 @@ const RecruiterApplicationsView = () => {
                   return (
                     <div 
                       key={pick._id} 
+                      onClick={() => handleOpenDetails(pick)}
                       className="bg-white/50 hover:bg-white/80 rounded-2xl p-4 flex items-center gap-4 border border-white/60 shadow-sm cursor-pointer hover:border-primary/20 transition-all group"
                       id={`top-pick-item-${pick._id}`}
                     >
@@ -462,6 +492,7 @@ const RecruiterApplicationsView = () => {
           </div>
         </aside>
       </div>
+
     </main>
   );
 };

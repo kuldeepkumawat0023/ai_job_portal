@@ -128,7 +128,7 @@ exports.getPipeline = async (req, res, next) => {
     }
 
     const applications = await Application.find({ jobId })
-      .populate('applicantId', 'fullname email profilePhoto resume skills experience bio')
+      .populate('applicantId', 'fullname email profilePhoto resume skills experience bio workExperience education projects')
       .sort('-createdAt');
 
     // Group by ATS status for Kanban board
@@ -169,7 +169,7 @@ exports.getApplicants = async (req, res, next) => {
 
     const job = await Job.findById(jobId).populate({
       path: 'applications',
-      populate: { path: 'applicantId', select: 'fullname email profilePhoto resume skills experience bio' },
+      populate: { path: 'applicantId', select: 'fullname email profilePhoto resume skills experience bio workExperience education projects' },
       options: { sort: { createdAt: -1 } }
     });
 
@@ -249,7 +249,7 @@ exports.getRecruiterApplications = async (req, res, next) => {
     // 3. Find all applications for these jobs
     const applications = await Application.find({ jobId: { $in: jobIds } })
       .populate('jobId', 'title category location')
-      .populate('applicantId', 'fullname email profilePhoto resume skills experience bio')
+      .populate('applicantId', 'fullname email profilePhoto resume skills experience bio workExperience education projects')
       .sort('-createdAt');
 
     res.status(200).json({
