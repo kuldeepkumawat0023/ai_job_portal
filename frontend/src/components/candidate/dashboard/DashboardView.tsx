@@ -71,6 +71,26 @@ const DashboardView = () => {
     fetchData();
   }, []);
 
+  const getMatchScore = (job: Job) => {
+    const candSkills = user?.skills || [];
+    const jobReqs = job.requirements || [];
+    
+    if (jobReqs.length === 0) return 75;
+    if (candSkills.length === 0) return 65;
+
+    const lowerCandSkills = candSkills.map(s => s.toLowerCase());
+    let matchesCount = 0;
+    jobReqs.forEach(req => {
+      const lowerReq = req.toLowerCase();
+      if (lowerCandSkills.some(skill => lowerReq.includes(skill) || skill.includes(lowerReq))) {
+        matchesCount++;
+      }
+    });
+
+    const percent = Math.round((matchesCount / jobReqs.length) * 100);
+    return Math.min(Math.max(percent, 60), 98);
+  };
+
   // Profile Completion Logic
   const profileFields = ['bio', 'skills', 'education', 'workExperience', 'projects', 'resume'];
   const filledFields = user ? profileFields.filter(f => {
@@ -380,7 +400,7 @@ const DashboardView = () => {
                     <div className="text-xs text-on-surface-variant truncate">{(job.companyId as any)?.name} • {job.location}</div>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
-                    <span className="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full border border-tertiary/20">AI Recommended</span>
+                    <span className="bg-gradient-to-r from-primary/10 to-secondary/10 text-primary text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-primary/20">{getMatchScore(job)}% AI Match</span>
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();

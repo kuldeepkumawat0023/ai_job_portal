@@ -230,7 +230,7 @@ const ApplicationForm = () => {
                     href={user?.resume} 
                     target="_blank" 
                     rel="noreferrer" 
-                    className="p-2 rounded-xl bg-white hover:bg-primary hover:text-white transition-all text-on-surface-variant flex items-center justify-center border border-outline-variant/20 shadow-md group-hover:scale-105"
+                    className="p-2 rounded-xl bg-surface-container-lowest hover:bg-primary hover:text-white transition-all text-on-surface flex items-center justify-center border border-outline-variant/20 shadow-md group-hover:scale-105"
                   >
                     <ExternalLink className="w-4 h-4" />
                   </a>
@@ -243,7 +243,7 @@ const ApplicationForm = () => {
                   {user?.skills?.map((skill: string) => (
                     <span 
                       key={skill} 
-                      className="px-3 py-1 rounded-xl bg-white text-on-surface text-[10px] font-black uppercase tracking-widest border border-outline-variant/30"
+                      className="px-3 py-1 rounded-xl bg-surface-container-lowest text-on-surface text-[10px] font-black uppercase tracking-widest border border-outline-variant/30"
                     >
                       {skill}
                     </span>

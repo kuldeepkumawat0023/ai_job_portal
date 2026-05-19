@@ -18,7 +18,7 @@ exports.postJob = async (req, res, next) => {
       requirements: requirements ? (Array.isArray(requirements) ? requirements : requirements.split(',')) : [],
       salary,
       location,
-      jobType,
+      jobType: jobType ? (Array.isArray(jobType) ? jobType : [jobType]) : ['Full-time'],
       experience,
       category,
       companyId,
@@ -55,7 +55,10 @@ exports.getAllJobs = async (req, res, next) => {
 
     if (location) query.location = { $regex: location, $options: 'i' };
     if (category) query.category = { $regex: category, $options: 'i' };
-    if (jobType) query.jobType = jobType;
+    if (jobType) {
+      const types = Array.isArray(jobType) ? jobType : jobType.split(',');
+      query.jobType = { $in: types };
+    }
 
     const jobs = await Job.find(query)
       .populate('companyId', 'name logo location')
@@ -89,15 +92,39 @@ exports.getRecommendedJobs = async (req, res, next) => {
       return res.status(404).json({ success: false, statusCode: 404, message: 'User not found', data: null });
     }
 
+    let jobs = [];
+
     // Recommendation logic: match by skills and experience
-    // Simple version: find jobs that have at least one skill in common
-    const jobs = await Job.find({
-      isDeleted: { $ne: true },
-      $or: [
-        { category: user.role === 'candidate' ? { $regex: user.skills.join('|'), $options: 'i' } : '' },
-        { title: { $regex: user.skills.join('|'), $options: 'i' } }
-      ]
-    }).populate('companyId', 'name logo').limit(10);
+    if (user.skills && user.skills.length > 0) {
+      // Escape special characters in user skills to avoid invalid regex patterns
+      const escapedSkills = user.skills
+        .filter(Boolean)
+        .map(s => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+      
+      if (escapedSkills.length > 0) {
+        const skillsRegex = escapedSkills.join('|');
+        jobs = await Job.find({
+          isDeleted: { $ne: true },
+          $or: [
+            { requirements: { $in: user.skills } },
+            { title: { $regex: skillsRegex, $options: 'i' } },
+            { category: { $regex: skillsRegex, $options: 'i' } },
+            { description: { $regex: skillsRegex, $options: 'i' } }
+          ]
+        }).populate('companyId', 'name logo').sort('-createdAt').limit(10);
+      }
+    }
+
+    // Fallback: If no matches found or fewer than 5 jobs, fill up with the latest jobs
+    if (jobs.length < 5) {
+      const existingIds = jobs.map(j => j._id);
+      const fallbackJobs = await Job.find({
+        isDeleted: { $ne: true },
+        _id: { $nin: existingIds }
+      }).populate('companyId', 'name logo').sort('-createdAt').limit(10 - jobs.length);
+      
+      jobs = [...jobs, ...fallbackJobs];
+    }
 
     res.status(200).json({
       success: true,
@@ -110,6 +137,7 @@ exports.getRecommendedJobs = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // @desc    Get job by ID
 // @route   GET /api/v1/job/:id

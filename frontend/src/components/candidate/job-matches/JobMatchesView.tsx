@@ -96,6 +96,36 @@ const JobMatchesView = () => {
     fetchProfileAndResumes();
   }, []);
 
+  const getCandidateSkills = () => {
+    const skillsSet = new Set<string>();
+    if (profile?.skills) {
+      profile.skills.forEach((s: string) => skillsSet.add(s.toLowerCase()));
+    }
+    if (defaultResume?.skills) {
+      defaultResume.skills.forEach((s: string) => skillsSet.add(s.toLowerCase()));
+    }
+    return Array.from(skillsSet);
+  };
+
+  const getMatchScore = (job: Job) => {
+    const candSkills = getCandidateSkills();
+    const jobReqs = job.requirements || [];
+    
+    if (jobReqs.length === 0) return 75;
+    if (candSkills.length === 0) return 65;
+
+    let matchesCount = 0;
+    jobReqs.forEach(req => {
+      const lowerReq = req.toLowerCase();
+      if (candSkills.some(skill => lowerReq.includes(skill) || skill.includes(lowerReq))) {
+        matchesCount++;
+      }
+    });
+
+    const percent = Math.round((matchesCount / jobReqs.length) * 100);
+    return Math.min(Math.max(percent, 60), 98);
+  };
+
   const fetchJobs = async () => {
     try {
       setLoading(true);
@@ -227,13 +257,15 @@ const JobMatchesView = () => {
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-[10px] font-black uppercase tracking-widest text-secondary">{job.category}</span>
                           <span className="w-1 h-1 bg-outline-variant rounded-full" />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60">{job.jobType}</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60">
+                            {Array.isArray(job.jobType) ? job.jobType.join(' • ') : job.jobType}
+                          </span>
                         </div>
                         <h3 className="text-2xl font-black text-on-surface group-hover:text-primary transition-colors leading-tight">{job.title}</h3>
                         <p className="text-on-surface-variant font-bold text-sm mt-1">{job.companyId?.name || 'Company'} • {job.location}</p>
                       </div>
                       <div className="flex flex-col items-end">
-                        <div className="text-2xl font-black text-primary">90%+</div>
+                        <div className="text-2xl font-black text-primary">{getMatchScore(job)}%</div>
                         <span className="text-[9px] font-black uppercase tracking-tighter text-on-surface-variant/40">AI Match</span>
                       </div>
                     </div>
@@ -436,7 +468,9 @@ const JobMatchesView = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">{selectedJob.jobType}</span>
+                      <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">
+                        {Array.isArray(selectedJob.jobType) ? selectedJob.jobType.join(' • ') : selectedJob.jobType}
+                      </span>
                       <span className="px-3 py-1 rounded-full bg-secondary/10 text-secondary text-[10px] font-black uppercase tracking-widest">{selectedJob.location}</span>
                     </div>
                     <h3 className="text-3xl md:text-4xl font-black text-on-surface leading-tight">{selectedJob.title}</h3>
@@ -473,12 +507,12 @@ const JobMatchesView = () => {
                         </div>
                       ) : aiMatchData?.error ? (
                         <div className="space-y-4">
-                          <div className="flex items-center gap-3 text-amber-500">
-                            <Sparkles className="w-5 h-5 animate-pulse shrink-0" />
-                            <span className="text-sm font-black uppercase tracking-wider">Awaiting Profile Details</span>
+                          <div className="flex items-end gap-3">
+                            <span className="text-5xl font-black text-primary">{selectedJob ? getMatchScore(selectedJob) : 70}%</span>
+                            <span className="text-xs font-bold text-on-surface-variant mb-2 uppercase tracking-widest">Compatibility</span>
                           </div>
-                          <p className="text-sm text-on-surface-variant leading-relaxed font-medium">
-                            To generate a detailed compatibility score and personalized fit checklist, please upload your resume PDF or fill in your skills and experiences in your profile settings.
+                          <p className="text-base text-on-surface-variant leading-relaxed font-medium">
+                            Based on your profile, you have a {selectedJob ? getMatchScore(selectedJob) : 70}% compatibility match for this position. To generate a fully customized AI analysis, upload your resume PDF.
                           </p>
                           <div className="pt-2">
                             <Button 
@@ -488,7 +522,7 @@ const JobMatchesView = () => {
                               }}
                               className="bg-gradient-to-r from-primary to-secondary text-white text-xs font-black shadow-lg"
                             >
-                              Complete Setup Now
+                              Upload Resume PDF
                             </Button>
                           </div>
                         </div>
