@@ -1,6 +1,7 @@
 const Interview = require('../models/Interview');
 const Job = require('../models/Job');
 const User = require('../models/User');
+const Company = require('../models/Company');
 const sendEmail = require('../config/email');
 
 // @desc    Schedule an interview
@@ -8,16 +9,37 @@ const sendEmail = require('../config/email');
 // @access  Private/Recruiter
 exports.scheduleInterview = async (req, res, next) => {
   try {
-    const { jobId, candidateId, companyId, date, time, mode, meetingLink, interviewer } = req.body;
+    const { jobId, candidateId, date, time, mode, meetingLink, interviewer } = req.body;
 
-    if (!jobId || !candidateId || !companyId || !date || !time) {
-      return res.status(400).json({ success: false, statusCode: 400, message: 'Missing required fields', data: null });
+    if (!jobId || !candidateId || !date || !time) {
+      return res.status(400).json({ success: false, statusCode: 400, message: 'Missing required fields: jobId, candidateId, date, time', data: null });
+    }
+
+    // Auto-resolve companyId: first from job, then from recruiter's company profile
+    let resolvedCompanyId = req.body.companyId || null;
+
+    if (!resolvedCompanyId) {
+      // Try to get companyId from the job itself
+      const job = await Job.findById(jobId).select('companyId postedBy');
+      if (job && job.companyId) {
+        resolvedCompanyId = job.companyId;
+      } else {
+        // Fallback: get from recruiter's own company profile
+        const recruiterCompany = await Company.findOne({ userId: req.user.id }).select('_id');
+        if (recruiterCompany) {
+          resolvedCompanyId = recruiterCompany._id;
+        }
+      }
+    }
+
+    if (!resolvedCompanyId) {
+      return res.status(400).json({ success: false, statusCode: 400, message: 'No company profile found. Please create a company profile first.', data: null });
     }
 
     const interview = await Interview.create({
       jobId,
       candidateId,
-      companyId,
+      companyId: resolvedCompanyId,
       date,
       time,
       mode: 'Google Meet',
@@ -27,12 +49,12 @@ exports.scheduleInterview = async (req, res, next) => {
 
     // Notify Candidate
     const candidate = await User.findById(candidateId);
-    const job = await Job.findById(jobId);
+    const jobDoc = await Job.findById(jobId);
 
     const emailHtml = `
       <h2>Interview Scheduled!</h2>
-      <p>Hello ${candidate.fullname},</p>
-      <p>Your interview for the position <strong>${job.title}</strong> has been scheduled.</p>
+      <p>Hello ${candidate?.fullname || 'Candidate'},</p>
+      <p>Your interview for the position <strong>${jobDoc?.title || 'Applied Position'}</strong> has been scheduled.</p>
       <ul>
         <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
         <li><strong>Time:</strong> ${time}</li>
@@ -43,11 +65,13 @@ exports.scheduleInterview = async (req, res, next) => {
       <p>Good luck!</p>
     `;
 
-    sendEmail({
-      email: candidate.email,
-      subject: `Interview Invitation: ${job.title}`,
-      html: emailHtml
-    }).catch(err => console.log('Email Error:', err));
+    if (candidate?.email) {
+      sendEmail({
+        email: candidate.email,
+        subject: `Interview Invitation: ${jobDoc?.title || 'Position'}`,
+        html: emailHtml
+      }).catch(err => console.log('Email Error:', err));
+    }
 
     res.status(201).json({
       success: true,

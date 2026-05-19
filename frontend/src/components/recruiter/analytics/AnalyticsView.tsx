@@ -38,6 +38,7 @@ import {
 import { motion } from 'framer-motion';
 import { dashboardService } from '@/lib/services/dashboard.services';
 import { toast } from 'react-hot-toast';
+import { jsPDF } from 'jspdf';
 
 const COLORS = ['#4648d4', '#8127cf', '#9c48ea', '#c7c4d7', '#e4e1ed'];
 
@@ -89,23 +90,151 @@ const AnalyticsView = () => {
   }, []);
 
   const handleExportReport = () => {
-    toast.success('Hiring report compiled! Downloading CSV...');
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + "Metric,Value\n"
-      + `Avg Match Score,${stats.avgMatchScore}%\n`
-      + `Time to Hire,${stats.timeToHire} Days\n`
-      + `Offer Acceptance,${stats.offerAcceptance}%\n`
-      + `Candidate Satisfaction,${stats.candidateSatisfaction}/5\n`
-      + `Recruiter Responsiveness,${stats.responsiveness}%\n`
-      + `Platform Visibility,${stats.visibility}\n`;
-      
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Recruiter_Analytics_Report_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const doc = new jsPDF();
+      const margin = 20;
+      let y = 20;
+
+      // Color theme
+      const primary = [70, 72, 212];
+      const secondary = [39, 41, 109];
+      const gray = [100, 116, 139];
+      const dark = [33, 33, 33];
+
+      // === HEADER ===
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(24);
+      doc.setTextColor(primary[0], primary[1], primary[2]);
+      doc.text('Hiring Analytics Report', margin, y);
+      y += 8;
+
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(gray[0], gray[1], gray[2]);
+      doc.text(`Generated on: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}`, margin, y);
+      y += 6;
+
+      // Divider
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.5);
+      doc.line(margin, y, 210 - margin, y);
+      y += 10;
+
+      // === SECTION: KEY METRICS ===
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(primary[0], primary[1], primary[2]);
+      doc.text('KEY PERFORMANCE METRICS', margin, y);
+      y += 8;
+
+      const metricsData = [
+        ['Avg. Match Score', `${stats.avgMatchScore}%`, stats.matchScoreChange],
+        ['Time to Hire', `${stats.timeToHire} Days`, stats.timeToHireChange],
+        ['Offer Acceptance Rate', `${stats.offerAcceptance}%`, stats.offerAcceptanceChange],
+        ['Candidate Satisfaction', `${stats.candidateSatisfaction}/5`, stats.satisfactionChange],
+        ['Recruiter Responsiveness', `${stats.responsiveness}%`, '+Ongoing'],
+        ['Platform Visibility', stats.visibility, 'High Traffic'],
+      ];
+
+      metricsData.forEach(([label, value, change]) => {
+        // Row background strip
+        doc.setFillColor(245, 247, 252);
+        doc.roundedRect(margin, y - 4, 170, 11, 3, 3, 'F');
+
+        // Label
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(9.5);
+        doc.setTextColor(dark[0], dark[1], dark[2]);
+        doc.text(String(label), margin + 3, y + 3);
+
+        // Value
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(primary[0], primary[1], primary[2]);
+        doc.text(String(value), 130, y + 3);
+
+        // Change Badge
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(gray[0], gray[1], gray[2]);
+        doc.text(String(change), 162, y + 3);
+
+        y += 14;
+      });
+
+      y += 4;
+
+      // === SECTION: HIRING FUNNEL ===
+      if (funnelData && funnelData.length > 0) {
+        if (y > 220) { doc.addPage(); y = 20; }
+
+        doc.setDrawColor(226, 232, 240);
+        doc.line(margin, y, 210 - margin, y);
+        y += 8;
+
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.setTextColor(primary[0], primary[1], primary[2]);
+        doc.text('HIRING FUNNEL BREAKDOWN', margin, y);
+        y += 8;
+
+        funnelData.forEach((item: any) => {
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor(dark[0], dark[1], dark[2]);
+          doc.text(`• ${item.name}:`, margin + 3, y);
+          doc.setFont('Helvetica', 'bold');
+          doc.setTextColor(secondary[0], secondary[1], secondary[2]);
+          doc.text(`${item.value} candidates`, margin + 50, y);
+          y += 7;
+        });
+        y += 4;
+      }
+
+      // === SECTION: APPLICATION VOLUME TREND ===
+      if (volumeTrend && volumeTrend.length > 0) {
+        if (y > 230) { doc.addPage(); y = 20; }
+
+        doc.setDrawColor(226, 232, 240);
+        doc.line(margin, y, 210 - margin, y);
+        y += 8;
+
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.setTextColor(primary[0], primary[1], primary[2]);
+        doc.text('APPLICATION VOLUME TREND', margin, y);
+        y += 8;
+
+        volumeTrend.forEach((item: any) => {
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor(dark[0], dark[1], dark[2]);
+          doc.text(`${item.day || item.date || '-'}:`, margin + 3, y);
+          doc.setFont('Helvetica', 'bold');
+          doc.setTextColor(secondary[0], secondary[1], secondary[2]);
+          doc.text(`${item.applications} applications`, margin + 40, y);
+          y += 7;
+        });
+        y += 4;
+      }
+
+      // === FOOTER ===
+      if (y > 255) { doc.addPage(); y = 20; }
+      doc.setDrawColor(226, 232, 240);
+      doc.line(margin, y + 6, 210 - margin, y + 6);
+      doc.setFont('Helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(gray[0], gray[1], gray[2]);
+      doc.text('AI JobFit — Precision Hiring & AI Recruitment Platform', margin, y + 12);
+
+      // Save PDF
+      const fileName = `Recruiter_Analytics_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      toast.success('Analytics report downloaded successfully!');
+    } catch (err: any) {
+      console.error('PDF generation failed:', err);
+      toast.error('Failed to generate analytics PDF report.');
+    }
   };
 
   if (loading) {
