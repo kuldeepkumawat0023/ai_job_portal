@@ -45,6 +45,12 @@ const userSchema = new mongoose.Schema({
     type: [String],
     default: []
   },
+  categorizedSkills: {
+    frontend: { type: [String], default: [] },
+    backend: { type: [String], default: [] },
+    tools: { type: [String], default: [] },
+    soft: { type: [String], default: [] }
+  },
   education: [
     {
       degree: String,

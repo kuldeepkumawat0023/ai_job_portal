@@ -43,6 +43,12 @@ export interface AuthUser {
   location?: string;
   bio?: string;
   skills: string[];
+  categorizedSkills?: {
+    frontend?: string[];
+    backend?: string[];
+    tools?: string[];
+    soft?: string[];
+  };
   education: Education[];
   workExperience: WorkExperience[];
   projects: Project[];

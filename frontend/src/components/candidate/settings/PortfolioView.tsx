@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  BadgeCheck, 
-  MapPin, 
-  Link2, 
-  Code2, 
-  Mail, 
-  BrainCircuit, 
-  AppWindow, 
-  ArrowRight, 
+import {
+  BadgeCheck,
+  MapPin,
+  Link2,
+  Code2,
+  Mail,
+  BrainCircuit,
+  AppWindow,
+  ArrowRight,
   Sparkles,
   Download,
   Share2,
@@ -20,19 +20,40 @@ import {
   Trash2,
   Loader2,
   Camera,
-  GraduationCap
+  GraduationCap,
+  Globe,
+  User
 } from 'lucide-react';
-import { userService } from '@/lib/services/user.services';
 import { toast } from 'react-hot-toast';
+import { userService } from '@/lib/services/user.services';
+import { resumeService } from '@/lib/services/resume.services';
 import { cn } from '@/utils/cn';
 import { jsPDF } from 'jspdf';
+import Image from 'next/image';
+
+const categorizeSkills = (skillsArray: string[]) => {
+  const categories: { frontend: string[], backend: string[], tools: string[], soft: string[] } = { frontend: [], backend: [], tools: [], soft: [] };
+  const frontendKeywords = ['react', 'vue', 'angular', 'html', 'css', 'tailwind', 'next.js', 'svelte', 'javascript', 'typescript', 'frontend', 'ui', 'ux'];
+  const backendKeywords = ['node', 'python', 'java', 'go', 'c++', 'c#', 'php', 'ruby', 'backend', 'express', 'spring', 'django', 'fastapi'];
+  const toolsKeywords = ['git', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'mongo', 'sql', 'postgres', 'redis', 'linux', 'jenkins', 'ci/cd', 'jira'];
+  
+  (skillsArray || []).forEach(skill => {
+    const s = skill.toLowerCase();
+    if (frontendKeywords.some(k => s.includes(k))) categories.frontend.push(skill);
+    else if (backendKeywords.some(k => s.includes(k))) categories.backend.push(skill);
+    else if (toolsKeywords.some(k => s.includes(k))) categories.tools.push(skill);
+    else categories.soft.push(skill);
+  });
+  return categories;
+};
 
 const PortfolioView = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+  const [imageError, setImageError] = useState(false);
+
   // Edit Form States
   const [editForm, setEditForm] = useState<any>({
     fullname: '',
@@ -58,22 +79,54 @@ const PortfolioView = () => {
       const userStr = localStorage.getItem('portal_user');
       if (!userStr) return;
       const user = JSON.parse(userStr);
-      
+
       const res = await userService.getProfile(user._id || user.id);
       if (res.success) {
-        setProfile(res.data);
+        let profileData = { ...res.data };
+        
+        // Auto-fill from AI Analyzed Resume if fields are empty
+        try {
+          const resumeRes = await resumeService.getResumeHistory();
+          if (resumeRes.success && resumeRes.data.length > 0) {
+            const latestResume = resumeRes.data[0];
+            
+            if (!profileData.bio && latestResume.summary) {
+              profileData.bio = latestResume.summary;
+            }
+            if ((!profileData.skills || profileData.skills.length === 0) && latestResume.skills) {
+              profileData.skills = latestResume.skills;
+            }
+            if ((!profileData.workExperience || profileData.workExperience.length === 0) && latestResume.recommendedRoles && latestResume.recommendedRoles.length > 0) {
+              profileData.workExperience = [{
+                role: latestResume.recommendedRoles[0],
+                company: 'Based on Resume Analysis',
+                duration: latestResume.experience ? `${latestResume.experience} Level` : 'Current',
+                description: 'This role and experience was auto-detected by AI from your uploaded resume.'
+              }];
+            }
+            if (!profileData.experience && latestResume.experience) {
+              profileData.experience = latestResume.experience === 'Senior' ? 5 : latestResume.experience === 'Mid' ? 3 : 1;
+            }
+          }
+        } catch (err) {
+          console.log('No resume history to auto-fill from');
+        }
+
+        setProfile(profileData);
+        setImageError(false);
         // Initialize edit form with ALL fields
         setEditForm({
-          fullname: res.data?.fullname || '',
-          bio: res.data?.bio || '',
-          experience: res.data?.experience || 0,
-          skills: res.data?.skills?.join(', ') || '',
-          location: res.data?.location || '',
-          phoneNumber: res.data?.phoneNumber || '',
-          countryCode: res.data?.countryCode || '+91',
-          education: res.data?.education || [],
-          workExperience: res.data?.workExperience || [],
-          projects: res.data?.projects || []
+          fullname: profileData.fullname || '',
+          bio: profileData.bio || '',
+          experience: profileData.experience || 0,
+          skills: profileData.skills || [],
+          skillsObj: profileData.categorizedSkills || categorizeSkills(profileData.skills || []),
+          location: profileData.location || '',
+          phoneNumber: profileData.phoneNumber || '',
+          countryCode: profileData.countryCode || '+91',
+          education: profileData.education || [],
+          workExperience: profileData.workExperience || [],
+          projects: profileData.projects || []
         });
       }
     } catch (error) {
@@ -103,10 +156,10 @@ const PortfolioView = () => {
       const grayTextColor = [100, 116, 139];
 
       // Guess target role from bio or default
-      const targetRole = profile.bio?.toLowerCase().includes('frontend') 
-        ? 'Senior Frontend Engineer' 
-        : profile.bio?.toLowerCase().includes('backend') 
-          ? 'Senior Backend Engineer' 
+      const targetRole = profile.bio?.toLowerCase().includes('frontend')
+        ? 'Senior Frontend Engineer'
+        : profile.bio?.toLowerCase().includes('backend')
+          ? 'Senior Backend Engineer'
           : 'Professional Candidate';
 
       // Document Title/Name
@@ -191,11 +244,11 @@ const PortfolioView = () => {
           doc.setFontSize(11);
           doc.setTextColor(textColor[0], textColor[1], textColor[2]);
           doc.text(`${index + 1}. ${proj.title}`, margin, yPosition);
-          
+
           if (proj.link) {
             // Measure title width while current bold size 11 font is active
             const titleWidth = doc.getTextWidth(`${index + 1}. ${proj.title}`);
-            
+
             doc.setFont('Helvetica', 'italic');
             doc.setFontSize(9);
             doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -247,7 +300,7 @@ const PortfolioView = () => {
           doc.setFontSize(11);
           doc.setTextColor(textColor[0], textColor[1], textColor[2]);
           doc.text(`${exp.role} at ${exp.company}`, margin, yPosition);
-          
+
           // Duration right-aligned
           doc.setFont('Helvetica', 'normal');
           doc.setFontSize(9.5);
@@ -281,7 +334,21 @@ const PortfolioView = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await userService.updateProfile(profile._id, editForm);
+      const mergedSkills = [
+        ...(editForm.skillsObj?.frontend || []),
+        ...(editForm.skillsObj?.backend || []),
+        ...(editForm.skillsObj?.tools || []),
+        ...(editForm.skillsObj?.soft || [])
+      ];
+      
+      const payload = { 
+        ...editForm, 
+        skills: mergedSkills.length > 0 ? mergedSkills : editForm.skills,
+        categorizedSkills: editForm.skillsObj 
+      };
+      delete payload.skillsObj; // Remove from payload
+
+      const res = await userService.updateProfile(profile._id, payload);
       if (res.success) {
         toast.success('Profile updated successfully!');
         setProfile(res.data);
@@ -308,6 +375,7 @@ const PortfolioView = () => {
       const res = await userService.updateProfile(profile._id, formData);
       if (res.success) {
         setProfile(res.data);
+        setImageError(false);
         localStorage.setItem('portal_user', JSON.stringify(res.data));
         toast.success('Photo updated!');
       }
@@ -338,6 +406,21 @@ const PortfolioView = () => {
     setEditForm((prev: any) => ({ ...prev, [field]: newItems }));
   };
 
+  const displayRole = React.useMemo(() => {
+    if (!profile) return 'Professional Candidate';
+    if (profile.role !== 'candidate') return profile.role;
+    if (profile.workExperience && profile.workExperience.length > 0 && profile.workExperience[0].role) {
+      return profile.workExperience[0].role;
+    }
+    const bioStr = profile.bio?.toLowerCase() || '';
+    if (bioStr.includes('full stack') || bioStr.includes('fullstack')) return 'Full Stack Developer';
+    if (bioStr.includes('frontend') || bioStr.includes('front-end')) return 'Frontend Engineer';
+    if (bioStr.includes('backend') || bioStr.includes('back-end')) return 'Backend Engineer';
+    if (bioStr.includes('ui/ux') || bioStr.includes('designer')) return 'UI/UX Designer';
+    if (bioStr.includes('data scientist') || bioStr.includes('data anal')) return 'Data Scientist';
+    return 'Professional Candidate';
+  }, [profile]);
+
   if (loading) {
     return (
       <div className="w-full max-w-5xl mx-auto space-y-8 pb-10 animate-pulse">
@@ -354,18 +437,18 @@ const PortfolioView = () => {
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 pb-10 px-4 md:px-0">
-      
+
       {/* Action Bar */}
       <div className="flex justify-between items-center gap-3 mb-4">
         <h2 className="text-xl font-black text-on-surface uppercase tracking-widest hidden md:block">Professional Portfolio</h2>
         <div className="flex gap-3 w-full md:w-auto">
-          <button 
+          <button
             onClick={() => setIsEditModalOpen(true)}
             className="flex-1 md:flex-none glass-card px-5 py-2.5 rounded-2xl text-sm font-bold text-primary flex items-center justify-center gap-2 hover:bg-primary/5 transition-all border-primary/20"
           >
             <Edit3 className="w-4 h-4" /> Edit Profile
           </button>
-          <button 
+          <button
             onClick={exportToPDF}
             className="flex-1 md:flex-none gradient-button text-white px-6 py-2.5 rounded-2xl text-sm font-black shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
           >
@@ -378,14 +461,23 @@ const PortfolioView = () => {
       <div className="glass-card rounded-[40px] p-8 md:p-12 relative overflow-hidden border-outline-variant/10 shadow-2xl">
         <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary/10 rounded-full blur-[100px] pointer-events-none"></div>
         <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-secondary/10 rounded-full blur-[100px] pointer-events-none"></div>
-        
+
         <div className="flex flex-col md:flex-row gap-10 relative z-10 items-center md:items-start text-center md:text-left">
           <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
             <div className="w-44 h-44 rounded-[48px] overflow-hidden border-4 border-surface shadow-2xl relative z-10 bg-surface-container-high flex items-center justify-center">
-              {profile.profilePhoto ? (
-                <img alt={profile.fullname} className="w-full h-full object-cover" src={profile.profilePhoto} />
+              {profile.profilePhoto && !imageError ? (
+                <Image
+                  alt={profile.fullname || 'Avatar'}
+                  className="object-cover"
+                  src={profile.profilePhoto}
+                  fill
+                  sizes="(max-width: 768px) 176px, 176px"
+                  onError={() => setImageError(true)}
+                />
               ) : (
-                <div className="text-primary font-black text-4xl">{profile.fullname?.charAt(0)}</div>
+                <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black text-7xl uppercase">
+                  {profile.fullname?.charAt(0) || 'U'}
+                </div>
               )}
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
                 <Camera className="w-8 h-8 text-white" />
@@ -398,7 +490,7 @@ const PortfolioView = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="flex-1 space-y-6">
             <div className="space-y-2">
               <h1 className="text-4xl md:text-5xl font-black text-on-surface flex flex-col md:flex-row items-center gap-4">
@@ -407,16 +499,16 @@ const PortfolioView = () => {
                   Available Now
                 </span>
               </h1>
-              <p className="text-xl md:text-2xl text-primary font-bold">{profile.role === 'candidate' ? 'Professional Candidate' : profile.role}</p>
+              <p className="text-xl md:text-2xl text-primary font-bold capitalize">{displayRole}</p>
               <p className="text-sm text-on-surface-variant flex items-center justify-center md:justify-start gap-2 font-bold uppercase tracking-widest opacity-70">
                 <MapPin className="w-4 h-4 text-primary" /> {profile.location || 'Remote'}
               </p>
             </div>
-            
+
             <p className="text-lg text-on-surface-variant leading-relaxed max-w-3xl font-medium">
               {profile.bio || "No bio added yet. Click 'Edit Profile' to introduce yourself to recruiters!"}
             </p>
-            
+
             <div className="flex flex-wrap justify-center md:justify-start gap-3">
               <button className="px-5 py-3 bg-surface-container-low border border-outline-variant/30 rounded-2xl text-on-surface font-bold text-xs uppercase tracking-widest hover:text-primary hover:border-primary/50 transition-all shadow-sm flex items-center gap-2">
                 <Mail className="w-4 h-4" /> {profile.email}
@@ -433,13 +525,13 @@ const PortfolioView = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-8">
-          
+
           {/* Work Experience */}
           <div className="glass-card rounded-[32px] p-8 md:p-10 border-outline-variant/10 shadow-xl">
             <h3 className="text-2xl font-black text-on-surface flex items-center gap-4 mb-10 uppercase tracking-tight">
               <Briefcase className="w-7 h-7 text-primary" /> Work History
             </h3>
-            
+
             <div className="space-y-12 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-1 before:bg-gradient-to-b before:from-primary/40 before:to-transparent">
               {profile.workExperience?.length > 0 ? profile.workExperience.map((exp: any, i: number) => (
                 <div key={i} className="relative pl-12 group">
@@ -468,7 +560,7 @@ const PortfolioView = () => {
             <h3 className="text-2xl font-black text-on-surface flex items-center gap-4 mb-10 uppercase tracking-tight">
               <AppWindow className="w-7 h-7 text-primary" /> Key Projects
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {profile.projects?.length > 0 ? profile.projects.map((proj: any, i: number) => (
                 <div key={i} className="bg-surface-container-low/80 dark:bg-surface-container-low/30 border border-outline-variant/30 dark:border-outline-variant/10 rounded-[32px] p-8 hover:shadow-xl dark:hover:shadow-2xl/20 transition-all duration-300 group hover:-translate-y-1 flex flex-col justify-between min-h-[220px] hover:border-primary/40 dark:hover:border-primary/40">
@@ -515,15 +607,71 @@ const PortfolioView = () => {
             <h3 className="text-xl font-black text-on-surface flex items-center gap-3 mb-8 uppercase tracking-widest text-[13px]">
               <BrainCircuit className="w-5 h-5 text-primary" /> Core Expertise
             </h3>
-            <div className="flex flex-wrap gap-2.5">
-              {profile.skills?.length > 0 ? profile.skills.map((skill: string) => (
-                <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-primary/30 transition-all cursor-default shadow-sm">
-                  {skill} 
-                </span>
-              )) : (
-                <div className="text-on-surface-variant/50 font-bold italic text-sm">No skills added.</div>
-              )}
-            </div>
+            {profile.skills?.length > 0 ? (() => {
+              const displaySkills = profile.categorizedSkills || categorizeSkills(profile.skills);
+              return (
+                <div className="space-y-6">
+                  {displaySkills.frontend.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
+                        <Code2 className="w-3.5 h-3.5 text-blue-500" /> Frontend
+                      </h4>
+                      <div className="flex flex-wrap gap-2.5">
+                        {displaySkills.frontend.map((skill: string) => (
+                          <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-blue-500/30 transition-all cursor-default shadow-sm">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {displaySkills.backend.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
+                        <Code2 className="w-3.5 h-3.5 text-purple-500" /> Backend
+                      </h4>
+                      <div className="flex flex-wrap gap-2.5">
+                        {displaySkills.backend.map((skill: string) => (
+                          <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-purple-500/30 transition-all cursor-default shadow-sm">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {displaySkills.tools.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
+                        <Globe className="w-3.5 h-3.5 text-emerald-500" /> Tools & DB
+                      </h4>
+                      <div className="flex flex-wrap gap-2.5">
+                        {displaySkills.tools.map((skill: string) => (
+                          <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-emerald-500/30 transition-all cursor-default shadow-sm">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {displaySkills.soft.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
+                        <User className="w-3.5 h-3.5 text-amber-500" /> Soft Skills
+                      </h4>
+                      <div className="flex flex-wrap gap-2.5">
+                        {displaySkills.soft.map((skill: string) => (
+                          <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-amber-500/30 transition-all cursor-default shadow-sm">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })() : (
+              <div className="text-on-surface-variant/50 font-bold italic text-sm">No skills added.</div>
+            )}
           </div>
 
           {/* Education */}
@@ -580,7 +728,7 @@ const PortfolioView = () => {
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-8 space-y-10">
               <form id="edit-profile-form" onSubmit={handleUpdateProfile} className="space-y-12">
-                
+
                 {/* Basic Section */}
                 <section className="space-y-6">
                   <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
@@ -589,20 +737,20 @@ const PortfolioView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Full Name</label>
-                      <input 
+                      <input
                         className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium capitalize"
                         placeholder="John Doe"
                         value={editForm.fullname}
-                        onChange={e => setEditForm({...editForm, fullname: e.target.value})}
+                        onChange={e => setEditForm({ ...editForm, fullname: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Location (e.g. Remote, City)</label>
-                      <input 
+                      <input
                         className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
                         placeholder="Jaipur, India"
                         value={editForm.location}
-                        onChange={e => setEditForm({...editForm, location: e.target.value})}
+                        onChange={e => setEditForm({ ...editForm, location: e.target.value })}
                       />
                     </div>
                   </div>
@@ -610,16 +758,16 @@ const PortfolioView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Country Code</label>
-                      <input 
+                      <input
                         className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
                         placeholder="+91"
                         value={editForm.countryCode}
-                        onChange={e => setEditForm({...editForm, countryCode: e.target.value})}
+                        onChange={e => setEditForm({ ...editForm, countryCode: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Phone Number (10 Digits)</label>
-                      <input 
+                      <input
                         type="text"
                         maxLength={10}
                         className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
@@ -628,7 +776,7 @@ const PortfolioView = () => {
                         onChange={e => {
                           const val = e.target.value.replace(/\D/g, ''); // Only numbers
                           if (val.length <= 10) {
-                            setEditForm({...editForm, phoneNumber: val});
+                            setEditForm({ ...editForm, phoneNumber: val });
                           }
                         }}
                       />
@@ -638,32 +786,161 @@ const PortfolioView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Experience (Years)</label>
-                      <input 
+                      <input
                         type="number"
                         className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
                         value={editForm.experience}
-                        onChange={e => setEditForm({...editForm, experience: parseInt(e.target.value) || 0})}
+                        onChange={e => setEditForm({ ...editForm, experience: parseInt(e.target.value) || 0 })}
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Professional Bio</label>
-                    <textarea 
+                    <textarea
                       rows={4}
                       className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium resize-none"
                       value={editForm.bio}
-                      onChange={e => setEditForm({...editForm, bio: e.target.value})}
+                      onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Skills (Comma separated)</label>
-                    <input 
-                      className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
-                      placeholder="React, Node.js, TypeScript..."
-                      value={editForm.skills}
-                      onChange={e => setEditForm({...editForm, skills: e.target.value})}
-                    />
+                  <div className="pt-6 border-t border-outline-variant/10">
+                    <div className="mb-8">
+                      <h3 className="text-2xl font-black text-on-surface">Skill Galaxy</h3>
+                      <p className="text-sm text-on-surface-variant">Categorize your expertise for better AI matching.</p>
+                    </div>
+                    
+                    {editForm.skillsObj && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Frontend Skills */}
+                        <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                              <Code2 className="w-5 h-5" />
+                            </div>
+                            <h4 className="font-bold text-on-surface">Frontend</h4>
+                          </div>
+                          <input
+                            className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const val = (e.target as HTMLInputElement).value.trim();
+                                if (val && !editForm.skillsObj.frontend.includes(val)) {
+                                  setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, frontend: [...editForm.skillsObj.frontend, val] } });
+                                  (e.target as HTMLInputElement).value = '';
+                                }
+                              }
+                            }}
+                            placeholder="React, Vue, Next.js..."
+                          />
+                          <div className="flex flex-wrap gap-2">
+                            {editForm.skillsObj.frontend.map((skill: string) => (
+                              <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/5 text-blue-500 text-[10px] font-bold rounded-lg border border-blue-500/10 group">
+                                {skill}
+                                <X className="w-3 h-3 cursor-pointer opacity-70 group-hover:opacity-100" onClick={() => setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, frontend: editForm.skillsObj.frontend.filter((s: string) => s !== skill) } })} />
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Backend Skills */}
+                        <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
+                              <Code2 className="w-5 h-5" />
+                            </div>
+                            <h4 className="font-bold text-on-surface">Backend</h4>
+                          </div>
+                          <input
+                            className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const val = (e.target as HTMLInputElement).value.trim();
+                                if (val && !editForm.skillsObj.backend.includes(val)) {
+                                  setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, backend: [...editForm.skillsObj.backend, val] } });
+                                  (e.target as HTMLInputElement).value = '';
+                                }
+                              }
+                            }}
+                            placeholder="Node.js, Python, Go..."
+                          />
+                          <div className="flex flex-wrap gap-2">
+                            {editForm.skillsObj.backend.map((skill: string) => (
+                              <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/5 text-purple-500 text-[10px] font-bold rounded-lg border border-purple-500/10 group">
+                                {skill}
+                                <X className="w-3 h-3 cursor-pointer opacity-70 group-hover:opacity-100" onClick={() => setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, backend: editForm.skillsObj.backend.filter((s: string) => s !== skill) } })} />
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Tools & Databases */}
+                        <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                              <Globe className="w-5 h-5" />
+                            </div>
+                            <h4 className="font-bold text-on-surface">Tools & DB</h4>
+                          </div>
+                          <input
+                            className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const val = (e.target as HTMLInputElement).value.trim();
+                                if (val && !editForm.skillsObj.tools.includes(val)) {
+                                  setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, tools: [...editForm.skillsObj.tools, val] } });
+                                  (e.target as HTMLInputElement).value = '';
+                                }
+                              }
+                            }}
+                            placeholder="Git, Docker, MongoDB..."
+                          />
+                          <div className="flex flex-wrap gap-2">
+                            {editForm.skillsObj.tools.map((skill: string) => (
+                              <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/5 text-emerald-500 text-[10px] font-bold rounded-lg border border-emerald-500/10 group">
+                                {skill}
+                                <X className="w-3 h-3 cursor-pointer opacity-70 group-hover:opacity-100" onClick={() => setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, tools: editForm.skillsObj.tools.filter((s: string) => s !== skill) } })} />
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Soft Skills */}
+                        <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
+                              <User className="w-5 h-5" />
+                            </div>
+                            <h4 className="font-bold text-on-surface">Soft Skills</h4>
+                          </div>
+                          <input
+                            className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const val = (e.target as HTMLInputElement).value.trim();
+                                if (val && !editForm.skillsObj.soft.includes(val)) {
+                                  setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, soft: [...editForm.skillsObj.soft, val] } });
+                                  (e.target as HTMLInputElement).value = '';
+                                }
+                              }
+                            }}
+                            placeholder="Leadership, Communication..."
+                          />
+                          <div className="flex flex-wrap gap-2">
+                            {editForm.skillsObj.soft.map((skill: string) => (
+                              <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/5 text-amber-500 text-[10px] font-bold rounded-lg border border-amber-500/10 group">
+                                {skill}
+                                <X className="w-3 h-3 cursor-pointer opacity-70 group-hover:opacity-100" onClick={() => setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, soft: editForm.skillsObj.soft.filter((s: string) => s !== skill) } })} />
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </section>
 
@@ -673,7 +950,7 @@ const PortfolioView = () => {
                     <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
                       <span className="w-8 h-[2px] bg-primary/30"></span> Work History
                     </h3>
-                    <button 
+                    <button
                       type="button"
                       onClick={() => addItem('workExperience', { role: '', company: '', duration: '', description: '' })}
                       className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"
@@ -684,7 +961,7 @@ const PortfolioView = () => {
                   <div className="space-y-4">
                     {editForm.workExperience.map((exp: any, i: number) => (
                       <div key={i} className="p-6 bg-surface-container/30 rounded-3xl border border-outline-variant/10 relative group">
-                        <button 
+                        <button
                           type="button"
                           onClick={() => removeItem('workExperience', i)}
                           className="absolute top-4 right-4 p-2 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all"
@@ -692,26 +969,26 @@ const PortfolioView = () => {
                           <Trash2 className="w-4 h-4" />
                         </button>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                          <input 
+                          <input
                             placeholder="Role (e.g. Senior Dev)"
                             className="bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
                             value={exp.role}
                             onChange={e => updateItem('workExperience', i, 'role', e.target.value)}
                           />
-                          <input 
+                          <input
                             placeholder="Company"
                             className="bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
                             value={exp.company}
                             onChange={e => updateItem('workExperience', i, 'company', e.target.value)}
                           />
-                          <input 
+                          <input
                             placeholder="Duration (e.g. 2021 - Present)"
                             className="bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
                             value={exp.duration}
                             onChange={e => updateItem('workExperience', i, 'duration', e.target.value)}
                           />
                         </div>
-                        <textarea 
+                        <textarea
                           placeholder="Description of your responsibilities..."
                           className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30 resize-none"
                           rows={2}
@@ -729,7 +1006,7 @@ const PortfolioView = () => {
                     <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
                       <span className="w-8 h-[2px] bg-primary/30"></span> Projects
                     </h3>
-                    <button 
+                    <button
                       type="button"
                       onClick={() => addItem('projects', { title: '', description: '', link: '', stack: [] })}
                       className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"
@@ -740,27 +1017,27 @@ const PortfolioView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {editForm.projects.map((proj: any, i: number) => (
                       <div key={i} className="p-6 bg-surface-container/30 rounded-3xl border border-outline-variant/10 relative group">
-                        <button 
+                        <button
                           type="button"
                           onClick={() => removeItem('projects', i)}
                           className="absolute top-4 right-4 p-2 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                        <input 
+                        <input
                           placeholder="Project Title"
                           className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30 mb-3 font-bold"
                           value={proj.title}
                           onChange={e => updateItem('projects', i, 'title', e.target.value)}
                         />
-                        <textarea 
+                        <textarea
                           placeholder="Description..."
                           className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30 mb-3 resize-none"
                           rows={2}
                           value={proj.description}
                           onChange={e => updateItem('projects', i, 'description', e.target.value)}
                         />
-                        <input 
+                        <input
                           placeholder="Project Link (URL)"
                           className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
                           value={proj.link}
@@ -777,7 +1054,7 @@ const PortfolioView = () => {
                     <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
                       <span className="w-8 h-[2px] bg-primary/30"></span> Education
                     </h3>
-                    <button 
+                    <button
                       type="button"
                       onClick={() => addItem('education', { degree: '', university: '', cgpa: '', year: '' })}
                       className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"
@@ -807,13 +1084,13 @@ const PortfolioView = () => {
 
             {/* Modal Footer */}
             <div className="p-8 border-t border-outline-variant/10 bg-surface-container/30 flex gap-4">
-              <button 
+              <button
                 onClick={() => setIsEditModalOpen(false)}
                 className="flex-1 px-8 py-4 rounded-[20px] font-black text-sm uppercase tracking-widest border border-outline-variant/20 hover:bg-surface transition-all"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 form="edit-profile-form"
                 disabled={saving}
                 className="flex-[2] gradient-button text-white px-8 py-4 rounded-[20px] font-black text-sm uppercase tracking-widest shadow-2xl flex items-center justify-center gap-3 disabled:opacity-50"

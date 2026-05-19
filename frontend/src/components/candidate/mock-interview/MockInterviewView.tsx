@@ -169,11 +169,18 @@ const MockInterviewView = () => {
   const toggleListening = () => {
     if (isListening) {
       recognitionRef.current?.stop();
+      setIsListening(false);
+      isListeningRef.current = false;
     } else {
       setTranscript('');
-      recognitionRef.current?.start();
+      try {
+        recognitionRef.current?.start();
+        setIsListening(true);
+        isListeningRef.current = true;
+      } catch (e) {
+        console.error('Mic start error in toggle:', e);
+      }
     }
-    setIsListening(!isListening);
   };
 
   const speak = (text: string) => {
@@ -195,11 +202,12 @@ const MockInterviewView = () => {
         utterance.pitch = 1.05;
         
         const startMic = () => {
-          if (!isListening) {
+          if (!isListeningRef.current) {
             setTranscript('');
             try {
               recognitionRef.current?.start();
               setIsListening(true);
+              isListeningRef.current = true;
             } catch (e) {
               console.error('Mic start error:', e);
             }

@@ -150,10 +150,10 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
     education: user?.education?.length ? user.education : [{ degree: '', university: '', cgpa: '', year: '' }],
     workExperience: user?.workExperience?.length ? user.workExperience : [{ role: '', company: '', duration: '', description: '' }],
     skills: {
-      frontend: [],
-      backend: [],
-      tools: [],
-      soft: user?.skills || []
+      frontend: user?.categorizedSkills?.frontend || [],
+      backend: user?.categorizedSkills?.backend || [],
+      tools: user?.categorizedSkills?.tools || [],
+      soft: user?.categorizedSkills?.soft || user?.skills || []
     },
     projects: user?.projects?.length ? user.projects : [{ title: '', stack: [], description: '', link: '' }],
     resumeStyle: 'modern',
@@ -173,10 +173,10 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
         education: user.education?.length ? [...user.education] : [{ degree: '', university: '', cgpa: '', year: '' }],
         workExperience: user.workExperience?.length ? [...user.workExperience] : [{ role: '', company: '', duration: '', description: '' }],
         skills: {
-          frontend: [],
-          backend: [],
-          tools: [],
-          soft: user.skills || []
+          frontend: user.categorizedSkills?.frontend || [],
+          backend: user.categorizedSkills?.backend || [],
+          tools: user.categorizedSkills?.tools || [],
+          soft: user.categorizedSkills?.soft || user.skills || []
         },
         projects: user.projects?.length ? [...user.projects] : [{ title: '', stack: [], description: '', link: '' }],
         resumeStyle: 'modern',
@@ -329,7 +329,8 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
 
       const payload = {
         ...formData,
-        skills: mergedSkills
+        skills: mergedSkills,
+        categorizedSkills: formData.skills
       };
 
       const res = await userService.updateProfile(user._id, payload);

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { userService } from '@/lib/services/user.services';
 import { toast } from 'react-hot-toast';
+import Image from 'next/image';
 
 interface SettingsViewProps {
   defaultTab?: string;
@@ -16,6 +17,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Tab State (defaults to prop, matches URL query if present)
   const [activeTab, setActiveTab] = useState(defaultTab);
@@ -55,6 +57,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
         const response = await userService.getProfile(user._id);
         if (response.success && response.data) {
           setProfile(response.data);
+          setImageError(false);
           setFullname(response.data.fullname || user?.fullname || '');
           setHeadline(response.data.bio || '');
           setLocation(response.data.location || '');
@@ -224,16 +227,19 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
               <div className="flex flex-col md:flex-row gap-8 items-start">
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-surface-container-lowest shadow-md relative group bg-surface-container flex items-center justify-center">
-                    {profile?.profilePhoto ? (
-                      <img
+                    {profile?.profilePhoto && !imageError ? (
+                      <Image
                         alt="Current Profile Photo"
-                        className="w-full h-full object-cover"
+                        className="object-cover"
                         src={profile.profilePhoto}
+                        fill
+                        sizes="(max-width: 768px) 128px, 128px"
+                        onError={() => setImageError(true)}
                       />
                     ) : (
-                      <span className="text-4xl font-bold text-primary">
+                      <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black text-6xl uppercase">
                         {fullname?.[0] || 'U'}
-                      </span>
+                      </div>
                     )}
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                       <Camera className="text-white w-6 h-6" />

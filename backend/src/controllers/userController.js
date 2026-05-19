@@ -57,7 +57,7 @@ exports.updateProfile = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized update request', data: null });
     }
 
-    const { fullname, bio, skills, experience, education, workExperience, projects, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences } = req.body;
+    const { fullname, bio, skills, categorizedSkills, experience, education, workExperience, projects, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences } = req.body;
 
     let user = await User.findById(req.params.id);
 
@@ -106,7 +106,16 @@ exports.updateProfile = async (req, res, next) => {
     }
 
     // Parse skills if it's a string (e.g. from a form field)
-    if (skills) {
+    if (categorizedSkills) {
+      user.categorizedSkills = typeof categorizedSkills === 'string' ? JSON.parse(categorizedSkills) : categorizedSkills;
+      // Keep the flat skills array synced for backwards compatibility and easy search
+      user.skills = [
+        ...(user.categorizedSkills.frontend || []),
+        ...(user.categorizedSkills.backend || []),
+        ...(user.categorizedSkills.tools || []),
+        ...(user.categorizedSkills.soft || [])
+      ];
+    } else if (skills) {
       user.skills = Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim());
     }
 
