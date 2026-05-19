@@ -67,6 +67,21 @@ const recruiterNavLinks: NavLink[] = [
   },
 ];
 
+const isLinkActive = (href: string, pathname: string, siblings: NavLink[] = []) => {
+  if (pathname === href) return true;
+  if (href === '/candidate/dashboard' || href === '/recruiter/dashboard') return false;
+  
+  if (pathname.startsWith(href)) {
+    const hasBetterSiblingMatch = siblings.some(sib => 
+      sib.href !== href && 
+      pathname.startsWith(sib.href) && 
+      sib.href.length > href.length
+    );
+    return !hasBetterSiblingMatch;
+  }
+  return false;
+};
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -137,8 +152,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {recruiterNavLinks.map((link) => {
             const hasChildren = link.children && link.children.length > 0;
             const isExpanded = openSubMenus.includes(link.name);
-            const isActive = pathname === link.href;
-            const isChildActive = link.children?.some(child => pathname === child.href);
+            const isActive = isLinkActive(link.href, pathname, recruiterNavLinks);
+            const isChildActive = link.children?.some(child => isLinkActive(child.href, pathname, link.children));
             const Icon = link.icon;
             const isMessages = link.name === 'Messages';
 
@@ -198,7 +213,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 {hasChildren && isExpanded && (
                   <div className="flex flex-col gap-1 ml-4 pl-4 border-l border-outline-variant/10 my-1 animate-in slide-in-from-top-2 duration-300">
                     {link.children?.map(child => {
-                      const isChildActive = pathname === child.href;
+                      const isChildActive = isLinkActive(child.href, pathname, link.children);
                       const ChildIcon = child.icon;
                       return (
                         <Link
