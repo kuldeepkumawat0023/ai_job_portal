@@ -12,7 +12,7 @@ const sendEmail = async (options) => {
 
   // Define email options
   const mailOptions = {
-    from: `"AI Job Portal" <${process.env.EMAIL_USER}>`,
+    from: `"AI JobFit" <${process.env.EMAIL_USER}>`,
     to: options.email,
     subject: options.subject,
     text: options.message,

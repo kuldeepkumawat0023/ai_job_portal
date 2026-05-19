@@ -22,6 +22,7 @@ import { Button } from '@/components/common/Button';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/hooks/useAuth';
 import { authService } from '@/lib/services/auth.services';
+import { companyService } from '@/lib/services/company.services';
 import { useRouter } from 'next/navigation';
 import { getBackendBaseUrl } from '@/lib/apiClient';
 import Link from 'next/link';
@@ -70,6 +71,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
   const [mounted, setMounted] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [companyName, setCompanyName] = useState<string>('TechNova Solutions');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
 
@@ -89,6 +91,36 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const fetchCompany = async () => {
+      try {
+        const response = await companyService.getCompanies();
+        if (response.success && response.data && response.data.length > 0) {
+          setCompanyName(response.data[0].name);
+        }
+      } catch (err) {
+        console.error('Error fetching company details in navbar:', err);
+      }
+    };
+    if (user) {
+      fetchCompany();
+    }
+  }, [user]);
+
+  const renderCompanyName = (name: string) => {
+    const parts = name.split(' ');
+    if (parts.length > 1) {
+      const first = parts[0];
+      const rest = parts.slice(1).join(' ');
+      return (
+        <>
+          {first} <span className="text-primary">{rest}</span>
+        </>
+      );
+    }
+    return name;
+  };
 
   const handleLogout = async () => {
     try {
@@ -140,7 +172,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
           <div className="flex items-center gap-2.5 px-4 py-1.5 bg-surface-container/50 rounded-2xl border border-outline-variant/10">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-xs font-black text-on-surface uppercase tracking-widest italic">
-              TechNova <span className="text-primary">Solutions</span>
+              {renderCompanyName(companyName)}
             </span>
           </div>
         </div>

@@ -71,7 +71,7 @@ exports.register = async (req, res, next) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1>AI Job Portal</h1>
+              <h1>AI JobFit</h1>
             </div>
             <div class="content">
               <h2>Account Reactivation</h2>
@@ -89,7 +89,7 @@ exports.register = async (req, res, next) => {
               </div>
             </div>
             <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} AI Job Portal. All rights reserved.</p>
+              <p>&copy; ${new Date().getFullYear()} AI JobFit. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -99,7 +99,7 @@ exports.register = async (req, res, next) => {
         try {
           await sendEmail({
             email: userExists.email,
-            subject: 'Account Reactivation OTP - AI Job Portal',
+            subject: 'Account Reactivation OTP - AI JobFit',
             html: htmlMessage
           });
 
@@ -146,7 +146,7 @@ exports.register = async (req, res, next) => {
     <body>
       <div class="container">
         <div class="content">
-          <h2 class="header">Welcome to AI Job Portal!</h2>
+          <h2 class="header">Welcome to AI JobFit!</h2>
           <h3>Hello, ${user.fullname}!</h3>
           <p class="details">Your account has been created successfully. We are excited to help you find your dream job with the power of AI.</p>
           <p class="details">Start by completing your profile and uploading your resume for AI analysis.</p>
@@ -159,7 +159,7 @@ exports.register = async (req, res, next) => {
 
     sendEmail({
       email: user.email,
-      subject: 'Welcome to AI Job Portal - Account Created Successfully',
+      subject: 'Welcome to AI JobFit - Account Created Successfully',
       html: welcomeHtmlMessage
     }).catch(err => console.log('Failed to send welcome email:', err));
 
@@ -231,9 +231,9 @@ exports.login = async (req, res, next) => {
     <body>
       <div class="container">
         <div class="content">
-          <h2 class="header">AI Job Portal</h2>
+          <h2 class="header">AI JobFit</h2>
           <h3>Welcome Back, ${user.fullname}!</h3>
-          <p class="details">We are thrilled to see you again. You have successfully logged into your AI Job Portal account.</p>
+          <p class="details">We are thrilled to see you again. You have successfully logged into your AI JobFit account.</p>
           <p class="details" style="font-size: 14px; color: #888;">If this was you, you can safely ignore this message.<br>If you did not authorize this login, please change your password immediately to secure your account.</p>
         </div>
       </div>
@@ -243,7 +243,7 @@ exports.login = async (req, res, next) => {
     
     sendEmail({
       email: user.email,
-      subject: 'Welcome Back to AI Job Portal',
+      subject: 'Welcome Back to AI JobFit',
       html: loginHtmlMessage
     }).catch(err => console.log('Failed to send login alert email:', err));
 
@@ -312,14 +312,14 @@ exports.googleLogin = async (req, res, next) => {
     // Send Login Notification Email
     const loginHtmlMessage = `
     <div style="font-family: sans-serif; text-align: center;">
-      <h2 style="color: #667eea;">Welcome to AI Job Portal</h2>
+      <h2 style="color: #667eea;">Welcome to AI JobFit</h2>
       <p>Hello <b>${user.fullname}</b>, you have successfully logged in via Google.</p>
     </div>
     `;
     
     sendEmail({
       email: user.email,
-      subject: 'Welcome Back to AI Job Portal',
+      subject: 'Welcome Back to AI JobFit',
       html: loginHtmlMessage
     }).catch(err => console.log('Failed to send Google login alert email:', err));
 
@@ -393,12 +393,12 @@ exports.forgotPassword = async (req, res, next) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>AI Job Portal</h1>
+          <h1>AI JobFit</h1>
         </div>
         <div class="content">
           <h2>Password Reset Request</h2>
           <p>Hello,</p>
-          <p>We received a request to reset the password for your AI Job Portal account. Here is your One-Time Password (OTP) to proceed with the reset. <strong>This code is valid for 10 minutes.</strong></p>
+          <p>We received a request to reset the password for your AI JobFit account. Here is your One-Time Password (OTP) to proceed with the reset. <strong>This code is valid for 10 minutes.</strong></p>
           
           <div class="otp-box">
             <div class="otp-code">${otp}</div>
@@ -413,7 +413,7 @@ exports.forgotPassword = async (req, res, next) => {
           <p style="margin-top: 30px; font-size: 14px;">If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
         </div>
         <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} AI Job Portal. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} AI JobFit. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -423,7 +423,7 @@ exports.forgotPassword = async (req, res, next) => {
     try {
       await sendEmail({
         email: user.email,
-        subject: 'Password Reset OTP - AI Job Portal',
+        subject: 'Password Reset OTP - AI JobFit',
         html: htmlMessage
       });
 
@@ -632,7 +632,7 @@ exports.sendHiringOtp = async (req, res, next) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>AI Job Portal</h1>
+          <h1>AI JobFit</h1>
         </div>
         <div class="content">
           <h2>Hiring Mode Verification</h2>
@@ -646,7 +646,7 @@ exports.sendHiringOtp = async (req, res, next) => {
           <p>If you did not request this, please ignore this email or secure your account.</p>
         </div>
         <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} AI Job Portal. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} AI JobFit. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -656,7 +656,7 @@ exports.sendHiringOtp = async (req, res, next) => {
     try {
       await sendEmail({
         email: user.email,
-        subject: 'Hiring Mode Verification OTP - AI Job Portal',
+        subject: 'Hiring Mode Verification OTP - AI JobFit',
         html: htmlMessage
       });
 

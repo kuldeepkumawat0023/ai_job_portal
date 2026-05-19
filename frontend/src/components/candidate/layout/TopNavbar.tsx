@@ -264,17 +264,6 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
                   </Link>
 
                   <Link
-                    href="/"
-                    onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-on-surface hover:bg-primary/10 hover:text-primary rounded-xl transition-colors group/item"
-                  >
-                    <div className="p-1.5 rounded-lg bg-surface-container text-on-surface-variant group-hover/item:bg-primary/20 group-hover/item:text-primary transition-colors">
-                      <Globe size={16} />
-                    </div>
-                    View Portal
-                  </Link>
-
-                  <Link
                     href="/candidate/settings"
                     onClick={() => setIsDropdownOpen(false)}
                     className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-on-surface hover:bg-primary/10 hover:text-primary rounded-xl transition-colors group/item"
@@ -289,12 +278,12 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
                 <div className="mt-2 pt-2 border-t border-outline-variant/10 px-2">
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-sm font-bold text-error hover:bg-error/10 rounded-xl transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 rounded-xl transition-colors"
                   >
-                    <div className="p-1.5 rounded-lg bg-error/10 text-error">
+                    <div className="p-1.5 rounded-lg bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400">
                       <LogOut size={16} />
                     </div>
-                    Logout Account
+                    Sign Out
                   </button>
                 </div>
               </motion.div>
