@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   Eye, 
+  Globe,
+  User,
   Share2, 
   Download, 
   BadgeCheck, 
@@ -25,7 +27,8 @@ import {
   Check,
   Loader2,
   Phone,
-  Briefcase
+  Briefcase,
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { userService } from '@/lib/services/user.services';
@@ -55,8 +58,7 @@ const PortfolioBuilderView = () => {
   const [isRoleEditing, setIsRoleEditing] = useState(false);
 
   // Skill states
-  const [newSkillInput, setNewSkillInput] = useState('');
-  
+  const [skillInputs, setSkillInputs] = useState({ frontend: '', backend: '', tools: '', soft: '' });
   // Projects states
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [optimizingProjectIdx, setOptimizingProjectIdx] = useState<number | null>(null);
@@ -150,25 +152,89 @@ const PortfolioBuilderView = () => {
   };
 
   // Skills Management
-  const handleAddSkill = async (skillToAdd: string) => {
-    const trimmedSkill = skillToAdd.trim();
+  const categorizeSkills = (skillsArray: string[]) => {
+    const categories: { frontend: string[], backend: string[], tools: string[], soft: string[] } = { frontend: [], backend: [], tools: [], soft: [] };
+    const frontendKeywords = ['react', 'vue', 'angular', 'html', 'css', 'tailwind', 'next.js', 'svelte', 'javascript', 'typescript', 'frontend', 'ui', 'ux'];
+    const backendKeywords = ['node', 'python', 'java', 'go', 'c++', 'c#', 'php', 'ruby', 'backend', 'express', 'spring', 'django', 'fastapi'];
+    const toolsKeywords = ['git', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'mongo', 'sql', 'postgres', 'redis', 'linux', 'jenkins', 'ci/cd', 'jira'];
+    
+    (skillsArray || []).forEach(skill => {
+      const s = skill.toLowerCase();
+      if (frontendKeywords.some(k => s.includes(k))) categories.frontend.push(skill);
+      else if (backendKeywords.some(k => s.includes(k))) categories.backend.push(skill);
+      else if (toolsKeywords.some(k => s.includes(k))) categories.tools.push(skill);
+      else categories.soft.push(skill);
+    });
+    return categories;
+  };
+
+  const handleAddSkillToCategory = async (category: 'frontend' | 'backend' | 'tools' | 'soft') => {
+    const trimmedSkill = skillInputs[category].trim();
     if (!trimmedSkill) return;
     
-    const currentSkills = profile?.skills || [];
-    if (currentSkills.map((s: string) => s.toLowerCase()).includes(trimmedSkill.toLowerCase())) {
+    const rawCats = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
+    const currentCats = {
+      frontend: rawCats.frontend || [],
+      backend: rawCats.backend || [],
+      tools: rawCats.tools || [],
+      soft: rawCats.soft || []
+    };
+
+    if (currentCats[category].map((s:string) => s.toLowerCase()).includes(trimmedSkill.toLowerCase())) {
       toast.error('Skill already exists!');
       return;
     }
 
-    const updatedSkills = [...currentSkills, trimmedSkill];
-    await saveProfileData({ skills: updatedSkills });
-    setNewSkillInput('');
+    const updatedCats = {
+      ...currentCats,
+      [category]: [...currentCats[category], trimmedSkill]
+    };
+    
+    await saveProfileData({ categorizedSkills: updatedCats });
+    setSkillInputs(prev => ({ ...prev, [category]: '' }));
   };
 
-  const handleRemoveSkill = async (skillToRemove: string) => {
-    const currentSkills = profile?.skills || [];
-    const updatedSkills = currentSkills.filter((s: string) => s !== skillToRemove);
-    await saveProfileData({ skills: updatedSkills });
+  const handleRemoveSkillFromCategory = async (category: 'frontend' | 'backend' | 'tools' | 'soft', skillToRemove: string) => {
+    const rawCats = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
+    const currentCats = {
+      frontend: rawCats.frontend || [],
+      backend: rawCats.backend || [],
+      tools: rawCats.tools || [],
+      soft: rawCats.soft || []
+    };
+
+    const updatedCats = {
+      ...currentCats,
+      [category]: currentCats[category].filter((s: string) => s !== skillToRemove)
+    };
+    await saveProfileData({ categorizedSkills: updatedCats });
+  };
+
+  const handleAddAISkill = async (skillToAdd: string) => {
+    const catResult = categorizeSkills([skillToAdd]);
+    let targetCategory: 'frontend' | 'backend' | 'tools' | 'soft' = 'soft';
+    if (catResult.frontend.length > 0) targetCategory = 'frontend';
+    else if (catResult.backend.length > 0) targetCategory = 'backend';
+    else if (catResult.tools.length > 0) targetCategory = 'tools';
+
+    const rawCats = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
+    const currentCats = {
+      frontend: rawCats.frontend || [],
+      backend: rawCats.backend || [],
+      tools: rawCats.tools || [],
+      soft: rawCats.soft || []
+    };
+
+    if (currentCats[targetCategory].map((s:string) => s.toLowerCase()).includes(skillToAdd.toLowerCase())) {
+      toast.error('Skill already exists!');
+      return;
+    }
+
+    const updatedCats = {
+      ...currentCats,
+      [targetCategory]: [...currentCats[targetCategory], skillToAdd]
+    };
+    await saveProfileData({ categorizedSkills: updatedCats });
   };
 
   // Project Management
@@ -300,20 +366,53 @@ const PortfolioBuilderView = () => {
       }
 
       // Skills & Expertise
-      if (profile.skills && profile.skills.length > 0) {
+      const rawCatsForPDF = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
+      const pdfCats = {
+        frontend: rawCatsForPDF.frontend || [],
+        backend: rawCatsForPDF.backend || [],
+        tools: rawCatsForPDF.tools || [],
+        soft: rawCatsForPDF.soft || []
+      };
+
+      const hasAnySkills = Object.values(pdfCats).some(arr => arr.length > 0);
+
+      if (hasAnySkills) {
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(12);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.text('SKILLS & EXPERTISE', margin, yPosition);
         yPosition += 6;
 
-        doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-        const skillsText = profile.skills.join(', ');
-        const splitSkills = doc.splitTextToSize(skillsText, 210 - margin * 2);
-        doc.text(splitSkills, margin, yPosition);
-        yPosition += (splitSkills.length * 5) + 8;
+        const categoriesList = [
+          { label: 'Frontend', list: pdfCats.frontend },
+          { label: 'Backend', list: pdfCats.backend },
+          { label: 'Tools & DB', list: pdfCats.tools },
+          { label: 'Soft Skills', list: pdfCats.soft }
+        ];
+
+        categoriesList.forEach((cat) => {
+          if (cat.list.length > 0) {
+            // Write Category Label (Bold)
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(9.5);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            const labelText = `${cat.label}: `;
+            const labelWidth = doc.getTextWidth(labelText);
+            doc.text(labelText, margin, yPosition);
+
+            // Write Category Skills (Normal)
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(9.5);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            const skillsLineText = cat.list.join(', ');
+            const splitSkills = doc.splitTextToSize(skillsLineText, 210 - margin * 2 - labelWidth);
+            
+            // Render text
+            doc.text(splitSkills, margin + labelWidth, yPosition);
+            yPosition += (splitSkills.length * 5) + 2;
+          }
+        });
+        yPosition += 4;
       }
 
       // Projects Showcase
@@ -497,7 +596,7 @@ const PortfolioBuilderView = () => {
             
             <div className="flex flex-col sm:flex-row gap-8 relative z-10">
               {/* Profile Photo */}
-              <div className="relative shrink-0 mx-auto sm:mx-0">
+              <div className="relative shrink-0 mx-auto sm:mx-0 h-fit self-start">
                 <div className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-surface shadow-lg relative z-10 bg-surface-container-high flex items-center justify-center">
                   {profile?.profilePhoto ? (
                     <img 
@@ -506,15 +605,15 @@ const PortfolioBuilderView = () => {
                       src={profile.profilePhoto} 
                     />
                   ) : (
-                    <span className="text-4xl font-bold text-primary">
+                    <div className="w-full h-full bg-gradient-to-br from-[#0088CC] to-primary flex items-center justify-center text-white font-black text-4xl uppercase">
                       {profile?.fullname?.[0] || user?.fullname?.[0] || 'U'}
-                    </span>
+                    </div>
                   )}
                 </div>
                 {/* Verified Badge */}
                 <div className="absolute -bottom-3 -right-3 bg-surface p-1 rounded-full shadow-md z-20">
-                  <div className="bg-blue-500 text-white rounded-full p-1 flex items-center justify-center">
-                    <BadgeCheck className="w-4 h-4" />
+                  <div className="bg-gradient-to-br from-[#0088CC] to-primary text-white rounded-full p-1 flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4" />
                   </div>
                 </div>
               </div>
@@ -722,49 +821,75 @@ const PortfolioBuilderView = () => {
           <div className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-2xl font-bold text-on-surface flex items-center gap-2">
-                <BrainCircuit className="w-6 h-6 text-primary" /> Skills & Expertise
+                <BrainCircuit className="w-6 h-6 text-primary" /> Skill Galaxy
               </h3>
-              
-              {/* Skill Add Input Inline */}
-              <div className="flex items-center gap-2">
-                <input 
-                  type="text"
-                  placeholder="e.g. Next.js"
-                  value={newSkillInput}
-                  onChange={(e) => setNewSkillInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddSkill(newSkillInput)}
-                  className="bg-surface-container border border-outline-variant/30 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-primary max-w-[130px]"
-                />
-                <button 
-                  onClick={() => handleAddSkill(newSkillInput)}
-                  className="text-primary hover:bg-primary/10 p-2 rounded-xl transition-colors font-bold text-xs flex items-center gap-1 shrink-0"
-                >
-                  <Plus className="w-4 h-4" /> Add
-                </button>
-              </div>
             </div>
             
-            <div className="space-y-6">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">Core Skills ({profile?.skills?.length || 0})</p>
-                <div className="flex flex-wrap gap-2">
-                  {profile?.skills && profile.skills.length > 0 ? (
-                    profile.skills.map((skill: string) => (
-                      <span key={skill} className="bg-surface-container-high border border-outline-variant/30 px-3.5 py-1.5 rounded-xl text-sm font-medium text-on-surface flex items-center gap-2 group hover:border-primary transition-all">
-                        {skill} 
-                        <button 
-                          onClick={() => handleRemoveSkill(skill)}
-                          className="hover:text-error rounded-full transition-colors"
-                        >
-                          <X className="w-3.5 h-3.5 text-outline cursor-pointer opacity-40 group-hover:opacity-100" />
-                        </button>
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-sm text-on-surface-variant/60 italic">No skills listed yet. Click add or select from AI suggestions below.</p>
-                  )}
-                </div>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { key: 'frontend', label: 'Frontend', icon: <Code2 className="w-4 h-4 text-blue-500" />, colorClass: 'border-blue-500/20 focus-within:border-blue-500', textClass: 'text-blue-500', tagClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' },
+                { key: 'backend', label: 'Backend', icon: <Code2 className="w-4 h-4 text-purple-500" />, colorClass: 'border-purple-500/20 focus-within:border-purple-500', textClass: 'text-purple-500', tagClass: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20' },
+                { key: 'tools', label: 'Tools & DB', icon: <Globe className="w-4 h-4 text-emerald-500" />, colorClass: 'border-emerald-500/20 focus-within:border-emerald-500', textClass: 'text-emerald-500', tagClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
+                { key: 'soft', label: 'Soft Skills', icon: <User className="w-4 h-4 text-amber-500" />, colorClass: 'border-amber-500/20 focus-within:border-amber-500', textClass: 'text-amber-500', tagClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' }
+              ].map((cat) => {
+                const catKey = cat.key as 'frontend' | 'backend' | 'tools' | 'soft';
+                const rawCats = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
+                const currentCats = {
+                  frontend: rawCats.frontend || [],
+                  backend: rawCats.backend || [],
+                  tools: rawCats.tools || [],
+                  soft: rawCats.soft || []
+                };
+                const skillsList = currentCats[catKey];
+
+                return (
+                  <div key={catKey} className={`bg-surface-container/30 border ${cat.colorClass} rounded-2xl p-5 transition-colors`}>
+                    <div className="flex items-center gap-2 mb-4">
+                      {cat.icon}
+                      <h4 className={`text-xs font-black uppercase tracking-widest ${cat.textClass}`}>{cat.label}</h4>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {skillsList.map((skill: string) => (
+                        <span key={skill} className={`${cat.tagClass} px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 group cursor-default`}>
+                          {skill}
+                          <button 
+                            onClick={() => handleRemoveSkillFromCategory(catKey, skill)}
+                            className="hover:text-error transition-colors"
+                          >
+                            <X className="w-3 h-3 text-outline opacity-50 group-hover:opacity-100" />
+                          </button>
+                        </span>
+                      ))}
+                      {skillsList.length === 0 && (
+                        <span className="text-xs text-on-surface-variant/50 italic font-medium">No skills added</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 relative">
+                      <input
+                        type="text"
+                        value={skillInputs[catKey]}
+                        onChange={(e) => setSkillInputs({ ...skillInputs, [catKey]: e.target.value })}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddSkillToCategory(catKey);
+                          }
+                        }}
+                        placeholder={`Add ${cat.label} skill...`}
+                        className="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-outline-variant/50 transition-colors"
+                      />
+                      <button 
+                        onClick={() => handleAddSkillToCategory(catKey)}
+                        className="absolute right-2 text-on-surface-variant hover:text-primary transition-colors p-1"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             
             <div className="mt-8 pt-6 border-t border-outline-variant/20">
@@ -779,7 +904,7 @@ const PortfolioBuilderView = () => {
                   return (
                     <button 
                       key={sSuggest}
-                      onClick={() => handleAddSkill(sSuggest)}
+                      onClick={() => handleAddAISkill(sSuggest)}
                       className="bg-surface-container border border-dashed border-primary/40 hover:border-primary px-3.5 py-1.5 rounded-xl text-xs font-semibold text-primary flex items-center gap-1.5 hover:bg-primary/10 transition-all cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" /> {sSuggest}
@@ -1002,7 +1127,7 @@ const PortfolioBuilderView = () => {
                     <h4 className="text-sm font-bold text-on-surface mb-1.5">Focus Tech Skills</h4>
                     <p className="text-xs text-on-surface-variant mb-3 leading-relaxed">Recruiters values advanced System Design and Kubernetes. Add them if you possess the skills.</p>
                     <button 
-                      onClick={() => handleAddSkill('System Design')}
+                      onClick={() => handleAddAISkill('System Design')}
                       className="text-[10px] font-black uppercase tracking-widest text-secondary hover:brightness-110 flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       Add System Design <Plus className="w-3.5 h-3.5" />
