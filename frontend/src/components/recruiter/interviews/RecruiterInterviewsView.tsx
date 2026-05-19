@@ -39,7 +39,8 @@ const InterviewsView = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppId, setSelectedAppId] = useState('');
   const [interviewDate, setInterviewDate] = useState('');
-  const [interviewTime, setInterviewTime] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [interviewerName, setInterviewerName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -85,7 +86,8 @@ const InterviewsView = () => {
   const handleOpenScheduleModal = () => {
     setSelectedAppId('');
     setInterviewDate('');
-    setInterviewTime('');
+    setStartTime('');
+    setEndTime('');
     setInterviewerName('');
     setSubmitSuccess(false);
     setModalError(null);
@@ -94,9 +96,44 @@ const InterviewsView = () => {
 
   const handleCreateInterview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAppId || !interviewDate || !interviewTime) {
+    if (!selectedAppId || !interviewDate || !startTime || !endTime) {
       setModalError('Please fill in all required fields.');
       return;
+    }
+
+    // 1. Date Validation (Ensure date is not in the past)
+    const today = new Date();
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+
+    const selectedDate = new Date(interviewDate);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < todayMidnight) {
+      setModalError('Interview date cannot be in the past.');
+      return;
+    }
+
+    // 2. Time Validation (Ensure end time is after start time)
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    const startTotal = startH * 60 + startM;
+    const endTotal = endH * 60 + endM;
+
+    if (endTotal <= startTotal) {
+      setModalError('End time must be after the start time.');
+      return;
+    }
+
+    // 3. Current Time Validation (If selected date is today, start time must not be in the past)
+    if (selectedDate.getTime() === todayMidnight.getTime()) {
+      const currentHours = today.getHours();
+      const currentMinutes = today.getMinutes();
+      const currentTotal = currentHours * 60 + currentMinutes;
+      if (startTotal <= currentTotal) {
+        setModalError('Interview start time cannot be in the past.');
+        return;
+      }
     }
 
     const selectedApp = applications.find(app => app._id === selectedAppId);
@@ -122,12 +159,26 @@ const InterviewsView = () => {
         return;
       }
 
+      // Convert 24h start/end times to 12h AM/PM format (e.g. 10:00 AM - 11:00 AM)
+      const formatTimeToAMPM = (time24: string) => {
+        if (!time24) return '';
+        const [hoursStr, minutesStr] = time24.split(':');
+        let hours = parseInt(hoursStr, 10);
+        const minutes = minutesStr;
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        return `${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+      };
+
+      const timeSlot = `${formatTimeToAMPM(startTime)} - ${formatTimeToAMPM(endTime)}`;
+
       const postData = {
         jobId,
         candidateId,
         companyId,
         date: interviewDate,
-        time: interviewTime,
+        time: timeSlot,
         mode: 'Google Meet', // Enforced Exclusively
         interviewer: interviewerName || 'Recruiter'
       };
@@ -524,7 +575,7 @@ const InterviewsView = () => {
                   </div>
 
                   {/* Timing split inputs */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label htmlFor="input-date" className="block text-[10px] font-black uppercase tracking-wider text-on-surface-variant">
                         Interview Date *
@@ -532,6 +583,7 @@ const InterviewsView = () => {
                       <input 
                         type="date"
                         id="input-date"
+                        min={new Date().toISOString().split('T')[0]}
                         value={interviewDate}
                         onChange={(e) => setInterviewDate(e.target.value)}
                         className="w-full bg-surface-container/60 hover:bg-surface-container border border-outline-variant/10 px-4 py-3.5 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-on-surface"
@@ -539,15 +591,27 @@ const InterviewsView = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="input-time" className="block text-[10px] font-black uppercase tracking-wider text-on-surface-variant">
-                        Interview Time Slot *
+                      <label htmlFor="input-start-time" className="block text-[10px] font-black uppercase tracking-wider text-on-surface-variant">
+                        Start Time *
                       </label>
                       <input 
-                        type="text"
-                        id="input-time"
-                        placeholder="e.g. 10:00 AM - 11:00 AM"
-                        value={interviewTime}
-                        onChange={(e) => setInterviewTime(e.target.value)}
+                        type="time"
+                        id="input-start-time"
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        className="w-full bg-surface-container/60 hover:bg-surface-container border border-outline-variant/10 px-4 py-3.5 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-on-surface"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="input-end-time" className="block text-[10px] font-black uppercase tracking-wider text-on-surface-variant">
+                        End Time *
+                      </label>
+                      <input 
+                        type="time"
+                        id="input-end-time"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
                         className="w-full bg-surface-container/60 hover:bg-surface-container border border-outline-variant/10 px-4 py-3.5 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-on-surface"
                         required
                       />

@@ -248,7 +248,7 @@ exports.getRecruiterApplications = async (req, res, next) => {
 
     // 3. Find all applications for these jobs
     const applications = await Application.find({ jobId: { $in: jobIds } })
-      .populate('jobId', 'title category location')
+      .populate('jobId', 'title category location companyId')
       .populate('applicantId', 'fullname email profilePhoto resume skills experience bio workExperience education projects')
       .sort('-createdAt');
 
