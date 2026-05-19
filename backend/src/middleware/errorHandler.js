@@ -23,6 +23,11 @@ const errorHandler = (err, req, res, next) => {
     statusCode = 400; // Bad Request
   }
 
+  // Enforce no 500 or 300 series error codes (strictly 400 series)
+  if (statusCode >= 500 || statusCode < 400) {
+    statusCode = 400;
+  }
+
   res.status(statusCode).json({
     success: false,
     statusCode: statusCode,

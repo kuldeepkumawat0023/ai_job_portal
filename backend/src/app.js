@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
+app.disable('etag');
 
 // 1. Trust Proxy (Important for Rate Limiting behind Load Balancers like Heroku/Vercel/Nginx)
 app.set('trust proxy', 1);

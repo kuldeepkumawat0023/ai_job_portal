@@ -5,7 +5,7 @@ const User = require('../models/User');
 
 // Temporarily disabled payment controller logic to prevent crash
 exports.createCheckoutSession = async (req, res, next) => {
-  res.status(503).json({ success: false, message: 'Payment system is temporarily disabled' });
+  res.status(400).json({ success: false, message: 'Payment system is temporarily disabled' });
 };
 
 exports.stripeWebhook = async (req, res, next) => {
