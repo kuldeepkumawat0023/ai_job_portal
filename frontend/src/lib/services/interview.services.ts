@@ -6,6 +6,11 @@ export interface Interview {
   jobId: {
     _id: string;
     title: string;
+    location?: string;
+    category?: string;
+    jobType?: string[];
+    salary?: string;
+    experience?: number;
   } | string;
   candidateId: {
     _id: string;
@@ -17,12 +22,14 @@ export interface Interview {
     _id: string;
     name: string;
     logo?: string;
+    location?: string;
   } | string;
   date: string;
   time: string;
   mode: 'Google Meet';
   meetingLink?: string;
   status: 'scheduled' | 'completed' | 'cancelled';
+  candidateConfirmed?: boolean;
   feedback?: string;
   rating?: number;
   interviewer?: string;
@@ -68,6 +75,15 @@ export const interviewService = {
    */
   submitFeedback: async (id: string, feedback: string, rating: number): Promise<ApiResponse<any>> => {
     const response = await apiClient.put(`/interview/${id}/feedback`, { feedback, rating });
+    return response.data;
+  },
+
+  /**
+   * Confirm candidate interest from email link
+   * PUT /api/v1/interview/:id/confirm
+   */
+  confirmInterest: async (id: string): Promise<ApiResponse<Interview>> => {
+    const response = await apiClient.put(`/interview/${id}/confirm`, {});
     return response.data;
   },
 };

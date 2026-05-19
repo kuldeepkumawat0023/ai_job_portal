@@ -74,6 +74,62 @@ const getStatusBadge = (status: string) => {
   }
 };
 
+const getStatusCardStyles = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case 'applied':
+    case 'pending':
+      return {
+        borderClass: 'border-b-slate-400 dark:border-b-zinc-600',
+        hoverShadow: 'hover:shadow-[0_20px_50px_-15px_rgba(148,163,184,0.12)]',
+        bgClass: 'bg-surface-container-lowest',
+        badgeText: 'Awaiting Recruiter Review',
+        badgeColor: 'text-slate-500 bg-slate-500/10 border border-slate-500/20'
+      };
+    case 'shortlisted':
+      return {
+        borderClass: 'border-b-emerald-500',
+        hoverShadow: 'hover:shadow-[0_20px_50px_-15px_rgba(16,185,129,0.15)]',
+        bgClass: 'bg-surface-container-lowest/90 border-emerald-500/5',
+        badgeText: 'Shortlisted for Interview',
+        badgeColor: 'text-emerald-500 bg-emerald-500/10 border border-emerald-500/20'
+      };
+    case 'interview':
+    case 'interviewing':
+      return {
+        borderClass: 'border-b-primary',
+        hoverShadow: 'hover:shadow-[0_20px_50px_-15px_rgba(70,72,212,0.15)]',
+        bgClass: 'bg-surface-container-lowest/90 border-primary/5',
+        badgeText: 'Interview Stage',
+        badgeColor: 'text-primary bg-primary/10 border border-primary/20'
+      };
+    case 'hired':
+    case 'accepted':
+      return {
+        borderClass: 'border-b-secondary',
+        hoverShadow: 'hover:shadow-[0_20px_50px_-15px_rgba(139,92,246,0.2)]',
+        bgClass: 'bg-gradient-to-b from-surface-container-lowest to-secondary/5 border-secondary/20',
+        badgeText: '🎉 Offer Received!',
+        badgeColor: 'text-secondary bg-secondary/15 border border-secondary/30'
+      };
+    case 'rejected':
+      return {
+        borderClass: 'border-b-red-500',
+        hoverShadow: 'hover:shadow-[0_20px_50px_-15px_rgba(239,68,68,0.1)]',
+        bgClass: 'bg-surface-container-lowest/60 opacity-80 grayscale-[20%]',
+        badgeText: 'Application Process Closed',
+        badgeColor: 'text-red-500 bg-red-500/10 border border-red-500/20'
+      };
+    default:
+      return {
+        borderClass: 'border-b-primary',
+        hoverShadow: 'hover:shadow-[0_20px_50px_-15px_rgba(70,72,212,0.15)]',
+        bgClass: 'bg-surface-container-lowest',
+        badgeText: status,
+        badgeColor: 'text-primary bg-primary/10 border border-primary/20'
+      };
+  }
+};
+
 const ApplicationsView = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [interviews, setInterviews] = useState<any[]>([]);
@@ -262,12 +318,25 @@ const ApplicationsView = () => {
         {filteredApps.map((app) => {
           const job = app.jobId as any;
           const isInterviewStage = app.status === 'interview';
+          const styles = getStatusCardStyles(app.status);
 
           return (
             <div 
               key={app._id}
-              className="bg-surface-container-lowest border border-outline-variant/30 rounded-[48px] p-8 hover:shadow-[0_20px_60px_-15px_rgba(70,72,212,0.15)] transition-all group relative border-b-8 border-b-primary"
+              className={cn(
+                "border border-outline-variant/30 rounded-[48px] p-8 transition-all group relative border-b-8 flex flex-col justify-between",
+                styles.bgClass,
+                styles.borderClass,
+                styles.hoverShadow
+              )}
             >
+              {/* Celebratory Sparkles for Hired status */}
+              {(app.status === 'hired' || app.status === 'accepted') && (
+                <div className="absolute top-6 right-6 text-secondary animate-bounce pointer-events-none">
+                  <Sparkles className="w-5 h-5 fill-secondary" />
+                </div>
+              )}
+
               <div className="flex justify-between items-start mb-6">
                 <div className="w-20 h-20 rounded-[28px] bg-surface-container flex items-center justify-center border border-outline-variant/10 overflow-hidden group-hover:bg-primary/5 group-hover:border-primary/20 transition-all shrink-0">
                   {job?.companyId?.logo ? (
@@ -318,7 +387,8 @@ const ApplicationsView = () => {
                 const matchingInterview = interviews.find(
                   i => (i.jobId?._id === job?._id || i.jobId === job?._id) && i.status === 'scheduled'
                 );
-                if (!matchingInterview) return null;
+                // Show ONLY if active tab is 'Interviewing' and candidate interest is confirmed
+                if (!matchingInterview || activeTab !== 'Interviewing' || !matchingInterview.candidateConfirmed) return null;
                 return (
                   <div className="bg-primary/5 rounded-[24px] border border-primary/10 p-5 mb-6 flex flex-col gap-3 animate-in fade-in">
                     <div className="text-[9px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-1.5">

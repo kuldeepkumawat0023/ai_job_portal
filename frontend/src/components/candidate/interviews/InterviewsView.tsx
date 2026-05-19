@@ -5,23 +5,26 @@ import {
   Calendar, 
   Clock, 
   Video, 
-  MapPin, 
   Star, 
-  Check, 
-  ArrowRight, 
-  MessageSquare, 
-  Sparkles, 
+  Check,
   Building2, 
   Loader2, 
-  Compass, 
   CheckCircle,
   ExternalLink,
-  User
+  User,
+  PartyPopper,
+  Sparkles,
+  X,
+  MapPin,
+  Briefcase,
+  Tag,
+  IndianRupee
 } from 'lucide-react';
 import { interviewService, Interview } from '@/lib/services/interview.services';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 const InterviewsView = () => {
   const [interviews, setInterviews] = useState<any[]>([]);
@@ -39,9 +42,65 @@ const InterviewsView = () => {
   // Tips Accordion State
   const [openTipsId, setOpenTipsId] = useState<string | null>(null);
 
+  // ✅ I'm Interested Confirmation Flow
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [confirmInterview, setConfirmInterview] = useState<any | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+
   useEffect(() => {
     fetchInterviews();
   }, []);
+
+  // Detect ?confirm=<id> from email link
+  useEffect(() => {
+    const confirmId = searchParams.get('confirm');
+    if (confirmId) {
+      fetchConfirmInterview(confirmId);
+    }
+  }, [searchParams]);
+
+  const fetchConfirmInterview = async (id: string) => {
+    try {
+      // Find from existing interviews list once loaded, or trigger a load
+      const res = await interviewService.getMyInterviews();
+      if (res.success && res.data) {
+        const found = res.data.find((iv: any) => iv._id === id);
+        if (found) {
+          setConfirmInterview(found);
+          setConfirmed(!!found.candidateConfirmed);
+          setShowConfirmModal(true);
+        } else {
+          toast.error('Interview not found or you are not authorized.');
+        }
+      }
+    } catch {
+      toast.error('Could not load interview details.');
+    }
+  };
+
+  const handleConfirmInterest = async () => {
+    if (!confirmInterview) return;
+    try {
+      setConfirming(true);
+      const res = await interviewService.confirmInterest(confirmInterview._id);
+      if (res.success) {
+        setConfirmed(true);
+        toast.success('🎉 Interest confirmed! See you at the interview.');
+        fetchInterviews();
+        // Remove ?confirm param from URL cleanly
+        router.replace('/candidate/interviews');
+      } else {
+        toast.error(res.message || 'Could not confirm. Please try again.');
+      }
+    } catch {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setConfirming(false);
+    }
+  };
 
   const fetchInterviews = async () => {
     try {
@@ -201,13 +260,26 @@ const InterviewsView = () => {
                       </p>
                     </div>
                   </div>
-                  <div className={cn(
-                    "px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shrink-0 shadow-sm",
-                    isUpcoming ? "bg-primary/10 text-primary border border-primary/20" :
-                    isCompleted ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" :
-                    "bg-red-500/10 text-red-500 border border-red-500/20"
-                  )}>
-                    {item.status}
+                  <div className="flex gap-2 shrink-0">
+                    <div className={cn(
+                      "px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm",
+                      isUpcoming ? "bg-primary/10 text-primary border border-primary/20" :
+                      isCompleted ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" :
+                      "bg-red-500/10 text-red-500 border border-red-500/20"
+                    )}>
+                      {item.status}
+                    </div>
+                    {isUpcoming && (
+                      item.candidateConfirmed ? (
+                        <div className="px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                          Confirmed
+                        </div>
+                      ) : (
+                        <div className="px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">
+                          Pending Info
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
 
@@ -244,15 +316,25 @@ const InterviewsView = () => {
                 {isUpcoming && (
                   <div className="flex flex-col gap-3">
                     <div className="flex gap-3">
-                      <a 
-                        href={meetingLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex-1 gradient-button text-white font-black text-xs py-4 rounded-[20px] shadow-lg shadow-primary/15 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        Join Google Meet
-                      </a>
+                      {item.candidateConfirmed ? (
+                        <a 
+                          href={meetingLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1 gradient-button text-white font-black text-xs py-4 rounded-[20px] shadow-lg shadow-primary/15 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Join Google Meet
+                        </a>
+                      ) : (
+                        <button 
+                          onClick={() => fetchConfirmInterview(item._id)}
+                          className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-black text-xs py-4 rounded-[20px] shadow-lg shadow-amber-500/20 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2"
+                        >
+                          <Sparkles className="w-4 h-4" />
+                          Confirm Interest (I'm Interested)
+                        </button>
+                      )}
                       
                       <button 
                         onClick={() => setOpenTipsId(openTipsId === item._id ? null : item._id)}
@@ -424,6 +506,130 @@ const InterviewsView = () => {
           </div>
         </div>
       )}
+
+      {/* ✅ I'M INTERESTED CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {showConfirmModal && confirmInterview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 30 }}
+              className="bg-surface-container-lowest w-full max-w-lg rounded-[32px] border border-white/10 shadow-2xl overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="relative bg-gradient-to-br from-primary to-secondary p-6 text-center">
+                <button
+                  onClick={() => { setShowConfirmModal(false); router.replace('/candidate/interviews'); }}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <p className="text-white/70 text-[10px] font-bold uppercase tracking-[0.25em]">AI JobFit — Interview Invitation</p>
+                <h2 className="text-white text-2xl font-black mt-1">
+                  {confirmed ? '🎉 You\'re Confirmed!' : 'You\'re Invited to Interview!'}
+                </h2>
+              </div>
+
+              <div className="p-6 space-y-5">
+                {/* Company Row */}
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-surface-container overflow-hidden border border-white/10 shrink-0 flex items-center justify-center">
+                    {confirmInterview.companyId?.logo
+                      ? <img src={confirmInterview.companyId.logo} alt="" className="w-full h-full object-cover" />
+                      : <Building2 className="w-7 h-7 text-primary" />
+                    }
+                  </div>
+                  <div>
+                    <p className="text-on-surface font-black text-lg">{confirmInterview.companyId?.name || 'Company'}</p>
+                    <p className="text-amber-400 text-xs font-bold">⭐ AI-Verified Company</p>
+                  </div>
+                </div>
+
+                {/* Job Title */}
+                <h3 className="text-on-surface font-black text-xl leading-snug">
+                  {typeof confirmInterview.jobId === 'object' ? confirmInterview.jobId.title : 'Interview'}
+                </h3>
+
+                {/* Job Detail Pills */}
+                <div className="flex flex-wrap gap-2">
+                  {confirmInterview.jobId?.location && (
+                    <span className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-full text-xs font-semibold text-on-surface-variant">
+                      <MapPin className="w-3 h-3 text-primary" /> {confirmInterview.jobId.location}
+                    </span>
+                  )}
+                  {confirmInterview.jobId?.experience !== undefined && (
+                    <span className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-full text-xs font-semibold text-on-surface-variant">
+                      <Briefcase className="w-3 h-3 text-primary" /> {confirmInterview.jobId.experience}+ yrs
+                    </span>
+                  )}
+                  {confirmInterview.jobId?.salary && (
+                    <span className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-full text-xs font-semibold text-on-surface-variant">
+                      <IndianRupee className="w-3 h-3 text-primary" /> {confirmInterview.jobId.salary}
+                    </span>
+                  )}
+                  {confirmInterview.jobId?.category && (
+                    <span className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-full text-xs font-semibold text-on-surface-variant">
+                      <Tag className="w-3 h-3 text-primary" /> {confirmInterview.jobId.category}
+                    </span>
+                  )}
+                </div>
+
+                {/* Schedule Box */}
+                <div className="bg-primary/8 border border-primary/20 rounded-2xl p-4">
+                  <p className="text-[10px] font-black text-primary/70 uppercase tracking-widest mb-1">Interview Schedule</p>
+                  <p className="text-on-surface font-black text-base">
+                    📅 {new Date(confirmInterview.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    &nbsp;|&nbsp;
+                    🕐 {confirmInterview.time}
+                  </p>
+                  <p className="text-on-surface-variant text-xs mt-1">
+                    Mode: Google Meet &nbsp;•&nbsp; Interviewer: {confirmInterview.interviewer || 'Recruiter'}
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                {confirmed ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center gap-2 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-500 font-black text-sm">
+                      <Check className="w-5 h-5" /> Attendance Confirmed!
+                    </div>
+                    {confirmInterview.meetingLink && (
+                      <a
+                        href={confirmInterview.meetingLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-primary to-secondary text-white font-black text-sm rounded-2xl hover:scale-[1.02] transition-all shadow-lg shadow-primary/20"
+                      >
+                        <ExternalLink className="w-4 h-4" /> Join Google Meet
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <button
+                      onClick={handleConfirmInterest}
+                      disabled={confirming}
+                      className="w-full py-4 bg-gradient-to-r from-primary to-secondary text-white font-black text-sm rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/20 disabled:opacity-60"
+                    >
+                      {confirming ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                      I'm Interested — Confirm Attendance
+                    </button>
+                    <p className="text-center text-xs text-on-surface-variant">
+                      You will get a reminder mail for this interview
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

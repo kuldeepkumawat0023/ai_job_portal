@@ -18,7 +18,8 @@ import {
   X,
   Loader2,
   CheckCircle2,
-  Trash2
+  Trash2,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -152,12 +153,6 @@ const InterviewsView = () => {
       const companyId = typeof selectedApp.jobId === 'object' && selectedApp.jobId.companyId 
         ? (typeof selectedApp.jobId.companyId === 'object' ? selectedApp.jobId.companyId._id : selectedApp.jobId.companyId)
         : null;
-
-      if (!companyId) {
-        setModalError('Company profile association missing on job post.');
-        setIsSubmitting(false);
-        return;
-      }
 
       // Convert 24h start/end times to 12h AM/PM format (e.g. 10:00 AM - 11:00 AM)
       const formatTimeToAMPM = (time24: string) => {
@@ -356,6 +351,15 @@ const InterviewsView = () => {
                             <span className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[9px] font-black uppercase tracking-widest">
                               {job?.title || 'Role Position'}
                             </span>
+                            {item.candidateConfirmed ? (
+                              <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 text-[9px] font-black uppercase tracking-widest flex items-center gap-1">
+                                <Check size={10} className="stroke-[3]" /> Interested
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-500 text-[9px] font-black uppercase tracking-widest flex items-center gap-1">
+                                <Clock size={10} className="stroke-[3]" /> Pending Confirmation
+                              </span>
+                            )}
                           </div>
                           <div className="flex flex-wrap items-center gap-4 text-[11px] font-semibold text-on-surface-variant">
                             <span className="flex items-center gap-1.5"><Clock size={14} className="text-primary" /> {formattedDate} at {item.time}</span>

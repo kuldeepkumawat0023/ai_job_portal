@@ -37,6 +37,10 @@ const interviewSchema = new mongoose.Schema({
     enum: ['scheduled', 'completed', 'cancelled'],
     default: 'scheduled'
   },
+  candidateConfirmed: {
+    type: Boolean,
+    default: false
+  },
   feedback: {
     type: String
   },
