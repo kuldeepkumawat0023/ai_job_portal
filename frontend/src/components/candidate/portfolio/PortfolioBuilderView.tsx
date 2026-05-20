@@ -1,28 +1,28 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Sparkles, 
-  Eye, 
+import {
+  Sparkles,
+  Eye,
   Globe,
   User,
-  Share2, 
-  Download, 
-  BadgeCheck, 
-  MapPin, 
-  Pencil, 
-  Link2, 
-  Code2, 
-  Mail, 
-  BrainCircuit, 
-  Plus, 
-  X, 
-  AppWindow, 
-  ArrowRight, 
-  Bot, 
-  Lightbulb, 
-  Blocks, 
-  CheckCircle2, 
+  Share2,
+  Download,
+  BadgeCheck,
+  MapPin,
+  Pencil,
+  Link2,
+  Code2,
+  Mail,
+  BrainCircuit,
+  Plus,
+  X,
+  AppWindow,
+  ArrowRight,
+  Bot,
+  Lightbulb,
+  Blocks,
+  CheckCircle2,
   MoreHorizontal,
   Check,
   Loader2,
@@ -42,7 +42,7 @@ const PortfolioBuilderView = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  
+
   // Bio Optimization State
   const [isBioEditing, setIsBioEditing] = useState(false);
   const [bioText, setBioText] = useState('');
@@ -52,7 +52,7 @@ const PortfolioBuilderView = () => {
   const [isPhoneEditing, setIsPhoneEditing] = useState(false);
   const [phoneText, setPhoneText] = useState('');
   const [countryCodeText, setCountryCodeText] = useState('+91');
-  
+
   // Target Role
   const [targetRole, setTargetRole] = useState('Senior Full-Stack Engineer');
   const [isRoleEditing, setIsRoleEditing] = useState(false);
@@ -128,9 +128,9 @@ const PortfolioBuilderView = () => {
     try {
       setOptimizingBio(true);
       toast.loading('AI is crafting a professional, impact-driven bio...', { id: 'bio-opt' });
-      
+
       const response = await aiService.optimizePortfolio(bioText, 'bio', targetRole);
-      
+
       if (response.success && response.data) {
         setBioText(response.data);
         toast.success('Bio optimized! Click save to apply changes.', { id: 'bio-opt' });
@@ -183,7 +183,7 @@ const PortfolioBuilderView = () => {
   const handleAddSkillToCategory = async (category: 'technologies' | 'frameworks' | 'developerTools' | 'databases') => {
     const trimmedSkill = skillInputs[category].trim();
     if (!trimmedSkill) return;
-    
+
     const rawCats = profile?.categorizedSkills || {};
     const currentCats = {
       technologies: rawCats.technologies || rawCats.frontend || [],
@@ -192,7 +192,7 @@ const PortfolioBuilderView = () => {
       databases: rawCats.databases || rawCats.soft || []
     };
 
-    if (currentCats[category].map((s:string) => s.toLowerCase()).includes(trimmedSkill.toLowerCase())) {
+    if (currentCats[category].map((s: string) => s.toLowerCase()).includes(trimmedSkill.toLowerCase())) {
       toast.error('Skill already exists!');
       return;
     }
@@ -201,7 +201,7 @@ const PortfolioBuilderView = () => {
       ...currentCats,
       [category]: [...currentCats[category], trimmedSkill]
     };
-    
+
     await saveProfileData({ categorizedSkills: updatedCats });
     setSkillInputs(prev => ({ ...prev, [category]: '' }));
   };
@@ -231,13 +231,13 @@ const PortfolioBuilderView = () => {
 
     const rawCats = profile?.categorizedSkills || {};
     const currentCats = {
-      technologies: rawCats.technologies || rawCats.frontend || [],
-      frameworks: rawCats.frameworks || rawCats.backend || [],
-      developerTools: rawCats.developerTools || rawCats.tools || [],
-      databases: rawCats.databases || rawCats.soft || []
+      technologies: rawCats.technologies || [],
+      frameworks: rawCats.frameworks || [],
+      developerTools: rawCats.developerTools || [],
+      databases: rawCats.databases || []
     };
 
-    if (currentCats[targetCategory].map((s:string) => s.toLowerCase()).includes(skillToAdd.toLowerCase())) {
+    if (currentCats[targetCategory].map((s: string) => s.toLowerCase()).includes(skillToAdd.toLowerCase())) {
       toast.error('Skill already exists!');
       return;
     }
@@ -270,7 +270,7 @@ const PortfolioBuilderView = () => {
 
     const currentProjects = profile?.projects || [];
     const updatedProjects = [...currentProjects, projectPayload];
-    
+
     await saveProfileData({ projects: updatedProjects });
     setIsAddProjectOpen(false);
     setNewProject({ title: '', stackString: '', description: '', link: '' });
@@ -323,164 +323,58 @@ const PortfolioBuilderView = () => {
 
     try {
       const doc = new jsPDF();
-      const margin = 15;
+      const margin = 20;
       let yPosition = 20;
 
       // Color theme
-      const primaryColor = [37, 99, 235]; // Modern Royal Blue
-      const secondaryColor = [30, 41, 59]; // Slate 800
-      const textColor = [51, 65, 85]; // Slate 600
-      const grayTextColor = [100, 116, 139]; // Slate 500
+      const primaryColor = [70, 72, 212]; // #4648d4
+      const secondaryColor = [39, 41, 109];
+      const textColor = [33, 33, 33];
+      const grayTextColor = [100, 116, 139];
 
       // Document Title/Name
       doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(24);
+      doc.setFontSize(26);
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.text(profile.fullname || user?.fullname || 'Resume', margin, yPosition);
-      yPosition += 7;
+      yPosition += 8;
 
       // Role
-      doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-      doc.text(targetRole.toUpperCase(), margin, yPosition);
-      yPosition += 7;
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(14);
+      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+      doc.text(targetRole, margin, yPosition);
+      yPosition += 8;
 
       // Contact Details Row
-      doc.setFont('Helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.setFontSize(9);
+      doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
       const locationText = `Location: ${profile.location || 'Remote'}`;
       const emailText = `Email: ${profile.email || user?.email || 'N/A'}`;
       const phoneText = `Phone: ${profile.countryCode || '+91'} ${profile.phoneNumber || 'N/A'}`;
-      
-      let personalInfoText = `${locationText}  |  ${emailText}  |  ${phoneText}`;
-      if (profile.personalDetail?.dob) {
-        personalInfoText += `  |  DOB: ${profile.personalDetail.dob}`;
-      }
-      doc.text(personalInfoText, margin, yPosition);
-      yPosition += 5;
+      doc.text(`${locationText}  |  ${emailText}  |  ${phoneText}`, margin, yPosition);
+      yPosition += 6;
 
       // Horizontal Divider
       doc.setDrawColor(226, 232, 240);
       doc.setLineWidth(0.5);
       doc.line(margin, yPosition, 210 - margin, yPosition);
-      yPosition += 8;
-
-      const checkPageBreak = (neededHeight: number) => {
-        if (yPosition + neededHeight > 275) {
-          doc.addPage();
-          yPosition = 20;
-          return true;
-        }
-        return false;
-      };
+      yPosition += 10;
 
       // Summary/Bio
       if (profile.bio) {
-        checkPageBreak(25);
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(10);
+        doc.setFontSize(12);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.text('PROFESSIONAL SUMMARY', margin, yPosition);
-        yPosition += 4;
+        yPosition += 5;
 
         doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(9);
+        doc.setFontSize(10);
         doc.setTextColor(textColor[0], textColor[1], textColor[2]);
         const splitBio = doc.splitTextToSize(profile.bio, 210 - margin * 2);
         doc.text(splitBio, margin, yPosition);
-        yPosition += (splitBio.length * 4.2) + 6;
-      }
-
-      // Work Experience
-      if (profile.workExperience && profile.workExperience.length > 0) {
-        checkPageBreak(25);
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('WORK EXPERIENCE', margin, yPosition);
-        yPosition += 5;
-
-        profile.workExperience.forEach((exp: any) => {
-          checkPageBreak(22);
-
-          // Role & Company
-          doc.setFont('Helvetica', 'bold');
-          doc.setFontSize(9.5);
-          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-          doc.text(`${exp.role} — ${exp.company}`, margin, yPosition);
-
-          // Duration right-aligned
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(8.5);
-          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-          const durationStr = exp.duration || '';
-          doc.text(durationStr, 210 - margin - doc.getTextWidth(durationStr), yPosition);
-          yPosition += 4.5;
-
-          // Exp Desc
-          if (exp.description) {
-            doc.setFont('Helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-            const splitExpDesc = doc.splitTextToSize(exp.description, 210 - margin * 2);
-            doc.text(splitExpDesc, margin, yPosition);
-            yPosition += (splitExpDesc.length * 4.2) + 5;
-          } else {
-            yPosition += 1;
-          }
-        });
-        yPosition += 2;
-      }
-
-      // Projects Showcase
-      if (profile.projects && profile.projects.length > 0) {
-        checkPageBreak(25);
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('PERSONAL PROJECTS', margin, yPosition);
-        yPosition += 5;
-
-        profile.projects.forEach((proj: any, index: number) => {
-          checkPageBreak(22);
-
-          // Project Title
-          doc.setFont('Helvetica', 'bold');
-          doc.setFontSize(9.5);
-          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-          doc.text(`${index + 1}. ${proj.title}`, margin, yPosition);
-
-          if (proj.link) {
-            const titleWidth = doc.getTextWidth(`${index + 1}. ${proj.title}`);
-            doc.setFont('Helvetica', 'normal');
-            doc.setFontSize(8);
-            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            const linkText = ` (${proj.link})`;
-            doc.text(linkText, margin + titleWidth + 2, yPosition);
-          }
-          yPosition += 4.5;
-
-          // Tech stack
-          if (proj.stack && proj.stack.length > 0) {
-            doc.setFont('Helvetica', 'bold');
-            doc.setFontSize(8);
-            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-            const stackStr = Array.isArray(proj.stack) ? proj.stack.join(', ') : proj.stack;
-            doc.text(`Technologies: ${stackStr}`, margin, yPosition);
-            yPosition += 4;
-          }
-
-          // Description
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(9);
-          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-          const splitProjDesc = doc.splitTextToSize(proj.description, 210 - margin * 2);
-          doc.text(splitProjDesc, margin, yPosition);
-          yPosition += (splitProjDesc.length * 4.2) + 5;
-        });
-        yPosition += 2;
+        yPosition += (splitBio.length * 5) + 6;
       }
 
       // Skills & Expertise
@@ -495,12 +389,11 @@ const PortfolioBuilderView = () => {
       const hasAnySkills = Object.values(pdfCats).some(arr => arr.length > 0);
 
       if (hasAnySkills) {
-        checkPageBreak(25);
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(10);
+        doc.setFontSize(12);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.text('SKILLS & EXPERTISE', margin, yPosition);
-        yPosition += 5;
+        yPosition += 6;
 
         const categoriesList = [
           { label: 'Technologies', list: pdfCats.technologies },
@@ -511,128 +404,121 @@ const PortfolioBuilderView = () => {
 
         categoriesList.forEach((cat) => {
           if (cat.list.length > 0) {
-            checkPageBreak(10);
+            // Write Category Label (Bold)
             doc.setFont('Helvetica', 'bold');
-            doc.setFontSize(9);
-            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+            doc.setFontSize(9.5);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
             const labelText = `${cat.label}: `;
             const labelWidth = doc.getTextWidth(labelText);
             doc.text(labelText, margin, yPosition);
 
+            // Write Category Skills (Normal)
             doc.setFont('Helvetica', 'normal');
-            doc.setFontSize(9);
+            doc.setFontSize(9.5);
             doc.setTextColor(textColor[0], textColor[1], textColor[2]);
             const skillsLineText = cat.list.join(', ');
             const splitSkills = doc.splitTextToSize(skillsLineText, 210 - margin * 2 - labelWidth);
-            
+
+            // Render text
             doc.text(splitSkills, margin + labelWidth, yPosition);
-            yPosition += (splitSkills.length * 4.2) + 1.5;
+            yPosition += (splitSkills.length * 5) + 2;
           }
         });
         yPosition += 4;
       }
 
-      // Education Section
-      if (profile.education && profile.education.length > 0) {
-        checkPageBreak(25);
+      // Projects Showcase
+      if (profile.projects && profile.projects.length > 0) {
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(10);
+        doc.setFontSize(12);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('EDUCATION', margin, yPosition);
-        yPosition += 5;
+        doc.text('FEATURED PROJECTS', margin, yPosition);
+        yPosition += 8;
 
-        profile.education.forEach((edu: any) => {
-          checkPageBreak(15);
-
-          // Degree & University
-          doc.setFont('Helvetica', 'bold');
-          doc.setFontSize(9.5);
-          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-          const boardText = edu.board ? ` (${edu.board})` : '';
-          doc.text(`${edu.degree} — ${edu.university}${boardText}`, margin, yPosition);
-
-          // Year right-aligned
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(8.5);
-          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-          const yearStr = edu.year || '';
-          doc.text(yearStr, 210 - margin - doc.getTextWidth(yearStr), yPosition);
-          yPosition += 4.5;
-
-          // CGPA / Grade
-          if (edu.cgpa) {
-            doc.setFont('Helvetica', 'normal');
-            doc.setFontSize(8.5);
-            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-            doc.text(`CGPA/Grade: ${edu.cgpa}`, margin, yPosition);
-            yPosition += 4.5;
+        profile.projects.forEach((proj: any, index: number) => {
+          // Page boundary check
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
           }
-        });
-        yPosition += 2;
-      }
 
-      // Certificates Section
-      if (profile.certificates && profile.certificates.length > 0) {
-        checkPageBreak(25);
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('CERTIFICATES & AWARDS', margin, yPosition);
-        yPosition += 5;
-
-        profile.certificates.forEach((cert: any) => {
-          checkPageBreak(10);
+          // Project Title
           doc.setFont('Helvetica', 'bold');
-          doc.setFontSize(9);
-          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-          doc.text(cert.name, margin, yPosition);
+          doc.setFontSize(11);
+          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+          doc.text(`${index + 1}. ${proj.title}`, margin, yPosition);
 
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(8.5);
-          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-          const certInfo = `${cert.issuer || ''} (${cert.year || ''})`;
-          doc.text(certInfo, 210 - margin - doc.getTextWidth(certInfo), yPosition);
-          yPosition += 4.5;
-        });
-        yPosition += 2;
-      }
+          if (proj.link) {
+            // Measure title width while current bold size 11 font is active
+            const titleWidth = doc.getTextWidth(`${index + 1}. ${proj.title}`);
 
-      // Personal Details Section
-      const hasPersonalDetails = profile.personalDetail && (
-        profile.personalDetail.dob ||
-        profile.personalDetail.gender ||
-        profile.personalDetail.languages ||
-        profile.personalDetail.hobbies
-      );
+            doc.setFont('Helvetica', 'italic');
+            doc.setFontSize(9);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            const linkText = ` [Link: ${proj.link}]`;
+            doc.text(linkText, margin + titleWidth + 2, yPosition);
+          }
+          yPosition += 5;
 
-      if (hasPersonalDetails) {
-        checkPageBreak(25);
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('PERSONAL DETAILS', margin, yPosition);
-        yPosition += 5;
-
-        const details = [
-          { label: 'Date of Birth', value: profile.personalDetail.dob },
-          { label: 'Gender', value: profile.personalDetail.gender },
-          { label: 'Languages Known', value: profile.personalDetail.languages },
-          { label: 'Hobbies', value: profile.personalDetail.hobbies }
-        ];
-
-        details.forEach((d) => {
-          if (d.value) {
-            checkPageBreak(8);
+          // Tech stack
+          if (proj.stack && proj.stack.length > 0) {
             doc.setFont('Helvetica', 'bold');
             doc.setFontSize(9);
-            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-            doc.text(`${d.label}: `, margin, yPosition);
+            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+            doc.text(`Tech Stack: ${proj.stack.join(', ')}`, margin, yPosition);
+            yPosition += 5;
+          }
 
+          // Description
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(9.5);
+          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+          const splitProjDesc = doc.splitTextToSize(proj.description, 210 - margin * 2);
+          doc.text(splitProjDesc, margin, yPosition);
+          yPosition += (splitProjDesc.length * 4.5) + 6;
+        });
+      }
+
+      // Work Experience
+      if (profile.workExperience && profile.workExperience.length > 0) {
+        if (yPosition > 230) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('PROFESSIONAL EXPERIENCE', margin, yPosition);
+        yPosition += 8;
+
+        profile.workExperience.forEach((exp: any) => {
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+
+          // Role & Company
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(11);
+          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+          doc.text(`${exp.role} at ${exp.company}`, margin, yPosition);
+
+          // Duration right-aligned
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(9.5);
+          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+          doc.text(exp.duration || '', 210 - margin - doc.getTextWidth(exp.duration || ''), yPosition);
+          yPosition += 5;
+
+          // Exp Desc
+          if (exp.description) {
             doc.setFont('Helvetica', 'normal');
-            doc.setFontSize(9);
+            doc.setFontSize(9.5);
             doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-            doc.text(d.value, margin + 40, yPosition);
-            yPosition += 4.5;
+            const splitExpDesc = doc.splitTextToSize(exp.description, 210 - margin * 2);
+            doc.text(splitExpDesc, margin, yPosition);
+            yPosition += (splitExpDesc.length * 4.5) + 6;
           }
         });
       }
@@ -646,7 +532,6 @@ const PortfolioBuilderView = () => {
       toast.error('Failed to compile PDF resume.');
     }
   };
-
 
   // Preview mock portfolio
   const handlePreview = () => {
@@ -678,7 +563,7 @@ const PortfolioBuilderView = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 pb-20 px-4 lg:px-0">
-      
+
       {/* Page Header & Actions */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
         <div>
@@ -697,14 +582,14 @@ const PortfolioBuilderView = () => {
             Craft a standout digital presence. Our AI helps structure your projects and highlight skills that matter to top tech recruiters.
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={exportToPDF}
             className="gradient-button text-white px-6 py-3 rounded-2xl text-sm font-black shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all flex items-center gap-2.5 cursor-pointer relative overflow-hidden group hover:scale-[1.03] active:scale-95"
           >
             <div className="absolute inset-0 w-1/2 h-full bg-white/20 transform -skew-x-12 -translate-x-full group-hover:animate-[shimmer_0.8s_ease-in-out]"></div>
-            <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" /> 
+            <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
             Download Resume
           </button>
         </div>
@@ -712,24 +597,24 @@ const PortfolioBuilderView = () => {
 
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Left Column: Main Profile & Content (Spans 8 cols on desktop) */}
         <div className="lg:col-span-8 space-y-6">
-          
+
           {/* Header Profile Card */}
           <div className="glass-card rounded-2xl p-8 relative overflow-hidden border border-white/10 dark:border-white/5 shadow-sm">
             {/* Decorative background blur */}
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
-            
+
             <div className="flex flex-col sm:flex-row gap-8 relative z-10">
               {/* Profile Photo */}
               <div className="relative shrink-0 mx-auto sm:mx-0 h-fit self-start">
                 <div className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-surface shadow-lg relative z-10 bg-surface-container-high flex items-center justify-center">
                   {profile?.profilePhoto ? (
-                    <img 
-                      alt={profile?.fullname || user?.fullname} 
-                      className="w-full h-full object-cover" 
-                      src={profile.profilePhoto} 
+                    <img
+                      alt={profile?.fullname || user?.fullname}
+                      className="w-full h-full object-cover"
+                      src={profile.profilePhoto}
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-[#0088CC] to-primary flex items-center justify-center text-white font-black text-4xl uppercase">
@@ -744,7 +629,7 @@ const PortfolioBuilderView = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Profile Info */}
               <div className="flex-1 space-y-4 text-center sm:text-left">
                 <div>
@@ -756,16 +641,16 @@ const PortfolioBuilderView = () => {
                       Open to Work
                     </span>
                   </div>
-                  
+
                   {isRoleEditing ? (
                     <div className="flex items-center gap-2 mt-2 justify-center sm:justify-start">
-                      <input 
+                      <input
                         type="text"
                         value={targetRole}
                         onChange={(e) => setTargetRole(e.target.value)}
                         className="bg-surface-container border border-outline-variant/30 text-sm font-semibold rounded-lg px-3 py-1.5 focus:outline-none focus:border-primary text-primary"
                       />
-                      <button 
+                      <button
                         onClick={() => setIsRoleEditing(false)}
                         className="bg-primary text-white p-1.5 rounded-lg text-xs font-bold"
                       >
@@ -775,7 +660,7 @@ const PortfolioBuilderView = () => {
                   ) : (
                     <div className="flex items-center gap-2 justify-center sm:justify-start mt-1 group">
                       <p className="text-lg text-primary font-medium">{targetRole}</p>
-                      <button 
+                      <button
                         onClick={() => setIsRoleEditing(true)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-surface-container rounded"
                       >
@@ -788,7 +673,7 @@ const PortfolioBuilderView = () => {
                     <MapPin className="w-4 h-4" /> {profile?.location || 'San Francisco, CA (Remote)'}
                   </p>
                 </div>
-                
+
                 {/* BIO SECTION */}
                 <div className="relative bg-surface-container/20 p-4 rounded-xl border border-outline-variant/10 text-left">
                   {isBioEditing ? (
@@ -832,7 +717,7 @@ const PortfolioBuilderView = () => {
                       <p className="text-sm text-on-surface-variant leading-relaxed max-w-xl pr-6 font-medium">
                         {profile?.bio || "No summary added yet. Click edit to write a professional bio or let AI outline it for you!"}
                       </p>
-                      <button 
+                      <button
                         onClick={() => setIsBioEditing(true)}
                         className="absolute right-3 top-3 p-1.5 text-outline hover:text-primary transition-colors bg-surface-container rounded-lg"
                       >
@@ -841,10 +726,10 @@ const PortfolioBuilderView = () => {
                     </div>
                   )}
                 </div>
-                
+
                 {/* CONTACT INFORMATION ROW */}
                 <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-center justify-center sm:justify-start pt-3 border-t border-outline-variant/15 w-full">
-                  
+
                   {/* Email (Static / Read-only) */}
                   <div className="flex items-center gap-2.5 px-3.5 py-2 bg-surface-container/30 rounded-xl border border-outline-variant/5">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
@@ -861,24 +746,24 @@ const PortfolioBuilderView = () => {
                     <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
                       <Phone className="w-4 h-4" />
                     </div>
-                    
+
                     {isPhoneEditing ? (
                       <div className="flex items-center gap-1.5">
-                        <input 
-                          type="text" 
-                          placeholder="+91" 
-                          value={countryCodeText} 
+                        <input
+                          type="text"
+                          placeholder="+91"
+                          value={countryCodeText}
                           onChange={(e) => setCountryCodeText(e.target.value)}
                           className="bg-surface-container-high border border-outline-variant/30 text-xs font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-primary text-on-surface w-14"
                         />
-                        <input 
-                          type="text" 
-                          placeholder="Phone Number" 
-                          value={phoneText} 
+                        <input
+                          type="text"
+                          placeholder="Phone Number"
+                          value={phoneText}
                           onChange={(e) => setPhoneText(e.target.value)}
                           className="bg-surface-container-high border border-outline-variant/30 text-xs font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-primary text-on-surface w-28"
                         />
-                        <button 
+                        <button
                           onClick={async () => {
                             await saveProfileData({ phoneNumber: phoneText, countryCode: countryCodeText });
                             setIsPhoneEditing(false);
@@ -888,7 +773,7 @@ const PortfolioBuilderView = () => {
                         >
                           <Check className="w-3.5 h-3.5" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => {
                             setPhoneText(profile?.phoneNumber || '');
                             setCountryCodeText(profile?.countryCode || '+91');
@@ -908,7 +793,7 @@ const PortfolioBuilderView = () => {
                             {profile?.phoneNumber ? `${profile.countryCode || '+91'} ${profile.phoneNumber}` : 'Not Added'}
                           </p>
                         </div>
-                        <button 
+                        <button
                           onClick={() => setIsPhoneEditing(true)}
                           className="p-1 hover:bg-surface-container-high text-on-surface-variant hover:text-primary rounded-lg transition-colors cursor-pointer"
                           title="Edit Phone Number"
@@ -921,9 +806,9 @@ const PortfolioBuilderView = () => {
 
                   {/* Resume / Portfolio Link (Read-only if present) */}
                   {profile?.resume && (
-                    <a 
-                      href={profile.resume} 
-                      target="_blank" 
+                    <a
+                      href={profile.resume}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2.5 px-3.5 py-2 bg-surface-container/30 rounded-xl border border-outline-variant/5 hover:bg-primary/10 transition-colors"
                     >
@@ -951,7 +836,7 @@ const PortfolioBuilderView = () => {
                 <BrainCircuit className="w-6 h-6 text-primary" /> Skill Galaxy
               </h3>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
                 { key: 'technologies', label: 'Technologies', icon: <Code2 className="w-4 h-4 text-blue-500" />, colorClass: 'border-blue-500/20 focus-within:border-blue-500', textClass: 'text-blue-500', tagClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' },
@@ -975,12 +860,12 @@ const PortfolioBuilderView = () => {
                       {cat.icon}
                       <h4 className={`text-xs font-black uppercase tracking-widest ${cat.textClass}`}>{cat.label}</h4>
                     </div>
-                    
+
                     <div className="flex flex-wrap gap-2 mb-4">
                       {skillsList.map((skill: string) => (
                         <span key={skill} className={`${cat.tagClass} px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 group cursor-default`}>
                           {skill}
-                          <button 
+                          <button
                             onClick={() => handleRemoveSkillFromCategory(catKey, skill)}
                             className="hover:text-error transition-colors"
                           >
@@ -1007,7 +892,7 @@ const PortfolioBuilderView = () => {
                         placeholder={`Add ${cat.label} skill...`}
                         className="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-outline-variant/50 transition-colors"
                       />
-                      <button 
+                      <button
                         onClick={() => handleAddSkillToCategory(catKey)}
                         className="absolute right-2 text-on-surface-variant hover:text-primary transition-colors p-1"
                       >
@@ -1018,7 +903,7 @@ const PortfolioBuilderView = () => {
                 );
               })}
             </div>
-            
+
             <div className="mt-8 pt-6 border-t border-outline-variant/20">
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="text-primary w-5 h-5 animate-pulse" />
@@ -1029,7 +914,7 @@ const PortfolioBuilderView = () => {
                   const hasSkill = profile?.skills?.map((s: string) => s.toLowerCase()).includes(sSuggest.toLowerCase());
                   if (hasSkill) return null;
                   return (
-                    <button 
+                    <button
                       key={sSuggest}
                       onClick={() => handleAddAISkill(sSuggest)}
                       className="bg-surface-container border border-dashed border-primary/40 hover:border-primary px-3.5 py-1.5 rounded-xl text-xs font-semibold text-primary flex items-center gap-1.5 hover:bg-primary/10 transition-all cursor-pointer"
@@ -1048,7 +933,7 @@ const PortfolioBuilderView = () => {
               <h3 className="text-2xl font-bold text-on-surface flex items-center gap-2">
                 <AppWindow className="w-6 h-6 text-primary" /> Project Showcase ({profile?.projects?.length || 0})
               </h3>
-              <button 
+              <button
                 onClick={() => setIsAddProjectOpen(!isAddProjectOpen)}
                 className="bg-primary/10 text-primary px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 hover:bg-primary/20 transition-colors"
               >
@@ -1060,7 +945,7 @@ const PortfolioBuilderView = () => {
             {/* ADD PROJECT FORM */}
             <AnimatePresence>
               {isAddProjectOpen && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
@@ -1070,7 +955,7 @@ const PortfolioBuilderView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block mb-1">Project Title</label>
-                      <input 
+                      <input
                         type="text"
                         placeholder="e.g. Lumina Dashboard"
                         value={newProject.title}
@@ -1080,7 +965,7 @@ const PortfolioBuilderView = () => {
                     </div>
                     <div>
                       <label className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block mb-1">Tech Stack (comma separated)</label>
-                      <input 
+                      <input
                         type="text"
                         placeholder="e.g. React, Node.js, AWS"
                         value={newProject.stackString}
@@ -1091,7 +976,7 @@ const PortfolioBuilderView = () => {
                   </div>
                   <div>
                     <label className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block mb-1">Project Link (Optional)</label>
-                    <input 
+                    <input
                       type="url"
                       placeholder="e.g. https://github.com/alexrivera/lumina"
                       value={newProject.link}
@@ -1101,7 +986,7 @@ const PortfolioBuilderView = () => {
                   </div>
                   <div>
                     <label className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block mb-1">Project Description (What did you build? What were the achievements?)</label>
-                    <textarea 
+                    <textarea
                       placeholder="e.g. Architected a real-time data visualization platform..."
                       value={newProject.description}
                       onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
@@ -1109,13 +994,13 @@ const PortfolioBuilderView = () => {
                     />
                   </div>
                   <div className="flex justify-end gap-2">
-                    <button 
+                    <button
                       onClick={() => setIsAddProjectOpen(false)}
                       className="bg-surface-container-high hover:bg-surface-container-highest px-4 py-2 rounded-xl text-xs font-bold transition-all"
                     >
                       Cancel
                     </button>
-                    <button 
+                    <button
                       onClick={handleAddProject}
                       className="bg-primary text-white hover:bg-primary-fixed-variant px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
                     >
@@ -1125,11 +1010,11 @@ const PortfolioBuilderView = () => {
                 </motion.div>
               )}
             </AnimatePresence>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {profile?.projects && profile.projects.length > 0 ? (
                 profile.projects.map((proj: any, idx: number) => (
-                  <div 
+                  <div
                     key={idx}
                     className="bg-surface-container-lowest dark:bg-background border border-outline-variant/30 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 relative"
                   >
@@ -1141,7 +1026,7 @@ const PortfolioBuilderView = () => {
                         <span className="bg-black/40 backdrop-blur-md text-white text-[9px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-lg border border-white/20">
                           {proj.stack?.[0] || 'AI Platform'}
                         </span>
-                        <button 
+                        <button
                           onClick={() => handleRemoveProject(idx)}
                           className="bg-error/10 hover:bg-error/30 text-error p-1.5 rounded-lg border border-error/20 backdrop-blur-sm cursor-pointer"
                         >
@@ -1149,13 +1034,13 @@ const PortfolioBuilderView = () => {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div className="p-5 relative">
                       <h4 className="text-base font-bold text-on-surface mb-2">{proj.title}</h4>
                       <p className="text-sm text-on-surface-variant line-clamp-3 mb-4 leading-relaxed font-semibold">
                         {proj.description}
                       </p>
-                      
+
                       <div className="flex flex-wrap gap-2 mb-4">
                         {proj.stack?.map((tech: string) => (
                           <span key={tech} className="text-[9px] font-bold px-2 py-0.5 bg-surface-container-high rounded text-on-surface-variant">
@@ -1163,7 +1048,7 @@ const PortfolioBuilderView = () => {
                           </span>
                         ))}
                       </div>
-                      
+
                       <div className="flex justify-between items-center pt-3 border-t border-outline-variant/20">
                         <button
                           disabled={optimizingProjectIdx === idx}
@@ -1174,10 +1059,10 @@ const PortfolioBuilderView = () => {
                           {optimizingProjectIdx === idx ? 'Optimizing...' : 'Apply AI Rewrite'}
                         </button>
                         {proj.link && (
-                          <a 
-                            className="text-xs font-bold text-on-surface-variant hover:text-primary flex items-center gap-1 transition-colors" 
-                            href={proj.link} 
-                            target="_blank" 
+                          <a
+                            className="text-xs font-bold text-on-surface-variant hover:text-primary flex items-center gap-1 transition-colors"
+                            href={proj.link}
+                            target="_blank"
                             rel="noopener noreferrer"
                           >
                             Live URL <ArrowRight className="w-3.5 h-3.5" />
@@ -1195,27 +1080,27 @@ const PortfolioBuilderView = () => {
               )}
             </div>
           </div>
-          
+
         </div>
 
         {/* Right Column: AI Recommendations & Tools (Spans 4 cols on desktop) */}
         <div className="lg:col-span-4 space-y-6">
-          
+
           {/* AI Recommendations Sidebar */}
           <div className="glass-card rounded-2xl p-6 border-t-4 border-t-primary shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full pointer-events-none"></div>
-            
+
             <div className="flex items-center gap-3 mb-4 relative z-10">
               <div className="p-2 bg-primary/10 rounded-xl">
                 <Bot className="text-primary w-6 h-6" />
               </div>
               <h3 className="text-xl font-bold text-on-surface">AI Optimizer</h3>
             </div>
-            
+
             <p className="text-sm text-on-surface-variant mb-6 leading-relaxed relative z-10">
               Based on your target role of <strong className="text-on-surface">{targetRole}</strong>, AI suggests these structural enhancements.
             </p>
-            
+
             <div className="space-y-4 relative z-10">
               {/* Suggestion 1 */}
               <div className="bg-surface-container-lowest dark:bg-background border border-primary/20 rounded-xl p-4 relative overflow-hidden group shadow-sm">
@@ -1227,7 +1112,7 @@ const PortfolioBuilderView = () => {
                   <div>
                     <h4 className="text-sm font-bold text-on-surface mb-1.5">Quantify Project Impact</h4>
                     <p className="text-xs text-on-surface-variant mb-3 leading-relaxed">Make sure project descriptions mention key engineering metrics (e.g. latency, reduced build times).</p>
-                    <button 
+                    <button
                       onClick={() => {
                         if (profile?.projects?.length > 0) {
                           handleProjectAIRewrite(0);
@@ -1242,7 +1127,7 @@ const PortfolioBuilderView = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Suggestion 2 */}
               <div className="bg-surface-container-lowest dark:bg-background border border-outline-variant/30 rounded-xl p-4 relative overflow-hidden group shadow-sm">
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-secondary"></div>
@@ -1253,7 +1138,7 @@ const PortfolioBuilderView = () => {
                   <div>
                     <h4 className="text-sm font-bold text-on-surface mb-1.5">Focus Tech Skills</h4>
                     <p className="text-xs text-on-surface-variant mb-3 leading-relaxed">Recruiters values advanced System Design and Kubernetes. Add them if you possess the skills.</p>
-                    <button 
+                    <button
                       onClick={() => handleAddAISkill('System Design')}
                       className="text-[10px] font-black uppercase tracking-widest text-secondary hover:brightness-110 flex items-center gap-1.5 transition-all cursor-pointer"
                     >
@@ -1262,7 +1147,7 @@ const PortfolioBuilderView = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Suggestion 3 */}
               <div className="bg-surface-container-lowest dark:bg-background border border-outline-variant/30 rounded-xl p-4 relative overflow-hidden group opacity-60">
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
@@ -1277,14 +1162,14 @@ const PortfolioBuilderView = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-6 pt-6 border-t border-outline-variant/20 relative z-10">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Portfolio Strength</span>
                 <span className="text-sm text-primary font-bold">{portfolioStrength}%</span>
               </div>
               <div className="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden shadow-inner">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-primary to-secondary rounded-full relative transition-all duration-1000"
                   style={{ width: `${portfolioStrength}%` }}
                 >
@@ -1300,14 +1185,14 @@ const PortfolioBuilderView = () => {
             <button className="absolute top-6 right-6 text-outline hover:text-primary transition-colors">
               <MoreHorizontal className="w-5 h-5" />
             </button>
-            
+
             {/* Abstract Representation of Radar Chart */}
             <div className="w-48 h-48 relative mt-4 opacity-90">
               <svg className="w-full h-full stroke-outline-variant/40 fill-transparent stroke-[1]" viewBox="0 0 100 100">
                 <polygon points="50,5 90,25 90,75 50,95 10,75 10,25"></polygon>
                 <polygon points="50,20 76,35 76,65 50,80 24,65 24,35"></polygon>
                 <polygon points="50,35 63,42 63,58 50,65 37,58 37,42"></polygon>
-                
+
                 {/* Axes */}
                 <line x1="50" x2="50" y1="50" y2="5"></line>
                 <line x1="50" x2="90" y1="50" y2="25"></line>
@@ -1315,10 +1200,10 @@ const PortfolioBuilderView = () => {
                 <line x1="50" x2="50" y1="50" y2="95"></line>
                 <line x1="50" x2="10" y1="50" y2="75"></line>
                 <line x1="50" x2="10" y1="50" y2="25"></line>
-                
+
                 {/* Data Polygon (Filled) */}
                 <polygon className="fill-primary/20 stroke-primary stroke-[1.5] drop-shadow-[0_0_8px_rgba(70,72,212,0.5)]" points="50,25 80,40 70,80 50,85 20,60 30,30"></polygon>
-                
+
                 {/* Data Points */}
                 <circle className="fill-primary" cx="50" cy="25" r="3"></circle>
                 <circle className="fill-primary" cx="80" cy="40" r="3"></circle>
@@ -1327,7 +1212,7 @@ const PortfolioBuilderView = () => {
                 <circle className="fill-primary" cx="20" cy="60" r="3"></circle>
                 <circle className="fill-primary" cx="30" cy="30" r="3"></circle>
               </svg>
-              
+
               {/* Labels */}
               <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Frontend</span>
               <span className="absolute top-1/4 -right-12 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Backend</span>
@@ -1337,7 +1222,7 @@ const PortfolioBuilderView = () => {
               <span className="absolute top-1/4 -left-14 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Architecture</span>
             </div>
           </div>
-          
+
         </div>
       </div>
     </div>

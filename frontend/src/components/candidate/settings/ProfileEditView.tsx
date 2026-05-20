@@ -477,8 +477,6 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
           errs[`workExperience_${i}_description`] = 'Responsibilities description is required';
         } else if (exp.description.length < 10) {
           errs[`workExperience_${i}_description`] = 'Description must be at least 10 characters long';
-        } else if (exp.description.length > 500) {
-          errs[`workExperience_${i}_description`] = 'Description must not exceed 500 characters';
         }
       });
     }
@@ -492,16 +490,21 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
           errs[`projects_${i}_title`] = 'Project name must not exceed 50 characters';
         }
 
-        if (proj.link?.trim() && proj.link.length > 100) {
-          errs[`projects_${i}_link`] = 'Project link must not exceed 100 characters';
+        if (proj.link?.trim()) {
+          if (proj.link.length > 100) {
+            errs[`projects_${i}_link`] = 'Project link must not exceed 100 characters';
+          } else {
+            const urlPattern = /^(https?:\/\/)?([\w\-]+(\.[\w\-]+)+)([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?$/i;
+            if (!urlPattern.test(proj.link.trim())) {
+              errs[`projects_${i}_link`] = 'Please enter a valid URL';
+            }
+          }
         }
 
         if (!proj.description?.trim()) {
           errs[`projects_${i}_description`] = 'Project description is required';
         } else if (proj.description.length < 10) {
           errs[`projects_${i}_description`] = 'Description must be at least 10 characters';
-        } else if (proj.description.length > 500) {
-          errs[`projects_${i}_description`] = 'Description must not exceed 500 characters';
         }
 
         const stackArr = Array.isArray(proj.stack) ? proj.stack : (proj.stack ? proj.stack.split(',') : []);
@@ -1196,7 +1199,6 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
                     <label className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", descError && "!text-red-500")}>Responsibilities & Achievements</label>
                     <textarea
                       id={`workExperience_${i}_description`}
-                      maxLength={500}
                       placeholder="Detail your key objectives, achievements, and responsibilities in STAR format..."
                       className={cn(
                         "w-full bg-white dark:bg-black/15 border rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none transition-all font-medium resize-none leading-relaxed",
@@ -1234,7 +1236,7 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-6">
             {editForm.projects?.map((proj: any, i: number) => {
               const titleError = errors[`projects_${i}_title`];
               const linkError = errors[`projects_${i}_link`];
@@ -1242,85 +1244,88 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
               const stackError = errors[`projects_${i}_stack`];
 
               return (
-                <div key={i} className="p-6 bg-surface-container/20 rounded-3xl border border-outline-variant/10 relative group hover:border-primary/20 transition-all duration-300 flex flex-col justify-between min-h-[300px]">
-                  <button
-                    type="button"
-                    onClick={() => removeItem('projects', i)}
-                    className="absolute top-4 right-4 p-2 text-on-surface-variant hover:text-error hover:bg-error/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div key={i} className="bg-surface-container/30 border border-outline-variant/30 rounded-2xl p-6 relative overflow-hidden space-y-4 group">
+                  <div className="flex justify-between items-center border-b border-outline-variant/10 pb-3 mb-2">
+                    <h4 className="text-sm font-bold text-on-surface uppercase tracking-wider">Project {i + 1}</h4>
+                    <button
+                      type="button"
+                      onClick={() => removeItem('projects', i)}
+                      className="text-on-surface-variant hover:text-error hover:bg-error/5 p-1.5 rounded-lg transition-all cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
 
-                  <div className="space-y-3 flex-1">
-                    <div className="space-y-1">
-                      <label className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", titleError && "!text-red-500")}>Project Name</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={cn("text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block mb-1", titleError && "!text-red-500")}>Project Title</label>
                       <input
                         id={`projects_${i}_title`}
                         maxLength={50}
-                        placeholder="e.g. AI Portfolio Portal"
+                        placeholder="e.g. Lumina Dashboard"
                         className={cn(
-                          "w-full bg-white dark:bg-black/15 border rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none transition-all font-bold",
-                          titleError ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/15 focus:border-primary"
+                          "w-full bg-surface-container border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all text-on-surface",
+                          titleError ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/30 focus:border-primary"
                         )}
                         value={proj.title}
                         onChange={e => updateItem('projects', i, 'title', e.target.value)}
                       />
-                      {titleError && <p className="text-[9px] !text-red-500 font-bold ml-1.5 mt-1 uppercase tracking-widest">{titleError}</p>}
+                      {titleError && <p className="text-[10px] !text-red-500 font-bold mt-1 uppercase tracking-widest">{titleError}</p>}
                     </div>
 
-                    <div className="space-y-1">
-                      <label className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", linkError && "!text-red-500")}>Project Link (Live / Repository)</label>
+                    <div>
+                      <label className={cn("text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block mb-1", stackError && "!text-red-500")}>Tech Stack (comma separated)</label>
                       <input
-                        id={`projects_${i}_link`}
-                        maxLength={100}
-                        placeholder="e.g. https://github.com/user/project"
+                        id={`projects_${i}_stack`}
+                        placeholder="e.g. React, Node.js, AWS"
                         className={cn(
-                          "w-full bg-white dark:bg-black/15 border rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none transition-all font-semibold",
-                          linkError ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/15 focus:border-primary"
+                          "w-full bg-surface-container border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all text-on-surface",
+                          stackError ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/30 focus:border-primary"
                         )}
-                        value={proj.link}
-                        onChange={e => updateItem('projects', i, 'link', e.target.value)}
+                        value={Array.isArray(proj.stack) ? proj.stack.join(', ') : proj.stack || ''}
+                        onChange={e => updateItem('projects', i, 'stack', e.target.value.split(',').map(s => s.trim()))}
                       />
-                      {linkError && <p className="text-[9px] !text-red-500 font-bold ml-1.5 mt-1 uppercase tracking-widest">{linkError}</p>}
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", descError && "!text-red-500")}>Description</label>
-                      <textarea
-                        id={`projects_${i}_description`}
-                        maxLength={500}
-                        placeholder="Brief description of project scope and execution..."
-                        className={cn(
-                          "w-full bg-white dark:bg-black/15 border rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none transition-all font-medium resize-none leading-relaxed",
-                          descError ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/15 focus:border-primary"
-                        )}
-                        rows={2}
-                        value={proj.description}
-                        onChange={e => updateItem('projects', i, 'description', e.target.value)}
-                      />
-                      {descError && <p className="text-[9px] !text-red-500 font-bold ml-1.5 mt-1 uppercase tracking-widest">{descError}</p>}
+                      {stackError && <p className="text-[10px] !text-red-500 font-bold mt-1 uppercase tracking-widest">{stackError}</p>}
                     </div>
                   </div>
 
-                  <div className="space-y-1 pt-3 border-t border-outline-variant/10 mt-3">
-                    <label className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", stackError && "!text-red-500")}>Tech Stack (Comma-separated)</label>
+                  <div>
+                    <label className={cn("text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block mb-1", linkError && "!text-red-500")}>Project Link (Optional)</label>
                     <input
-                      id={`projects_${i}_stack`}
-                      placeholder="e.g. React, TypeScript, Tailwind"
+                      id={`projects_${i}_link`}
+                      type="url"
+                      maxLength={100}
+                      placeholder="e.g. https://github.com/alexrivera/lumina"
                       className={cn(
-                        "w-full bg-white dark:bg-black/15 border rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none transition-all font-semibold",
-                        stackError ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/15 focus:border-primary"
+                        "w-full bg-surface-container border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all text-on-surface",
+                        linkError ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/30 focus:border-primary"
                       )}
-                      value={Array.isArray(proj.stack) ? proj.stack.join(', ') : proj.stack || ''}
-                      onChange={e => updateItem('projects', i, 'stack', e.target.value.split(',').map(s => s.trim()))}
+                      value={proj.link}
+                      onChange={e => updateItem('projects', i, 'link', e.target.value)}
                     />
-                    {stackError && <p className="text-[9px] !text-red-500 font-bold ml-1.5 mt-1 uppercase tracking-widest">{stackError}</p>}
+                    {linkError && <p className="text-[10px] !text-red-500 font-bold mt-1 uppercase tracking-widest">{linkError}</p>}
+                  </div>
+
+                  <div>
+                    <label className={cn("text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block mb-1", descError && "!text-red-500")}>Project Description (What did you build? What were the achievements?)</label>
+                    <textarea
+                      id={`projects_${i}_description`}
+                      placeholder="e.g. Architected a real-time data visualization platform..."
+                      className={cn(
+                        "w-full bg-surface-container border rounded-xl p-4 text-sm focus:outline-none transition-all min-h-[100px] resize-none text-on-surface",
+                        descError ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/30 focus:border-primary"
+                      )}
+                      rows={3}
+                      value={proj.description}
+                      onChange={e => updateItem('projects', i, 'description', e.target.value)}
+                    />
+                    {descError && <p className="text-[10px] !text-red-500 font-bold mt-1 uppercase tracking-widest">{descError}</p>}
                   </div>
                 </div>
               );
             })}
             {(!editForm.projects || editForm.projects.length === 0) && (
-              <div className="col-span-full py-8 text-center text-on-surface-variant/40 font-bold italic text-sm border border-dashed border-outline-variant/20 rounded-2xl">
+              <div className="py-8 text-center text-on-surface-variant/40 font-bold italic text-sm border border-dashed border-outline-variant/20 rounded-2xl">
                 No personal projects listed yet. Click "Add Project" to begin.
               </div>
             )}

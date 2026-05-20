@@ -22,12 +22,12 @@ import {
   Camera,
   GraduationCap,
   Globe,
-  User
+  User,
+  Database
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { userService } from '@/lib/services/user.services';
 import { resumeService } from '@/lib/services/resume.services';
-import { cn } from '@/utils/cn';
 import { jsPDF } from 'jspdf';
 import Image from 'next/image';
 import { ProfileEditView } from './ProfileEditView';
@@ -103,13 +103,13 @@ const PortfolioView = () => {
       const res = await userService.getProfile(user._id || user.id);
       if (res.success) {
         let profileData: any = { ...res.data };
-        
+
         // Auto-fill from AI Analyzed Resume if fields are empty
         try {
           const resumeRes = await resumeService.getResumeHistory();
           if (resumeRes.success && resumeRes.data.length > 0) {
             const latestResume = resumeRes.data[0];
-            
+
             if (!profileData.bio && latestResume.summary) {
               profileData.bio = latestResume.summary;
             }
@@ -211,7 +211,7 @@ const PortfolioView = () => {
       const locationText = `Location: ${profile.location || 'Remote'}`;
       const emailText = `Email: ${profile.email || 'N/A'}`;
       const phoneText = `Phone: ${profile.countryCode || '+91'} ${profile.phoneNumber || 'N/A'}`;
-      
+
       let personalInfoText = `${locationText}  |  ${emailText}  |  ${phoneText}`;
       if (profile.personalDetail?.dob) {
         personalInfoText += `  |  DOB: ${profile.personalDetail.dob}`;
@@ -382,7 +382,7 @@ const PortfolioView = () => {
             doc.setTextColor(textColor[0], textColor[1], textColor[2]);
             const skillsLineText = cat.list.join(', ');
             const splitSkills = doc.splitTextToSize(skillsLineText, 210 - margin * 2 - labelWidth);
-            
+
             doc.text(splitSkills, margin + labelWidth, yPosition);
             yPosition += (splitSkills.length * 4.2) + 1.5;
           }
@@ -514,11 +514,11 @@ const PortfolioView = () => {
         ...(editForm.skillsObj?.developerTools || []),
         ...(editForm.skillsObj?.databases || [])
       ];
-      
-      const payload = { 
-        ...editForm, 
+
+      const payload = {
+        ...editForm,
         skills: mergedSkills.length > 0 ? mergedSkills : editForm.skills,
-        categorizedSkills: editForm.skillsObj 
+        categorizedSkills: editForm.skillsObj
       };
       delete payload.skillsObj; // Remove from payload
 
@@ -622,11 +622,11 @@ const PortfolioView = () => {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8 pb-10 px-4 md:px-0">
+    <div className="w-full max-w-7xl mx-auto space-y-6 pb-10 px-4 md:px-0">
 
       {/* Action Bar */}
-      <div className="flex justify-between items-center gap-3 mb-4">
-        <h2 className="text-xl font-black text-on-surface uppercase tracking-widest hidden md:block">Professional Portfolio</h2>
+      <div className="flex justify-between items-center gap-3 mb-6">
+        <h2 className="text-2xl font-black text-on-surface uppercase tracking-widest hidden md:block">Professional Portfolio</h2>
         <div className="flex gap-3 w-full md:w-auto">
           <button
             onClick={() => setIsEditing(true)}
@@ -643,77 +643,79 @@ const PortfolioView = () => {
         </div>
       </div>
 
-      {/* Main Profile Header */}
-      <div className="glass-card rounded-[40px] p-8 md:p-12 relative overflow-hidden border-outline-variant/10 shadow-2xl">
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-secondary/10 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <div className="flex flex-col md:flex-row gap-10 relative z-10 items-center md:items-start text-center md:text-left">
-          <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-            <div className="w-44 h-44 rounded-[48px] overflow-hidden border-4 border-surface shadow-2xl relative z-10 bg-surface-container-high flex items-center justify-center">
-              {profile.profilePhoto && !imageError ? (
-                <Image
-                  alt={profile.fullname || 'Avatar'}
-                  className="object-cover"
-                  src={profile.profilePhoto}
-                  fill
-                  sizes="(max-width: 768px) 176px, 176px"
-                  onError={() => setImageError(true)}
-                />
-              ) : (
-                <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black text-7xl uppercase">
-                  {profile.fullname?.charAt(0) || 'U'}
+        {/* Left Column: Main Profile & Content (Spans 8 cols on desktop) */}
+        <div className="lg:col-span-8 space-y-6">
+
+          {/* Main Profile Header */}
+          <div className="bg-surface-container/30 border border-outline-variant/30 rounded-[40px] p-8 md:p-12 relative overflow-hidden shadow-2xl">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-[100px] pointer-events-none"></div>
+            <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-secondary/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+            <div className="flex flex-col md:flex-row gap-10 relative z-10 items-center md:items-start text-center md:text-left">
+              <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <div className="w-44 h-44 rounded-[48px] overflow-hidden border-4 border-surface shadow-2xl relative z-10 bg-surface-container-high flex items-center justify-center">
+                  {profile.profilePhoto && !imageError ? (
+                    <Image
+                      alt={profile.fullname || 'Avatar'}
+                      className="object-cover"
+                      src={profile.profilePhoto}
+                      fill
+                      sizes="(max-width: 768px) 176px, 176px"
+                      onError={() => setImageError(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black text-7xl uppercase">
+                      {profile.fullname?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
+                    <Camera className="w-8 h-8 text-white" />
+                  </div>
                 </div>
-              )}
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
-                <Camera className="w-8 h-8 text-white" />
+                <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handlePhotoUpload} />
+                <div className="absolute -bottom-4 -right-4 bg-surface p-2 rounded-[20px] shadow-2xl z-20">
+                  <div className="bg-primary text-white rounded-[16px] p-2 flex items-center justify-center shadow-lg">
+                    <BadgeCheck className="w-6 h-6" />
+                  </div>
+                </div>
               </div>
-            </div>
-            <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handlePhotoUpload} />
-            <div className="absolute -bottom-4 -right-4 bg-surface p-2 rounded-[20px] shadow-2xl z-20">
-              <div className="bg-primary text-white rounded-[16px] p-2 flex items-center justify-center shadow-lg">
-                <BadgeCheck className="w-6 h-6" />
+
+              <div className="flex-1 space-y-6">
+                <div className="space-y-2">
+                  <h1 className="text-4xl md:text-5xl font-black text-on-surface flex flex-col md:flex-row items-center justify-center md:justify-start gap-4">
+                    {profile.fullname}
+                    <span className="text-[10px] uppercase font-black tracking-[0.2em] bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-2xl border border-emerald-500/20 shadow-sm whitespace-nowrap">
+                      Available Now
+                    </span>
+                  </h1>
+                  <p className="text-xl md:text-2xl text-primary font-bold capitalize">{displayRole}</p>
+                  <p className="text-sm text-on-surface-variant flex items-center justify-center md:justify-start gap-2 font-bold uppercase tracking-widest opacity-70">
+                    <MapPin className="w-4 h-4 text-primary" /> {profile.location || 'Remote'}
+                  </p>
+                </div>
+
+                <p className="text-lg text-on-surface-variant leading-relaxed max-w-3xl font-medium">
+                  {profile.bio || "No bio added yet. Click 'Edit Profile' to introduce yourself to recruiters!"}
+                </p>
+
+                <div className="flex flex-wrap justify-center md:justify-start gap-3">
+                  <button className="px-5 py-3 bg-surface-container-low border border-outline-variant/30 rounded-2xl text-on-surface font-bold text-xs uppercase tracking-widest hover:text-primary hover:border-primary/50 transition-all shadow-sm flex items-center gap-2">
+                    <Mail className="w-4 h-4" /> {profile.email}
+                  </button>
+                  {profile.phoneNumber && (
+                    <button className="px-5 py-3 bg-surface-container-low border border-outline-variant/30 rounded-2xl text-on-surface font-bold text-xs uppercase tracking-widest hover:text-primary hover:border-primary/50 transition-all shadow-sm flex items-center gap-2">
+                      <span className="text-primary">{profile.countryCode}</span> {profile.phoneNumber}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-
-          <div className="flex-1 space-y-6">
-            <div className="space-y-2">
-              <h1 className="text-4xl md:text-5xl font-black text-on-surface flex flex-col md:flex-row items-center gap-4">
-                {profile.fullname}
-                <span className="text-[10px] uppercase font-black tracking-[0.2em] bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-2xl border border-emerald-500/20 shadow-sm">
-                  Available Now
-                </span>
-              </h1>
-              <p className="text-xl md:text-2xl text-primary font-bold capitalize">{displayRole}</p>
-              <p className="text-sm text-on-surface-variant flex items-center justify-center md:justify-start gap-2 font-bold uppercase tracking-widest opacity-70">
-                <MapPin className="w-4 h-4 text-primary" /> {profile.location || 'Remote'}
-              </p>
-            </div>
-
-            <p className="text-lg text-on-surface-variant leading-relaxed max-w-3xl font-medium">
-              {profile.bio || "No bio added yet. Click 'Edit Profile' to introduce yourself to recruiters!"}
-            </p>
-
-            <div className="flex flex-wrap justify-center md:justify-start gap-3">
-              <button className="px-5 py-3 bg-surface-container-low border border-outline-variant/30 rounded-2xl text-on-surface font-bold text-xs uppercase tracking-widest hover:text-primary hover:border-primary/50 transition-all shadow-sm flex items-center gap-2">
-                <Mail className="w-4 h-4" /> {profile.email}
-              </button>
-              {profile.phoneNumber && (
-                <button className="px-5 py-3 bg-surface-container-low border border-outline-variant/30 rounded-2xl text-on-surface font-bold text-xs uppercase tracking-widest hover:text-primary hover:border-primary/50 transition-all shadow-sm flex items-center gap-2">
-                  <span className="text-primary">{profile.countryCode}</span> {profile.phoneNumber}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 space-y-8">
 
           {/* Work Experience */}
-          <div className="glass-card rounded-[32px] p-8 md:p-10 border-outline-variant/10 shadow-xl">
+          <div className="bg-surface-container/30 border border-outline-variant/30 rounded-[32px] p-8 md:p-10 shadow-xl">
             <h3 className="text-2xl font-black text-on-surface flex items-center gap-4 mb-10 uppercase tracking-tight">
               <Briefcase className="w-7 h-7 text-primary" /> Work History
             </h3>
@@ -742,54 +744,69 @@ const PortfolioView = () => {
           </div>
 
           {/* Projects */}
-          <div className="glass-card rounded-[32px] p-8 md:p-10 border-outline-variant/10 shadow-xl">
+          <div className="bg-surface-container/30 border border-outline-variant/30 rounded-[32px] p-8 md:p-10 shadow-xl">
             <h3 className="text-2xl font-black text-on-surface flex items-center gap-4 mb-10 uppercase tracking-tight">
               <AppWindow className="w-7 h-7 text-primary" /> Key Projects
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {profile.projects?.length > 0 ? profile.projects.map((proj: any, i: number) => (
-                <div key={i} className="bg-surface-container-low/80 dark:bg-surface-container-low/30 border border-outline-variant/30 dark:border-outline-variant/10 rounded-[32px] p-8 hover:shadow-xl dark:hover:shadow-2xl/20 transition-all duration-300 group hover:-translate-y-1 flex flex-col justify-between min-h-[220px] hover:border-primary/40 dark:hover:border-primary/40">
-                  <div>
-                    <div className="flex justify-between items-center mb-6">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-inner">
-                        <Code2 className="w-5 h-5" />
-                      </div>
-                      {proj.link ? (
-                        <a href={proj.link} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-primary/10 rounded-full transition-colors">
-                          <ArrowRight className="w-5 h-5 text-primary/60 group-hover:text-primary transition-colors transform group-hover:translate-x-1 duration-300" />
-                        </a>
-                      ) : (
-                        <div className="p-2">
-                          <ArrowRight className="w-5 h-5 text-primary/20 transform group-hover:translate-x-1 transition-all duration-300" />
-                        </div>
-                      )}
+                <div
+                  key={i}
+                  className="bg-surface-container-lowest dark:bg-background border border-outline-variant/30 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 relative"
+                >
+                  <div className="h-44 w-full overflow-hidden relative flex items-center justify-center bg-gradient-to-br from-surface-container to-surface-container-high/40">
+                    {/* Decorative image/icon fallback */}
+                    <AppWindow className="w-16 h-16 text-primary/10 absolute z-0 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+                    <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end z-10">
+                      <span className="bg-black/40 backdrop-blur-md text-white text-[9px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-lg border border-white/20">
+                        {proj.stack?.[0] || 'AI Platform'}
+                      </span>
                     </div>
-                    <h4 className="text-xl font-bold text-on-surface mb-3 tracking-tight group-hover:text-primary transition-colors duration-300">{proj.title}</h4>
-                    <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-3 mb-2 font-medium">
+                  </div>
+
+                  <div className="p-5 relative flex flex-col min-h-[160px]">
+                    <h4 className="text-base font-bold text-on-surface mb-2">{proj.title}</h4>
+                    <p className="text-sm text-on-surface-variant line-clamp-3 mb-4 leading-relaxed font-semibold flex-1">
                       {proj.description}
                     </p>
-                  </div>
-                  {proj.stack && proj.stack.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-outline-variant/20 dark:border-outline-variant/10">
-                      {proj.stack.map((s: string, j: number) => (
-                        <span key={j} className="text-[9px] font-black px-2.5 py-1 bg-primary-container/40 dark:bg-primary-container/20 text-primary border border-primary/10 dark:border-primary/5 rounded-lg uppercase tracking-widest">
-                          {s}
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {proj.stack?.map((tech: string, j: number) => (
+                        <span key={j} className="text-[9px] font-bold px-2 py-0.5 bg-surface-container-high rounded text-on-surface-variant">
+                          {tech}
                         </span>
                       ))}
                     </div>
-                  )}
+
+                    {proj.link && (
+                      <div className="flex justify-end items-center pt-3 border-t border-outline-variant/20">
+                        <a
+                          className="text-xs font-bold text-on-surface-variant hover:text-primary flex items-center gap-1 transition-colors"
+                          href={proj.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Live URL <ArrowRight className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )) : (
                 <div className="col-span-full py-10 text-center text-on-surface-variant/50 font-bold italic">No projects added yet.</div>
               )}
             </div>
           </div>
+
         </div>
 
-        <div className="lg:col-span-4 space-y-8">
+        {/* Right Column: Sidebar (Spans 4 cols on desktop) */}
+        <div className="lg:col-span-4 space-y-6">
+
           {/* Skills */}
-          <div className="glass-card rounded-[32px] p-8 border-outline-variant/10 shadow-xl">
+          <div className="bg-surface-container/30 border border-outline-variant/30 rounded-[32px] p-8 shadow-xl">
             <h3 className="text-xl font-black text-on-surface flex items-center gap-3 mb-8 uppercase tracking-widest text-[13px]">
               <BrainCircuit className="w-5 h-5 text-primary" /> Core Expertise
             </h3>
@@ -813,7 +830,7 @@ const PortfolioView = () => {
                       </h4>
                       <div className="flex flex-wrap gap-2.5">
                         {finalDisplaySkills.technologies.map((skill: string) => (
-                          <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-blue-500/30 transition-all cursor-default shadow-sm">
+                          <span key={skill} className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 border px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-default shadow-sm hover:border-blue-500/40">
                             {skill}
                           </span>
                         ))}
@@ -827,7 +844,7 @@ const PortfolioView = () => {
                       </h4>
                       <div className="flex flex-wrap gap-2.5">
                         {finalDisplaySkills.frameworks.map((skill: string) => (
-                          <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-purple-500/30 transition-all cursor-default shadow-sm">
+                          <span key={skill} className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 border px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-default shadow-sm hover:border-purple-500/40">
                             {skill}
                           </span>
                         ))}
@@ -841,7 +858,7 @@ const PortfolioView = () => {
                       </h4>
                       <div className="flex flex-wrap gap-2.5">
                         {finalDisplaySkills.developerTools.map((skill: string) => (
-                          <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-emerald-500/30 transition-all cursor-default shadow-sm">
+                          <span key={skill} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 border px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-default shadow-sm hover:border-emerald-500/40">
                             {skill}
                           </span>
                         ))}
@@ -851,11 +868,11 @@ const PortfolioView = () => {
                   {finalDisplaySkills.databases && finalDisplaySkills.databases.length > 0 && (
                     <div className="space-y-3">
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
-                        <User className="w-3.5 h-3.5 text-amber-500" /> Databases
+                        <Database className="w-3.5 h-3.5 text-amber-500" /> Databases
                       </h4>
                       <div className="flex flex-wrap gap-2.5">
                         {finalDisplaySkills.databases.map((skill: string) => (
-                          <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-amber-500/30 transition-all cursor-default shadow-sm">
+                          <span key={skill} className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 border px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-default shadow-sm hover:border-amber-500/40">
                             {skill}
                           </span>
                         ))}
@@ -870,15 +887,15 @@ const PortfolioView = () => {
           </div>
 
           {/* Education */}
-          <div className="glass-card rounded-[32px] p-8 border-outline-variant/10 shadow-xl">
+          <div className="bg-surface-container/30 border border-outline-variant/30 rounded-[32px] p-8 shadow-xl">
             <h3 className="text-xl font-black text-on-surface flex items-center gap-3 mb-8 uppercase tracking-widest text-[13px]">
               <GraduationCap className="w-5 h-5 text-primary" /> Education
             </h3>
             <div className="space-y-6">
               {profile.education?.length > 0 ? profile.education.map((edu: any, i: number) => (
                 <div key={i} className="space-y-1 relative pl-4 border-l-2 border-primary/20">
-                  <div className="text-xs font-black text-primary uppercase tracking-widest">{edu.year}</div>
-                  <h4 className="font-bold text-on-surface leading-tight">{edu.degree}</h4>
+                  <div className="text-[10px] font-black text-primary uppercase tracking-widest">{edu.year}</div>
+                  <h4 className="text-sm font-bold text-on-surface leading-tight">{edu.degree}</h4>
                   <p className="text-xs text-on-surface-variant font-medium">
                     {edu.university} {edu.board && `(${edu.board})`}
                   </p>
@@ -891,75 +908,75 @@ const PortfolioView = () => {
           </div>
 
           {/* Certificates & Awards */}
-          <div className="glass-card rounded-[32px] p-8 border-outline-variant/10 shadow-xl">
-            <h3 className="text-xl font-black text-on-surface flex items-center gap-3 mb-8 uppercase tracking-widest text-[13px]">
-              <BadgeCheck className="w-5 h-5 text-primary" /> Certificates & Awards
-            </h3>
-            <div className="space-y-6">
-              {profile.certificates?.length > 0 ? profile.certificates.map((cert: any, i: number) => (
-                <div key={i} className="space-y-1 relative pl-4 border-l-2 border-primary/20">
-                  <div className="text-xs font-black text-primary uppercase tracking-widest">{cert.year}</div>
-                  <h4 className="font-bold text-on-surface leading-tight">{cert.name}</h4>
-                  <p className="text-xs text-on-surface-variant font-medium">Issued by {cert.issuer}</p>
-                </div>
-              )) : (
-                <div className="text-on-surface-variant/50 font-bold italic text-sm">No certificates listed.</div>
-              )}
+          {profile.certificates?.length > 0 && (
+            <div className="bg-surface-container/30 border border-outline-variant/30 rounded-[32px] p-8 shadow-xl">
+              <h3 className="text-xl font-black text-on-surface flex items-center gap-3 mb-8 uppercase tracking-widest text-[13px]">
+                <BadgeCheck className="w-5 h-5 text-primary" /> Certificates & Awards
+              </h3>
+              <div className="space-y-6">
+                {profile.certificates.map((cert: any, i: number) => (
+                  <div key={i} className="space-y-1 relative pl-4 border-l-2 border-primary/20">
+                    <div className="text-[10px] font-black text-primary uppercase tracking-widest">{cert.year}</div>
+                    <h4 className="text-sm font-bold text-on-surface leading-tight">{cert.name}</h4>
+                    <p className="text-xs text-on-surface-variant font-medium">Issued by {cert.issuer}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Personal Details */}
           {profile.personalDetail && (profile.personalDetail.dob || profile.personalDetail.gender || profile.personalDetail.languages || profile.personalDetail.hobbies) && (
-            <div className="glass-card rounded-[32px] p-8 border-outline-variant/10 shadow-xl">
+            <div className="bg-surface-container/30 border border-outline-variant/30 rounded-[32px] p-8 shadow-xl">
               <h3 className="text-xl font-black text-on-surface flex items-center gap-3 mb-8 uppercase tracking-widest text-[13px]">
                 <User className="w-5 h-5 text-primary" /> Personal Details
               </h3>
               <div className="space-y-4">
                 {profile.personalDetail.dob && (
                   <div className="flex justify-between items-center py-2 border-b border-outline-variant/10">
-                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Date of Birth</span>
-                    <span className="text-sm font-black text-on-surface">{profile.personalDetail.dob}</span>
+                    <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Date of Birth</span>
+                    <span className="text-[11px] font-black text-on-surface">{profile.personalDetail.dob}</span>
                   </div>
                 )}
                 {profile.personalDetail.gender && (
                   <div className="flex justify-between items-center py-2 border-b border-outline-variant/10">
-                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Gender</span>
-                    <span className="text-sm font-black text-on-surface">{profile.personalDetail.gender}</span>
+                    <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Gender</span>
+                    <span className="text-[11px] font-black text-on-surface">{profile.personalDetail.gender}</span>
                   </div>
                 )}
                 {profile.personalDetail.languages && (
                   <div className="flex justify-between items-center py-2 border-b border-outline-variant/10">
-                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Languages Known</span>
-                    <span className="text-sm font-black text-on-surface">{profile.personalDetail.languages}</span>
+                    <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Languages Known</span>
+                    <span className="text-[11px] font-black text-on-surface text-right max-w-[120px] truncate">{profile.personalDetail.languages}</span>
                   </div>
                 )}
                 {profile.personalDetail.hobbies && (
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Hobbies</span>
-                    <span className="text-sm font-black text-on-surface">{profile.personalDetail.hobbies}</span>
+                    <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Hobbies</span>
+                    <span className="text-[11px] font-black text-on-surface text-right max-w-[120px] truncate">{profile.personalDetail.hobbies}</span>
                   </div>
                 )}
               </div>
             </div>
           )}
 
-
           {/* Stats */}
-          <div className="glass-card rounded-[32px] p-8 border-outline-variant/10 shadow-xl bg-primary/5">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="bg-surface-container/30 border border-outline-variant/30 rounded-[32px] p-8 shadow-xl relative overflow-hidden">
+            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-primary/10 rounded-full blur-[50px] pointer-events-none"></div>
+            <div className="grid grid-cols-2 gap-4 relative z-10">
               <div className="text-center p-4">
-                <div className="text-3xl font-black text-primary">{profile.experience || 0}+</div>
-                <div className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant opacity-70">Years Exp</div>
+                <div className="text-4xl font-black text-primary drop-shadow-sm">{profile.experience || 0}+</div>
+                <div className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant mt-1">Years Exp</div>
               </div>
               <div className="text-center p-4">
-                <div className="text-3xl font-black text-primary">{profile.projects?.length || 0}</div>
-                <div className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant opacity-70">Projects</div>
+                <div className="text-4xl font-black text-primary drop-shadow-sm">{profile.projects?.length || 0}</div>
+                <div className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant mt-1">Projects</div>
               </div>
             </div>
           </div>
+
         </div>
       </div>
-
 
     </div>
   );

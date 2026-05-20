@@ -29,6 +29,7 @@ import { aiService } from '@/lib/services/ai.services';
 import { resumeService } from '@/lib/services/resume.services';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/utils/cn';
+import Image from 'next/image';
 
 type InterviewStep = 'START' | 'ANALYZING' | 'INTERVIEW' | 'RESULTS';
 
@@ -215,8 +216,8 @@ const MockInterviewView = () => {
         };
 
         utterance.onend = startMic;
-        utterance.onerror = (e) => {
-          console.error('TTS Error:', e);
+        utterance.onerror = (e: any) => {
+          console.warn('TTS Interrupted/Error:', e.error || 'Speech synthesis failed');
           startMic();
         };
 
@@ -437,8 +438,8 @@ const MockInterviewView = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
         <div className="w-full">
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="px-3 py-1.5 rounded-full bg-error/10 text-error text-[9px] md:text-[11px] font-black tracking-[0.1em] md:tracking-[0.2em] flex items-center gap-2 border border-error/20">
-              <span className="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+            <span className="px-3 py-1.5 rounded-full bg-red-500/10 text-red-500 text-[9px] md:text-[11px] font-black tracking-[0.1em] md:tracking-[0.2em] flex items-center gap-2 border border-red-500/20">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
               LIVE INTERVIEW
             </span>
             <span className="text-primary font-black text-[9px] md:text-[11px] uppercase tracking-[0.1em] md:tracking-[0.2em] flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-full border border-primary/10">
@@ -449,26 +450,18 @@ const MockInterviewView = () => {
           <h2 className="text-2xl md:text-5xl font-black text-on-background mb-1 leading-tight">Practice Session</h2>
           <p className="text-on-surface-variant text-sm md:text-lg font-medium opacity-80">With Aria AI Coach</p>
         </div>
-        
-        <div className="flex gap-4 w-full md:w-auto">
-          <button 
-            onClick={() => setStep('RESULTS')}
-            className="flex-1 md:flex-none bg-error text-white px-8 py-4 rounded-2xl font-black shadow-xl hover:shadow-error/30 transition-all active:scale-95 flex items-center justify-center gap-3 text-sm"
-          >
-            <PhoneOff className="w-5 h-5" />
-            End Session
-          </button>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10">
         <div className="col-span-1 lg:col-span-8 flex flex-col gap-6 md:gap-10">
           
           <div className="glass-card rounded-[40px] overflow-hidden relative group aspect-video shadow-2xl border-outline-variant/20">
-            <img 
+            <Image 
               alt="Aria AI Coach" 
               className="w-full h-full object-cover" 
-              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=1200&h=800" 
+              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=1200&h=800"
+              fill
+              unoptimized
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
             
@@ -531,13 +524,13 @@ const MockInterviewView = () => {
                   onClick={toggleListening}
                   className={cn(
                     "w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl",
-                    isListening ? "bg-error text-white scale-110 shadow-error/40" : "bg-primary text-white hover:scale-105 shadow-primary/40"
+                    isListening ? "bg-red-500 text-white scale-110 shadow-red-500/40" : "bg-primary text-white hover:scale-105 shadow-primary/40"
                   )}
                 >
                   {isListening ? <Mic className="w-10 h-10 animate-pulse" /> : <Mic className="w-10 h-10" />}
                 </button>
                 {isListening && (
-                  <div className="absolute -inset-4 rounded-full border-2 border-error animate-ping opacity-20"></div>
+                  <div className="absolute -inset-4 rounded-full border-2 border-red-500 animate-ping opacity-20"></div>
                 )}
               </div>
 
@@ -558,7 +551,7 @@ const MockInterviewView = () => {
                   {!transcript && !interimTranscript && isListening && "Listening..."}
                 </div>
                 
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                   <button 
                     onClick={submitAnswer}
                     disabled={!transcript || loading}
@@ -569,9 +562,16 @@ const MockInterviewView = () => {
                   </button>
                   <button 
                     onClick={() => setTranscript('')}
-                    className="px-6 py-4 rounded-2xl border border-outline-variant text-on-surface-variant font-black text-sm hover:bg-surface-container transition-all"
+                    className="px-5 py-4 rounded-2xl border border-outline-variant text-on-surface-variant font-black text-sm hover:bg-surface-container transition-all"
                   >
                     Clear
+                  </button>
+                  <button 
+                    onClick={() => setStep('RESULTS')}
+                    className="px-5 py-4 rounded-2xl bg-red-500 text-white font-black text-sm hover:bg-red-600 transition-all flex items-center gap-2 shadow-lg shadow-red-500/20"
+                  >
+                    <PhoneOff className="w-4 h-4" />
+                    End
                   </button>
                 </div>
               </div>

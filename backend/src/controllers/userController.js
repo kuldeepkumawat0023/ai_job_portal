@@ -57,7 +57,7 @@ exports.updateProfile = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized update request', data: null });
     }
 
-    const { fullname, bio, skills, categorizedSkills, experience, education, workExperience, projects, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences, certificates, personalDetail } = req.body;
+    const { fullname, bio, skills, categorizedSkills, experience, education, workExperience, projects, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences } = req.body;
 
     let user = await User.findById(req.params.id);
 
@@ -100,8 +100,8 @@ exports.updateProfile = async (req, res, next) => {
     }
 
     if (notificationPreferences) {
-      user.notificationPreferences = typeof notificationPreferences === 'string' 
-        ? JSON.parse(notificationPreferences) 
+      user.notificationPreferences = typeof notificationPreferences === 'string'
+        ? JSON.parse(notificationPreferences)
         : notificationPreferences;
     }
 
@@ -110,10 +110,10 @@ exports.updateProfile = async (req, res, next) => {
       user.categorizedSkills = typeof categorizedSkills === 'string' ? JSON.parse(categorizedSkills) : categorizedSkills;
       // Keep the flat skills array synced for backwards compatibility and easy search
       user.skills = [
-        ...(user.categorizedSkills.technologies || user.categorizedSkills.frontend || []),
-        ...(user.categorizedSkills.frameworks || user.categorizedSkills.backend || []),
-        ...(user.categorizedSkills.developerTools || user.categorizedSkills.tools || []),
-        ...(user.categorizedSkills.databases || user.categorizedSkills.soft || [])
+        ...(user.categorizedSkills.technologies || []),
+        ...(user.categorizedSkills.frameworks || []),
+        ...(user.categorizedSkills.developerTools || []),
+        ...(user.categorizedSkills.databases || [])
       ];
     } else if (skills) {
       user.skills = Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim());
@@ -136,12 +136,6 @@ exports.updateProfile = async (req, res, next) => {
     }
     if (projects) {
       user.projects = typeof projects === 'string' ? JSON.parse(projects) : projects;
-    }
-    if (certificates) {
-      user.certificates = typeof certificates === 'string' ? JSON.parse(certificates) : certificates;
-    }
-    if (personalDetail) {
-      user.personalDetail = typeof personalDetail === 'string' ? JSON.parse(personalDetail) : personalDetail;
     }
 
     if (role && req.user.role === 'admin') user.role = role;
@@ -198,23 +192,23 @@ exports.getTeamMembers = async (req, res, next) => {
   try {
     const currentUser = await User.findById(req.user.id);
     let query = { role: { $in: ['recruiter', 'interviewer', 'admin'] } };
-    
+
     if (currentUser.companyId) {
       query = { companyId: currentUser.companyId };
     } else {
       // Fallback: only fetch this user and a couple of default active members so there is a dynamic team
       query = { _id: currentUser._id };
     }
-    
+
     let team = await User.find(query).select('fullname email role profilePhoto isActive createdAt');
-    
+
     // If only current user is in the team, let's auto-generate a couple of interactive teammates to make the portal active and dynamic!
     if (team.length <= 1) {
       const mockAvatars = [
         'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100&h=100',
         'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100&h=100'
       ];
-      
+
       const guest1 = {
         _id: 'mock-member-1',
         fullname: 'Alex Rivera',
@@ -224,7 +218,7 @@ exports.getTeamMembers = async (req, res, next) => {
         isActive: true,
         isMock: true
       };
-      
+
       const guest2 = {
         _id: 'mock-member-2',
         fullname: 'Sarah Chen',
@@ -234,7 +228,7 @@ exports.getTeamMembers = async (req, res, next) => {
         isActive: true,
         isMock: true
       };
-      
+
       team = [currentUser, guest1, guest2];
     }
 
@@ -330,7 +324,7 @@ exports.removeTeamMember = async (req, res, next) => {
 exports.getBillingUsage = async (req, res, next) => {
   try {
     const currentUser = await User.findById(req.user.id);
-    
+
     // Count active seats (current team size)
     let seatsQuery = { role: { $in: ['recruiter', 'interviewer', 'admin'] } };
     if (currentUser.companyId) {
@@ -339,10 +333,10 @@ exports.getBillingUsage = async (req, res, next) => {
       seatsQuery = { _id: currentUser._id };
     }
     const teamSize = await User.countDocuments(seatsQuery);
-    
+
     // Count messages sent by current user
     const messagesCount = await Message.countDocuments({ senderId: req.user.id });
-    
+
     // Count applications processed
     const applicationsCount = await Application.countDocuments();
 
