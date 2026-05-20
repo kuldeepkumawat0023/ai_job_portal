@@ -14,6 +14,7 @@ export const USER_KEY = 'portal_user';
 export interface Education {
   degree: string;
   university: string;
+  board?: string;
   cgpa: string;
   year: string;
 }
@@ -32,6 +33,19 @@ export interface Project {
   link: string;
 }
 
+export interface Certificate {
+  name: string;
+  issuer: string;
+  year: string;
+}
+
+export interface PersonalDetail {
+  dob?: string;
+  gender?: string;
+  languages?: string;
+  hobbies?: string;
+}
+
 export interface AuthUser {
   _id: string;
   fullname: string;
@@ -44,12 +58,14 @@ export interface AuthUser {
   bio?: string;
   skills: string[];
   categorizedSkills?: {
-    frontend?: string[];
-    backend?: string[];
-    tools?: string[];
-    soft?: string[];
+    technologies?: string[];
+    frameworks?: string[];
+    developerTools?: string[];
+    databases?: string[];
   };
   education: Education[];
+  certificates?: Certificate[];
+  personalDetail?: PersonalDetail;
   workExperience: WorkExperience[];
   projects: Project[];
   experience: number;

@@ -51,10 +51,10 @@ interface WizardData {
   education: { degree: string; university: string; cgpa: string; year: string }[];
   workExperience: { role: string; company: string; duration: string; description: string }[];
   skills: {
-    frontend: string[];
-    backend: string[];
-    tools: string[];
-    soft: string[];
+    technologies: string[];
+    frameworks: string[];
+    developerTools: string[];
+    databases: string[];
   };
   projects: { title: string; stack: string[]; description: string; link: string }[];
   resumeStyle: string;
@@ -150,10 +150,10 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
     education: user?.education?.length ? user.education : [{ degree: '', university: '', cgpa: '', year: '' }],
     workExperience: user?.workExperience?.length ? user.workExperience : [{ role: '', company: '', duration: '', description: '' }],
     skills: {
-      frontend: user?.categorizedSkills?.frontend || [],
-      backend: user?.categorizedSkills?.backend || [],
-      tools: user?.categorizedSkills?.tools || [],
-      soft: user?.categorizedSkills?.soft || user?.skills || []
+      technologies: (user?.categorizedSkills as any)?.technologies || (user?.categorizedSkills as any)?.frontend || [],
+      frameworks: (user?.categorizedSkills as any)?.frameworks || (user?.categorizedSkills as any)?.backend || [],
+      developerTools: (user?.categorizedSkills as any)?.developerTools || (user?.categorizedSkills as any)?.tools || [],
+      databases: (user?.categorizedSkills as any)?.databases || (user?.categorizedSkills as any)?.soft || user?.skills || []
     },
     projects: user?.projects?.length ? user.projects : [{ title: '', stack: [], description: '', link: '' }],
     resumeStyle: 'modern',
@@ -173,10 +173,10 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
         education: user.education?.length ? [...user.education] : [{ degree: '', university: '', cgpa: '', year: '' }],
         workExperience: user.workExperience?.length ? [...user.workExperience] : [{ role: '', company: '', duration: '', description: '' }],
         skills: {
-          frontend: user.categorizedSkills?.frontend || [],
-          backend: user.categorizedSkills?.backend || [],
-          tools: user.categorizedSkills?.tools || [],
-          soft: user.categorizedSkills?.soft || user.skills || []
+          technologies: (user.categorizedSkills as any)?.technologies || (user.categorizedSkills as any)?.frontend || [],
+          frameworks: (user.categorizedSkills as any)?.frameworks || (user.categorizedSkills as any)?.backend || [],
+          developerTools: (user.categorizedSkills as any)?.developerTools || (user.categorizedSkills as any)?.tools || [],
+          databases: (user.categorizedSkills as any)?.databases || (user.categorizedSkills as any)?.soft || user.skills || []
         },
         projects: user.projects?.length ? [...user.projects] : [{ title: '', stack: [], description: '', link: '' }],
         resumeStyle: 'modern',
@@ -270,10 +270,10 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     const allSkills = [
-      ...formData.skills.frontend,
-      ...formData.skills.backend,
-      ...formData.skills.tools,
-      ...formData.skills.soft
+      ...formData.skills.technologies,
+      ...formData.skills.frameworks,
+      ...formData.skills.developerTools,
+      ...formData.skills.databases
     ].join(', ');
     
     const skillLines = doc.splitTextToSize(allSkills, 170);
@@ -321,10 +321,10 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
     try {
       // Merge all skill categories into one array for the backend
       const mergedSkills = [
-        ...formData.skills.frontend,
-        ...formData.skills.backend,
-        ...formData.skills.tools,
-        ...formData.skills.soft
+        ...formData.skills.technologies,
+        ...formData.skills.frameworks,
+        ...formData.skills.developerTools,
+        ...formData.skills.databases
       ];
 
       const payload = {
@@ -732,125 +732,125 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Frontend Skills */}
+                            {/* Technologies Skills */}
                             <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
                               <div className="flex items-center gap-3 mb-2">
                                 <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
                                   <Code2 className="w-5 h-5" />
                                 </div>
-                                <h4 className="font-bold text-on-surface">Frontend</h4>
+                                <h4 className="font-bold text-on-surface">Technologies</h4>
                               </div>
                               <input
                                 className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     const val = (e.target as HTMLInputElement).value.trim();
-                                    if (val && !formData.skills.frontend.includes(val)) {
-                                      setFormData({ ...formData, skills: { ...formData.skills, frontend: [...formData.skills.frontend, val] } });
+                                    if (val && !formData.skills.technologies.includes(val)) {
+                                      setFormData({ ...formData, skills: { ...formData.skills, technologies: [...formData.skills.technologies, val] } });
                                       (e.target as HTMLInputElement).value = '';
                                     }
                                   }
                                 }}
-                                placeholder="React, Vue, Next.js..."
+                                placeholder="HTML5, CSS3, JavaScript, Java..."
                               />
                               <div className="flex flex-wrap gap-2">
-                                {formData.skills.frontend.map(skill => (
+                                {formData.skills.technologies.map(skill => (
                                   <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/5 text-blue-500 text-[10px] font-bold rounded-lg border border-blue-500/10">
                                     {skill}
-                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, frontend: formData.skills.frontend.filter(s => s !== skill) } })} />
+                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, technologies: formData.skills.technologies.filter(s => s !== skill) } })} />
                                   </span>
                                 ))}
                               </div>
                             </div>
 
-                            {/* Backend Skills */}
+                            {/* Frameworks / Libraries Skills */}
                             <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
                               <div className="flex items-center gap-3 mb-2">
                                 <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
                                   <Code2 className="w-5 h-5" />
                                 </div>
-                                <h4 className="font-bold text-on-surface">Backend</h4>
+                                <h4 className="font-bold text-on-surface">Frameworks / Libraries</h4>
                               </div>
                               <input
                                 className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     const val = (e.target as HTMLInputElement).value.trim();
-                                    if (val && !formData.skills.backend.includes(val)) {
-                                      setFormData({ ...formData, skills: { ...formData.skills, backend: [...formData.skills.backend, val] } });
+                                    if (val && !formData.skills.frameworks.includes(val)) {
+                                      setFormData({ ...formData, skills: { ...formData.skills, frameworks: [...formData.skills.frameworks, val] } });
                                       (e.target as HTMLInputElement).value = '';
                                     }
                                   }
                                 }}
-                                placeholder="Node.js, Python, Go..."
+                                placeholder="React.js, Node.js, Next.js, Express.js..."
                               />
                               <div className="flex flex-wrap gap-2">
-                                {formData.skills.backend.map(skill => (
+                                {formData.skills.frameworks.map(skill => (
                                   <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/5 text-purple-500 text-[10px] font-bold rounded-lg border border-purple-500/10">
                                     {skill}
-                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, backend: formData.skills.backend.filter(s => s !== skill) } })} />
+                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, frameworks: formData.skills.frameworks.filter(s => s !== skill) } })} />
                                   </span>
                                 ))}
                               </div>
                             </div>
 
-                            {/* Tools & Databases */}
+                            {/* Developer Tools */}
                             <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
                               <div className="flex items-center gap-3 mb-2">
                                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                                   <Globe className="w-5 h-5" />
                                 </div>
-                                <h4 className="font-bold text-on-surface">Tools & DB</h4>
+                                <h4 className="font-bold text-on-surface">Developer Tools</h4>
                               </div>
                               <input
                                 className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     const val = (e.target as HTMLInputElement).value.trim();
-                                    if (val && !formData.skills.tools.includes(val)) {
-                                      setFormData({ ...formData, skills: { ...formData.skills, tools: [...formData.skills.tools, val] } });
+                                    if (val && !formData.skills.developerTools.includes(val)) {
+                                      setFormData({ ...formData, skills: { ...formData.skills, developerTools: [...formData.skills.developerTools, val] } });
                                       (e.target as HTMLInputElement).value = '';
                                     }
                                   }
                                 }}
-                                placeholder="Git, Docker, MongoDB..."
+                                placeholder="Postman, VS Code, Figma, XAMPP..."
                               />
                               <div className="flex flex-wrap gap-2">
-                                {formData.skills.tools.map(skill => (
+                                {formData.skills.developerTools.map(skill => (
                                   <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/5 text-emerald-500 text-[10px] font-bold rounded-lg border border-emerald-500/10">
                                     {skill}
-                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, tools: formData.skills.tools.filter(s => s !== skill) } })} />
+                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, developerTools: formData.skills.developerTools.filter(s => s !== skill) } })} />
                                   </span>
                                 ))}
                               </div>
                             </div>
 
-                            {/* Soft Skills */}
+                            {/* Databases */}
                             <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
                               <div className="flex items-center gap-3 mb-2">
                                 <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
                                   <User className="w-5 h-5" />
                                 </div>
-                                <h4 className="font-bold text-on-surface">Soft Skills</h4>
+                                <h4 className="font-bold text-on-surface">Databases</h4>
                               </div>
                               <input
                                 className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     const val = (e.target as HTMLInputElement).value.trim();
-                                    if (val && !formData.skills.soft.includes(val)) {
-                                      setFormData({ ...formData, skills: { ...formData.skills, soft: [...formData.skills.soft, val] } });
+                                    if (val && !formData.skills.databases.includes(val)) {
+                                      setFormData({ ...formData, skills: { ...formData.skills, databases: [...formData.skills.databases, val] } });
                                       (e.target as HTMLInputElement).value = '';
                                     }
                                   }
                                 }}
-                                placeholder="Leadership, Communication..."
+                                placeholder="MySQL, MongoDB, PostgreSQL..."
                               />
                               <div className="flex flex-wrap gap-2">
-                                {formData.skills.soft.map(skill => (
+                                {formData.skills.databases.map(skill => (
                                   <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/5 text-amber-500 text-[10px] font-bold rounded-lg border border-amber-500/10">
                                     {skill}
-                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, soft: formData.skills.soft.filter(s => s !== skill) } })} />
+                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, databases: formData.skills.databases.filter(s => s !== skill) } })} />
                                   </span>
                                 ))}
                               </div>

@@ -46,19 +46,33 @@ const userSchema = new mongoose.Schema({
     default: []
   },
   categorizedSkills: {
-    frontend: { type: [String], default: [] },
-    backend: { type: [String], default: [] },
-    tools: { type: [String], default: [] },
-    soft: { type: [String], default: [] }
+    technologies: { type: [String], default: [] },
+    frameworks: { type: [String], default: [] },
+    developerTools: { type: [String], default: [] },
+    databases: { type: [String], default: [] }
   },
   education: [
     {
       degree: String,
       university: String,
+      board: String,
       cgpa: String,
       year: String
     }
   ],
+  certificates: [
+    {
+      name: String,
+      issuer: String,
+      year: String
+    }
+  ],
+  personalDetail: {
+    dob: { type: String, default: '' },
+    gender: { type: String, default: '' },
+    languages: { type: String, default: '' },
+    hobbies: { type: String, default: '' }
+  },
   workExperience: [
     {
       role: String,

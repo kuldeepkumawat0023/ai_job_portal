@@ -30,27 +30,40 @@ import { resumeService } from '@/lib/services/resume.services';
 import { cn } from '@/utils/cn';
 import { jsPDF } from 'jspdf';
 import Image from 'next/image';
+import { ProfileEditView } from './ProfileEditView';
 
 const categorizeSkills = (skillsArray: string[]) => {
-  const categories: { frontend: string[], backend: string[], tools: string[], soft: string[] } = { frontend: [], backend: [], tools: [], soft: [] };
-  const frontendKeywords = ['react', 'vue', 'angular', 'html', 'css', 'tailwind', 'next.js', 'svelte', 'javascript', 'typescript', 'frontend', 'ui', 'ux'];
-  const backendKeywords = ['node', 'python', 'java', 'go', 'c++', 'c#', 'php', 'ruby', 'backend', 'express', 'spring', 'django', 'fastapi'];
-  const toolsKeywords = ['git', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'mongo', 'sql', 'postgres', 'redis', 'linux', 'jenkins', 'ci/cd', 'jira'];
-  
+  const categories: { technologies: string[], frameworks: string[], developerTools: string[], databases: string[] } = {
+    technologies: [],
+    frameworks: [],
+    developerTools: [],
+    databases: []
+  };
+
+  const databaseKeywords = ['db', 'database', 'mongo', 'mysql', 'postgres', 'sql', 'redis', 'cassandra', 'sqlite', 'oracle', 'mariadb', 'dynamodb', 'firebase', 'supabase', 'prisma', 'mongoose'];
+  const devToolsKeywords = ['git', 'docker', 'kubernetes', 'postman', 'vs code', 'vscode', 'figma', 'xampp', 'webpack', 'vite', 'jenkins', 'aws', 'azure', 'gcp', 'github', 'gitlab', 'bitbucket', 'jira', 'npm', 'yarn', 'pnpm', 'eslint', 'prettier', 'cicd', 'ci/cd', 'ansible', 'terraform', 'postgressql'];
+  const frameworkKeywords = ['react', 'vue', 'angular', 'next.js', 'nextjs', 'nuxt', 'svelte', 'node', 'express', 'django', 'flask', 'spring', 'laravel', 'bootstrap', 'tailwind', 'jquery', 'fastify', 'nest', 'rails', 'asp.net', 'net core', 'libraries', 'library', 'framework'];
+
   (skillsArray || []).forEach(skill => {
-    const s = skill.toLowerCase();
-    if (frontendKeywords.some(k => s.includes(k))) categories.frontend.push(skill);
-    else if (backendKeywords.some(k => s.includes(k))) categories.backend.push(skill);
-    else if (toolsKeywords.some(k => s.includes(k))) categories.tools.push(skill);
-    else categories.soft.push(skill);
+    const s = skill.toLowerCase().trim();
+    if (databaseKeywords.some(k => s.includes(k))) {
+      categories.databases.push(skill);
+    } else if (devToolsKeywords.some(k => s.includes(k))) {
+      categories.developerTools.push(skill);
+    } else if (frameworkKeywords.some(k => s.includes(k))) {
+      categories.frameworks.push(skill);
+    } else {
+      categories.technologies.push(skill);
+    }
   });
+
   return categories;
 };
 
 const PortfolioView = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -65,7 +78,14 @@ const PortfolioView = () => {
     countryCode: '+91',
     education: [],
     workExperience: [],
-    projects: []
+    projects: [],
+    certificates: [],
+    personalDetail: {
+      dob: '',
+      gender: '',
+      languages: '',
+      hobbies: ''
+    }
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -82,7 +102,7 @@ const PortfolioView = () => {
 
       const res = await userService.getProfile(user._id || user.id);
       if (res.success) {
-        let profileData = { ...res.data };
+        let profileData: any = { ...res.data };
         
         // Auto-fill from AI Analyzed Resume if fields are empty
         try {
@@ -115,18 +135,30 @@ const PortfolioView = () => {
         setProfile(profileData);
         setImageError(false);
         // Initialize edit form with ALL fields
+        const rawCats = (profileData.categorizedSkills || {}) as any;
+        const parsedSkillsObj = {
+          technologies: rawCats.technologies || rawCats.frontend || [],
+          frameworks: rawCats.frameworks || rawCats.backend || [],
+          developerTools: rawCats.developerTools || rawCats.tools || [],
+          databases: rawCats.databases || rawCats.soft || []
+        };
+        const hasExistingCategorized = Object.values(parsedSkillsObj).some(arr => arr && arr.length > 0);
+        const finalSkillsObj = hasExistingCategorized ? parsedSkillsObj : categorizeSkills(profileData.skills || []);
+
         setEditForm({
           fullname: profileData.fullname || '',
           bio: profileData.bio || '',
           experience: profileData.experience || 0,
           skills: profileData.skills || [],
-          skillsObj: profileData.categorizedSkills || categorizeSkills(profileData.skills || []),
+          skillsObj: finalSkillsObj,
           location: profileData.location || '',
           phoneNumber: profileData.phoneNumber || '',
           countryCode: profileData.countryCode || '+91',
           education: profileData.education || [],
           workExperience: profileData.workExperience || [],
-          projects: profileData.projects || []
+          projects: profileData.projects || [],
+          certificates: (profileData as any).certificates || [],
+          personalDetail: (profileData as any).personalDetail || { dob: '', gender: '', languages: '', hobbies: '' }
         });
       }
     } catch (error) {
@@ -146,176 +178,319 @@ const PortfolioView = () => {
 
     try {
       const doc = new jsPDF();
-      const margin = 20;
+      const margin = 15;
       let yPosition = 20;
 
       // Color theme
-      const primaryColor = [70, 72, 212]; // #4648d4
-      const secondaryColor = [39, 41, 109];
-      const textColor = [33, 33, 33];
-      const grayTextColor = [100, 116, 139];
+      const primaryColor = [37, 99, 235]; // Modern Royal Blue
+      const secondaryColor = [30, 41, 59]; // Slate 800
+      const textColor = [51, 65, 85]; // Slate 600
+      const grayTextColor = [100, 116, 139]; // Slate 500
 
-      // Guess target role from bio or default
-      const targetRole = profile.bio?.toLowerCase().includes('frontend')
-        ? 'Senior Frontend Engineer'
-        : profile.bio?.toLowerCase().includes('backend')
-          ? 'Senior Backend Engineer'
-          : 'Professional Candidate';
+      // Use dynamically calculated displayRole
+      const targetRole = displayRole;
 
       // Document Title/Name
       doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(26);
+      doc.setFontSize(24);
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.text(profile.fullname || 'Resume', margin, yPosition);
-      yPosition += 8;
+      yPosition += 7;
 
       // Role
-      doc.setFont('Helvetica', 'normal');
-      doc.setFontSize(14);
-      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-      doc.text(targetRole, margin, yPosition);
-      yPosition += 8;
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+      doc.text(targetRole.toUpperCase(), margin, yPosition);
+      yPosition += 7;
 
       // Contact Details Row
-      doc.setFontSize(9);
-      doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
       const locationText = `Location: ${profile.location || 'Remote'}`;
       const emailText = `Email: ${profile.email || 'N/A'}`;
       const phoneText = `Phone: ${profile.countryCode || '+91'} ${profile.phoneNumber || 'N/A'}`;
-      doc.text(`${locationText}  |  ${emailText}  |  ${phoneText}`, margin, yPosition);
-      yPosition += 6;
+      
+      let personalInfoText = `${locationText}  |  ${emailText}  |  ${phoneText}`;
+      if (profile.personalDetail?.dob) {
+        personalInfoText += `  |  DOB: ${profile.personalDetail.dob}`;
+      }
+      doc.text(personalInfoText, margin, yPosition);
+      yPosition += 5;
 
       // Horizontal Divider
       doc.setDrawColor(226, 232, 240);
       doc.setLineWidth(0.5);
       doc.line(margin, yPosition, 210 - margin, yPosition);
-      yPosition += 10;
+      yPosition += 8;
+
+      const checkPageBreak = (neededHeight: number) => {
+        if (yPosition + neededHeight > 275) {
+          doc.addPage();
+          yPosition = 20;
+          return true;
+        }
+        return false;
+      };
 
       // Summary/Bio
       if (profile.bio) {
+        checkPageBreak(25);
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(12);
+        doc.setFontSize(10);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.text('PROFESSIONAL SUMMARY', margin, yPosition);
-        yPosition += 5;
+        yPosition += 4;
 
         doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(10);
+        doc.setFontSize(9);
         doc.setTextColor(textColor[0], textColor[1], textColor[2]);
         const splitBio = doc.splitTextToSize(profile.bio, 210 - margin * 2);
         doc.text(splitBio, margin, yPosition);
-        yPosition += (splitBio.length * 5) + 6;
-      }
-
-      // Skills & Expertise
-      if (profile.skills && profile.skills.length > 0) {
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('SKILLS & EXPERTISE', margin, yPosition);
-        yPosition += 6;
-
-        doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-        const skillsText = profile.skills.join(', ');
-        const splitSkills = doc.splitTextToSize(skillsText, 210 - margin * 2);
-        doc.text(splitSkills, margin, yPosition);
-        yPosition += (splitSkills.length * 5) + 8;
-      }
-
-      // Projects Showcase
-      if (profile.projects && profile.projects.length > 0) {
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('FEATURED PROJECTS', margin, yPosition);
-        yPosition += 8;
-
-        profile.projects.forEach((proj: any, index: number) => {
-          // Page boundary check
-          if (yPosition > 250) {
-            doc.addPage();
-            yPosition = 20;
-          }
-
-          // Project Title
-          doc.setFont('Helvetica', 'bold');
-          doc.setFontSize(11);
-          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-          doc.text(`${index + 1}. ${proj.title}`, margin, yPosition);
-
-          if (proj.link) {
-            // Measure title width while current bold size 11 font is active
-            const titleWidth = doc.getTextWidth(`${index + 1}. ${proj.title}`);
-
-            doc.setFont('Helvetica', 'italic');
-            doc.setFontSize(9);
-            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            const linkText = ` [Link: ${proj.link}]`;
-            doc.text(linkText, margin + titleWidth + 2, yPosition);
-          }
-          yPosition += 5;
-
-          // Tech stack
-          if (proj.stack && proj.stack.length > 0) {
-            doc.setFont('Helvetica', 'bold');
-            doc.setFontSize(9);
-            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-            doc.text(`Tech Stack: ${proj.stack.join(', ')}`, margin, yPosition);
-            yPosition += 5;
-          }
-
-          // Description
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(9.5);
-          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-          const splitProjDesc = doc.splitTextToSize(proj.description, 210 - margin * 2);
-          doc.text(splitProjDesc, margin, yPosition);
-          yPosition += (splitProjDesc.length * 4.5) + 6;
-        });
+        yPosition += (splitBio.length * 4.2) + 6;
       }
 
       // Work Experience
       if (profile.workExperience && profile.workExperience.length > 0) {
-        if (yPosition > 230) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
+        checkPageBreak(25);
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(12);
+        doc.setFontSize(10);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('PROFESSIONAL EXPERIENCE', margin, yPosition);
-        yPosition += 8;
+        doc.text('WORK EXPERIENCE', margin, yPosition);
+        yPosition += 5;
 
         profile.workExperience.forEach((exp: any) => {
-          if (yPosition > 250) {
-            doc.addPage();
-            yPosition = 20;
-          }
+          checkPageBreak(22);
 
           // Role & Company
           doc.setFont('Helvetica', 'bold');
-          doc.setFontSize(11);
-          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-          doc.text(`${exp.role} at ${exp.company}`, margin, yPosition);
+          doc.setFontSize(9.5);
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          doc.text(`${exp.role} — ${exp.company}`, margin, yPosition);
 
           // Duration right-aligned
           doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(9.5);
+          doc.setFontSize(8.5);
           doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-          doc.text(exp.duration || '', 210 - margin - doc.getTextWidth(exp.duration || ''), yPosition);
-          yPosition += 5;
+          const durationStr = exp.duration || '';
+          doc.text(durationStr, 210 - margin - doc.getTextWidth(durationStr), yPosition);
+          yPosition += 4.5;
 
           // Exp Desc
           if (exp.description) {
             doc.setFont('Helvetica', 'normal');
-            doc.setFontSize(9.5);
+            doc.setFontSize(9);
             doc.setTextColor(textColor[0], textColor[1], textColor[2]);
             const splitExpDesc = doc.splitTextToSize(exp.description, 210 - margin * 2);
             doc.text(splitExpDesc, margin, yPosition);
-            yPosition += (splitExpDesc.length * 4.5) + 6;
+            yPosition += (splitExpDesc.length * 4.2) + 5;
+          } else {
+            yPosition += 1;
+          }
+        });
+        yPosition += 2;
+      }
+
+      // Projects Showcase
+      if (profile.projects && profile.projects.length > 0) {
+        checkPageBreak(25);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('PERSONAL PROJECTS', margin, yPosition);
+        yPosition += 5;
+
+        profile.projects.forEach((proj: any, index: number) => {
+          checkPageBreak(22);
+
+          // Project Title
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(9.5);
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          doc.text(`${index + 1}. ${proj.title}`, margin, yPosition);
+
+          if (proj.link) {
+            const titleWidth = doc.getTextWidth(`${index + 1}. ${proj.title}`);
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            const linkText = ` (${proj.link})`;
+            doc.text(linkText, margin + titleWidth + 2, yPosition);
+          }
+          yPosition += 4.5;
+
+          // Tech stack
+          if (proj.stack && proj.stack.length > 0) {
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+            const stackStr = Array.isArray(proj.stack) ? proj.stack.join(', ') : proj.stack;
+            doc.text(`Technologies: ${stackStr}`, margin, yPosition);
+            yPosition += 4;
+          }
+
+          // Description
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+          const splitProjDesc = doc.splitTextToSize(proj.description, 210 - margin * 2);
+          doc.text(splitProjDesc, margin, yPosition);
+          yPosition += (splitProjDesc.length * 4.2) + 5;
+        });
+        yPosition += 2;
+      }
+
+      // Skills & Expertise
+      const rawCatsForPDF = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
+      const pdfCats = {
+        technologies: rawCatsForPDF.technologies || rawCatsForPDF.frontend || [],
+        frameworks: rawCatsForPDF.frameworks || rawCatsForPDF.backend || [],
+        developerTools: rawCatsForPDF.developerTools || rawCatsForPDF.tools || [],
+        databases: rawCatsForPDF.databases || rawCatsForPDF.soft || []
+      };
+
+      const hasAnySkills = Object.values(pdfCats).some(arr => arr.length > 0);
+
+      if (hasAnySkills) {
+        checkPageBreak(25);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('SKILLS & EXPERTISE', margin, yPosition);
+        yPosition += 5;
+
+        const categoriesList = [
+          { label: 'Technologies', list: pdfCats.technologies },
+          { label: 'Frameworks/Libraries', list: pdfCats.frameworks },
+          { label: 'Developer Tools', list: pdfCats.developerTools },
+          { label: 'Databases', list: pdfCats.databases }
+        ];
+
+        categoriesList.forEach((cat) => {
+          if (cat.list.length > 0) {
+            checkPageBreak(10);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+            const labelText = `${cat.label}: `;
+            const labelWidth = doc.getTextWidth(labelText);
+            doc.text(labelText, margin, yPosition);
+
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            const skillsLineText = cat.list.join(', ');
+            const splitSkills = doc.splitTextToSize(skillsLineText, 210 - margin * 2 - labelWidth);
+            
+            doc.text(splitSkills, margin + labelWidth, yPosition);
+            yPosition += (splitSkills.length * 4.2) + 1.5;
+          }
+        });
+        yPosition += 4;
+      }
+
+      // Education Section
+      if (profile.education && profile.education.length > 0) {
+        checkPageBreak(25);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('EDUCATION', margin, yPosition);
+        yPosition += 5;
+
+        profile.education.forEach((edu: any) => {
+          checkPageBreak(15);
+
+          // Degree & University
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(9.5);
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          const boardText = edu.board ? ` (${edu.board})` : '';
+          doc.text(`${edu.degree} — ${edu.university}${boardText}`, margin, yPosition);
+
+          // Year right-aligned
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+          const yearStr = edu.year || '';
+          doc.text(yearStr, 210 - margin - doc.getTextWidth(yearStr), yPosition);
+          yPosition += 4.5;
+
+          // CGPA / Grade
+          if (edu.cgpa) {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            doc.text(`CGPA/Grade: ${edu.cgpa}`, margin, yPosition);
+            yPosition += 4.5;
+          }
+        });
+        yPosition += 2;
+      }
+
+      // Certificates Section
+      if (profile.certificates && profile.certificates.length > 0) {
+        checkPageBreak(25);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('CERTIFICATES & AWARDS', margin, yPosition);
+        yPosition += 5;
+
+        profile.certificates.forEach((cert: any) => {
+          checkPageBreak(10);
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(9);
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          doc.text(cert.name, margin, yPosition);
+
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+          const certInfo = `${cert.issuer || ''} (${cert.year || ''})`;
+          doc.text(certInfo, 210 - margin - doc.getTextWidth(certInfo), yPosition);
+          yPosition += 4.5;
+        });
+        yPosition += 2;
+      }
+
+      // Personal Details Section
+      const hasPersonalDetails = profile.personalDetail && (
+        profile.personalDetail.dob ||
+        profile.personalDetail.gender ||
+        profile.personalDetail.languages ||
+        profile.personalDetail.hobbies
+      );
+
+      if (hasPersonalDetails) {
+        checkPageBreak(25);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('PERSONAL DETAILS', margin, yPosition);
+        yPosition += 5;
+
+        const details = [
+          { label: 'Date of Birth', value: profile.personalDetail.dob },
+          { label: 'Gender', value: profile.personalDetail.gender },
+          { label: 'Languages Known', value: profile.personalDetail.languages },
+          { label: 'Hobbies', value: profile.personalDetail.hobbies }
+        ];
+
+        details.forEach((d) => {
+          if (d.value) {
+            checkPageBreak(8);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+            doc.text(`${d.label}: `, margin, yPosition);
+
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            doc.text(d.value, margin + 40, yPosition);
+            yPosition += 4.5;
           }
         });
       }
@@ -323,7 +498,6 @@ const PortfolioView = () => {
       // Save the generated document
       const filename = `${(profile.fullname || 'Resume').replace(/\s+/g, '_')}_Resume.pdf`;
       doc.save(filename);
-      toast.success('Resume downloaded successfully!');
     } catch (pdfErr: any) {
       console.error('PDF generation failed:', pdfErr);
       toast.error('Failed to compile PDF resume.');
@@ -335,10 +509,10 @@ const PortfolioView = () => {
     setSaving(true);
     try {
       const mergedSkills = [
-        ...(editForm.skillsObj?.frontend || []),
-        ...(editForm.skillsObj?.backend || []),
-        ...(editForm.skillsObj?.tools || []),
-        ...(editForm.skillsObj?.soft || [])
+        ...(editForm.skillsObj?.technologies || []),
+        ...(editForm.skillsObj?.frameworks || []),
+        ...(editForm.skillsObj?.developerTools || []),
+        ...(editForm.skillsObj?.databases || [])
       ];
       
       const payload = { 
@@ -352,7 +526,7 @@ const PortfolioView = () => {
       if (res.success) {
         toast.success('Profile updated successfully!');
         setProfile(res.data);
-        setIsEditModalOpen(false);
+        setIsEditing(false);
         // Update local storage to keep sync
         localStorage.setItem('portal_user', JSON.stringify(res.data));
       }
@@ -435,6 +609,18 @@ const PortfolioView = () => {
 
   if (!profile) return <div className="text-center py-20 text-on-surface-variant font-bold">Please log in to view your portfolio.</div>;
 
+  if (isEditing) {
+    return (
+      <ProfileEditView
+        profile={profile}
+        onClose={() => {
+          setIsEditing(false);
+          fetchProfile(); // Refresh profile values on close/save
+        }}
+      />
+    );
+  }
+
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 pb-10 px-4 md:px-0">
 
@@ -443,7 +629,7 @@ const PortfolioView = () => {
         <h2 className="text-xl font-black text-on-surface uppercase tracking-widest hidden md:block">Professional Portfolio</h2>
         <div className="flex gap-3 w-full md:w-auto">
           <button
-            onClick={() => setIsEditModalOpen(true)}
+            onClick={() => setIsEditing(true)}
             className="flex-1 md:flex-none glass-card px-5 py-2.5 rounded-2xl text-sm font-bold text-primary flex items-center justify-center gap-2 hover:bg-primary/5 transition-all border-primary/20"
           >
             <Edit3 className="w-4 h-4" /> Edit Profile
@@ -608,16 +794,25 @@ const PortfolioView = () => {
               <BrainCircuit className="w-5 h-5 text-primary" /> Core Expertise
             </h3>
             {profile.skills?.length > 0 ? (() => {
-              const displaySkills = profile.categorizedSkills || categorizeSkills(profile.skills);
+              const rawCats = (profile.categorizedSkills || {}) as any;
+              const displaySkills = {
+                technologies: rawCats.technologies || rawCats.frontend || [],
+                frameworks: rawCats.frameworks || rawCats.backend || [],
+                developerTools: rawCats.developerTools || rawCats.tools || [],
+                databases: rawCats.databases || rawCats.soft || []
+              };
+              const hasSkills = Object.values(displaySkills).some(arr => arr && arr.length > 0);
+              const finalDisplaySkills = hasSkills ? displaySkills : categorizeSkills(profile.skills);
+
               return (
                 <div className="space-y-6">
-                  {displaySkills.frontend.length > 0 && (
+                  {finalDisplaySkills.technologies && finalDisplaySkills.technologies.length > 0 && (
                     <div className="space-y-3">
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
-                        <Code2 className="w-3.5 h-3.5 text-blue-500" /> Frontend
+                        <Code2 className="w-3.5 h-3.5 text-blue-500" /> Technologies
                       </h4>
                       <div className="flex flex-wrap gap-2.5">
-                        {displaySkills.frontend.map((skill: string) => (
+                        {finalDisplaySkills.technologies.map((skill: string) => (
                           <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-blue-500/30 transition-all cursor-default shadow-sm">
                             {skill}
                           </span>
@@ -625,13 +820,13 @@ const PortfolioView = () => {
                       </div>
                     </div>
                   )}
-                  {displaySkills.backend.length > 0 && (
+                  {finalDisplaySkills.frameworks && finalDisplaySkills.frameworks.length > 0 && (
                     <div className="space-y-3">
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
-                        <Code2 className="w-3.5 h-3.5 text-purple-500" /> Backend
+                        <Code2 className="w-3.5 h-3.5 text-purple-500" /> Frameworks / Libraries
                       </h4>
                       <div className="flex flex-wrap gap-2.5">
-                        {displaySkills.backend.map((skill: string) => (
+                        {finalDisplaySkills.frameworks.map((skill: string) => (
                           <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-purple-500/30 transition-all cursor-default shadow-sm">
                             {skill}
                           </span>
@@ -639,13 +834,13 @@ const PortfolioView = () => {
                       </div>
                     </div>
                   )}
-                  {displaySkills.tools.length > 0 && (
+                  {finalDisplaySkills.developerTools && finalDisplaySkills.developerTools.length > 0 && (
                     <div className="space-y-3">
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
-                        <Globe className="w-3.5 h-3.5 text-emerald-500" /> Tools & DB
+                        <Globe className="w-3.5 h-3.5 text-emerald-500" /> Developer Tools
                       </h4>
                       <div className="flex flex-wrap gap-2.5">
-                        {displaySkills.tools.map((skill: string) => (
+                        {finalDisplaySkills.developerTools.map((skill: string) => (
                           <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-emerald-500/30 transition-all cursor-default shadow-sm">
                             {skill}
                           </span>
@@ -653,13 +848,13 @@ const PortfolioView = () => {
                       </div>
                     </div>
                   )}
-                  {displaySkills.soft.length > 0 && (
+                  {finalDisplaySkills.databases && finalDisplaySkills.databases.length > 0 && (
                     <div className="space-y-3">
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
-                        <User className="w-3.5 h-3.5 text-amber-500" /> Soft Skills
+                        <User className="w-3.5 h-3.5 text-amber-500" /> Databases
                       </h4>
                       <div className="flex flex-wrap gap-2.5">
-                        {displaySkills.soft.map((skill: string) => (
+                        {finalDisplaySkills.databases.map((skill: string) => (
                           <span key={skill} className="bg-surface-container-high px-4 py-2.5 rounded-2xl text-xs font-black text-on-surface border border-outline-variant/10 hover:border-amber-500/30 transition-all cursor-default shadow-sm">
                             {skill}
                           </span>
@@ -684,7 +879,9 @@ const PortfolioView = () => {
                 <div key={i} className="space-y-1 relative pl-4 border-l-2 border-primary/20">
                   <div className="text-xs font-black text-primary uppercase tracking-widest">{edu.year}</div>
                   <h4 className="font-bold text-on-surface leading-tight">{edu.degree}</h4>
-                  <p className="text-xs text-on-surface-variant font-medium">{edu.university}</p>
+                  <p className="text-xs text-on-surface-variant font-medium">
+                    {edu.university} {edu.board && `(${edu.board})`}
+                  </p>
                   {edu.cgpa && <div className="text-[10px] font-bold text-emerald-600 uppercase mt-1">CGPA: {edu.cgpa}</div>}
                 </div>
               )) : (
@@ -692,6 +889,60 @@ const PortfolioView = () => {
               )}
             </div>
           </div>
+
+          {/* Certificates & Awards */}
+          <div className="glass-card rounded-[32px] p-8 border-outline-variant/10 shadow-xl">
+            <h3 className="text-xl font-black text-on-surface flex items-center gap-3 mb-8 uppercase tracking-widest text-[13px]">
+              <BadgeCheck className="w-5 h-5 text-primary" /> Certificates & Awards
+            </h3>
+            <div className="space-y-6">
+              {profile.certificates?.length > 0 ? profile.certificates.map((cert: any, i: number) => (
+                <div key={i} className="space-y-1 relative pl-4 border-l-2 border-primary/20">
+                  <div className="text-xs font-black text-primary uppercase tracking-widest">{cert.year}</div>
+                  <h4 className="font-bold text-on-surface leading-tight">{cert.name}</h4>
+                  <p className="text-xs text-on-surface-variant font-medium">Issued by {cert.issuer}</p>
+                </div>
+              )) : (
+                <div className="text-on-surface-variant/50 font-bold italic text-sm">No certificates listed.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Personal Details */}
+          {profile.personalDetail && (profile.personalDetail.dob || profile.personalDetail.gender || profile.personalDetail.languages || profile.personalDetail.hobbies) && (
+            <div className="glass-card rounded-[32px] p-8 border-outline-variant/10 shadow-xl">
+              <h3 className="text-xl font-black text-on-surface flex items-center gap-3 mb-8 uppercase tracking-widest text-[13px]">
+                <User className="w-5 h-5 text-primary" /> Personal Details
+              </h3>
+              <div className="space-y-4">
+                {profile.personalDetail.dob && (
+                  <div className="flex justify-between items-center py-2 border-b border-outline-variant/10">
+                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Date of Birth</span>
+                    <span className="text-sm font-black text-on-surface">{profile.personalDetail.dob}</span>
+                  </div>
+                )}
+                {profile.personalDetail.gender && (
+                  <div className="flex justify-between items-center py-2 border-b border-outline-variant/10">
+                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Gender</span>
+                    <span className="text-sm font-black text-on-surface">{profile.personalDetail.gender}</span>
+                  </div>
+                )}
+                {profile.personalDetail.languages && (
+                  <div className="flex justify-between items-center py-2 border-b border-outline-variant/10">
+                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Languages Known</span>
+                    <span className="text-sm font-black text-on-surface">{profile.personalDetail.languages}</span>
+                  </div>
+                )}
+                {profile.personalDetail.hobbies && (
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Hobbies</span>
+                    <span className="text-sm font-black text-on-surface">{profile.personalDetail.hobbies}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
 
           {/* Stats */}
           <div className="glass-card rounded-[32px] p-8 border-outline-variant/10 shadow-xl bg-primary/5">
@@ -709,399 +960,7 @@ const PortfolioView = () => {
         </div>
       </div>
 
-      {/* Edit Profile Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-xl" onClick={() => setIsEditModalOpen(false)}></div>
-          <div className="relative w-full max-w-4xl max-h-[90vh] glass-card rounded-[40px] shadow-2xl border-outline-variant/20 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-            {/* Modal Header */}
-            <div className="p-8 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container/30">
-              <div>
-                <h2 className="text-2xl font-black text-on-surface tracking-tight uppercase">Update Profile</h2>
-                <p className="text-sm text-on-surface-variant font-medium">Keep your professional identity fresh</p>
-              </div>
-              <button onClick={() => setIsEditModalOpen(false)} className="p-3 hover:bg-error/10 hover:text-error rounded-2xl transition-all">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
 
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-8 space-y-10">
-              <form id="edit-profile-form" onSubmit={handleUpdateProfile} className="space-y-12">
-
-                {/* Basic Section */}
-                <section className="space-y-6">
-                  <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
-                    <span className="w-8 h-[2px] bg-primary/30"></span> Basic Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Full Name</label>
-                      <input
-                        className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium capitalize"
-                        placeholder="John Doe"
-                        value={editForm.fullname}
-                        onChange={e => setEditForm({ ...editForm, fullname: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Location (e.g. Remote, City)</label>
-                      <input
-                        className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
-                        placeholder="Jaipur, India"
-                        value={editForm.location}
-                        onChange={e => setEditForm({ ...editForm, location: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Country Code</label>
-                      <input
-                        className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
-                        placeholder="+91"
-                        value={editForm.countryCode}
-                        onChange={e => setEditForm({ ...editForm, countryCode: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Phone Number (10 Digits)</label>
-                      <input
-                        type="text"
-                        maxLength={10}
-                        className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
-                        placeholder="9876543210"
-                        value={editForm.phoneNumber}
-                        onChange={e => {
-                          const val = e.target.value.replace(/\D/g, ''); // Only numbers
-                          if (val.length <= 10) {
-                            setEditForm({ ...editForm, phoneNumber: val });
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Experience (Years)</label>
-                      <input
-                        type="number"
-                        className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium"
-                        value={editForm.experience}
-                        onChange={e => setEditForm({ ...editForm, experience: parseInt(e.target.value) || 0 })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-2">Professional Bio</label>
-                    <textarea
-                      rows={4}
-                      className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary transition-all font-medium resize-none"
-                      value={editForm.bio}
-                      onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
-                    />
-                  </div>
-                  <div className="pt-6 border-t border-outline-variant/10">
-                    <div className="mb-8">
-                      <h3 className="text-2xl font-black text-on-surface">Skill Galaxy</h3>
-                      <p className="text-sm text-on-surface-variant">Categorize your expertise for better AI matching.</p>
-                    </div>
-                    
-                    {editForm.skillsObj && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Frontend Skills */}
-                        <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                              <Code2 className="w-5 h-5" />
-                            </div>
-                            <h4 className="font-bold text-on-surface">Frontend</h4>
-                          </div>
-                          <input
-                            className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const val = (e.target as HTMLInputElement).value.trim();
-                                if (val && !editForm.skillsObj.frontend.includes(val)) {
-                                  setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, frontend: [...editForm.skillsObj.frontend, val] } });
-                                  (e.target as HTMLInputElement).value = '';
-                                }
-                              }
-                            }}
-                            placeholder="React, Vue, Next.js..."
-                          />
-                          <div className="flex flex-wrap gap-2">
-                            {editForm.skillsObj.frontend.map((skill: string) => (
-                              <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/5 text-blue-500 text-[10px] font-bold rounded-lg border border-blue-500/10 group">
-                                {skill}
-                                <X className="w-3 h-3 cursor-pointer opacity-70 group-hover:opacity-100" onClick={() => setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, frontend: editForm.skillsObj.frontend.filter((s: string) => s !== skill) } })} />
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Backend Skills */}
-                        <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
-                              <Code2 className="w-5 h-5" />
-                            </div>
-                            <h4 className="font-bold text-on-surface">Backend</h4>
-                          </div>
-                          <input
-                            className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const val = (e.target as HTMLInputElement).value.trim();
-                                if (val && !editForm.skillsObj.backend.includes(val)) {
-                                  setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, backend: [...editForm.skillsObj.backend, val] } });
-                                  (e.target as HTMLInputElement).value = '';
-                                }
-                              }
-                            }}
-                            placeholder="Node.js, Python, Go..."
-                          />
-                          <div className="flex flex-wrap gap-2">
-                            {editForm.skillsObj.backend.map((skill: string) => (
-                              <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/5 text-purple-500 text-[10px] font-bold rounded-lg border border-purple-500/10 group">
-                                {skill}
-                                <X className="w-3 h-3 cursor-pointer opacity-70 group-hover:opacity-100" onClick={() => setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, backend: editForm.skillsObj.backend.filter((s: string) => s !== skill) } })} />
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Tools & Databases */}
-                        <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                              <Globe className="w-5 h-5" />
-                            </div>
-                            <h4 className="font-bold text-on-surface">Tools & DB</h4>
-                          </div>
-                          <input
-                            className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const val = (e.target as HTMLInputElement).value.trim();
-                                if (val && !editForm.skillsObj.tools.includes(val)) {
-                                  setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, tools: [...editForm.skillsObj.tools, val] } });
-                                  (e.target as HTMLInputElement).value = '';
-                                }
-                              }
-                            }}
-                            placeholder="Git, Docker, MongoDB..."
-                          />
-                          <div className="flex flex-wrap gap-2">
-                            {editForm.skillsObj.tools.map((skill: string) => (
-                              <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/5 text-emerald-500 text-[10px] font-bold rounded-lg border border-emerald-500/10 group">
-                                {skill}
-                                <X className="w-3 h-3 cursor-pointer opacity-70 group-hover:opacity-100" onClick={() => setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, tools: editForm.skillsObj.tools.filter((s: string) => s !== skill) } })} />
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Soft Skills */}
-                        <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
-                              <User className="w-5 h-5" />
-                            </div>
-                            <h4 className="font-bold text-on-surface">Soft Skills</h4>
-                          </div>
-                          <input
-                            className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const val = (e.target as HTMLInputElement).value.trim();
-                                if (val && !editForm.skillsObj.soft.includes(val)) {
-                                  setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, soft: [...editForm.skillsObj.soft, val] } });
-                                  (e.target as HTMLInputElement).value = '';
-                                }
-                              }
-                            }}
-                            placeholder="Leadership, Communication..."
-                          />
-                          <div className="flex flex-wrap gap-2">
-                            {editForm.skillsObj.soft.map((skill: string) => (
-                              <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/5 text-amber-500 text-[10px] font-bold rounded-lg border border-amber-500/10 group">
-                                {skill}
-                                <X className="w-3 h-3 cursor-pointer opacity-70 group-hover:opacity-100" onClick={() => setEditForm({ ...editForm, skillsObj: { ...editForm.skillsObj, soft: editForm.skillsObj.soft.filter((s: string) => s !== skill) } })} />
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </section>
-
-                {/* Experience Section */}
-                <section className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
-                      <span className="w-8 h-[2px] bg-primary/30"></span> Work History
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => addItem('workExperience', { role: '', company: '', duration: '', description: '' })}
-                      className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="space-y-4">
-                    {editForm.workExperience.map((exp: any, i: number) => (
-                      <div key={i} className="p-6 bg-surface-container/30 rounded-3xl border border-outline-variant/10 relative group">
-                        <button
-                          type="button"
-                          onClick={() => removeItem('workExperience', i)}
-                          className="absolute top-4 right-4 p-2 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                          <input
-                            placeholder="Role (e.g. Senior Dev)"
-                            className="bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
-                            value={exp.role}
-                            onChange={e => updateItem('workExperience', i, 'role', e.target.value)}
-                          />
-                          <input
-                            placeholder="Company"
-                            className="bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
-                            value={exp.company}
-                            onChange={e => updateItem('workExperience', i, 'company', e.target.value)}
-                          />
-                          <input
-                            placeholder="Duration (e.g. 2021 - Present)"
-                            className="bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
-                            value={exp.duration}
-                            onChange={e => updateItem('workExperience', i, 'duration', e.target.value)}
-                          />
-                        </div>
-                        <textarea
-                          placeholder="Description of your responsibilities..."
-                          className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30 resize-none"
-                          rows={2}
-                          value={exp.description}
-                          onChange={e => updateItem('workExperience', i, 'description', e.target.value)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* Projects Section */}
-                <section className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
-                      <span className="w-8 h-[2px] bg-primary/30"></span> Projects
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => addItem('projects', { title: '', description: '', link: '', stack: [] })}
-                      className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {editForm.projects.map((proj: any, i: number) => (
-                      <div key={i} className="p-6 bg-surface-container/30 rounded-3xl border border-outline-variant/10 relative group">
-                        <button
-                          type="button"
-                          onClick={() => removeItem('projects', i)}
-                          className="absolute top-4 right-4 p-2 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <input
-                          placeholder="Project Title"
-                          className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30 mb-3 font-bold"
-                          value={proj.title}
-                          onChange={e => updateItem('projects', i, 'title', e.target.value)}
-                        />
-                        <textarea
-                          placeholder="Description..."
-                          className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30 mb-3 resize-none"
-                          rows={2}
-                          value={proj.description}
-                          onChange={e => updateItem('projects', i, 'description', e.target.value)}
-                        />
-                        <input
-                          placeholder="Project Link (URL)"
-                          className="w-full bg-surface/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 ring-primary/30"
-                          value={proj.link}
-                          onChange={e => updateItem('projects', i, 'link', e.target.value)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* Education Section */}
-                <section className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
-                      <span className="w-8 h-[2px] bg-primary/30"></span> Education
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => addItem('education', { degree: '', university: '', cgpa: '', year: '' })}
-                      className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {editForm.education.map((edu: any, i: number) => (
-                      <div key={i} className="p-5 bg-surface-container/30 rounded-3xl border border-outline-variant/10 relative group">
-                        <button type="button" onClick={() => removeItem('education', i)} className="absolute top-2 right-2 p-1 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <input placeholder="Degree" className="w-full bg-transparent border-b border-outline-variant/20 mb-2 py-1 text-sm focus:outline-none" value={edu.degree} onChange={e => updateItem('education', i, 'degree', e.target.value)} />
-                        <input placeholder="University" className="w-full bg-transparent border-b border-outline-variant/20 mb-2 py-1 text-sm focus:outline-none" value={edu.university} onChange={e => updateItem('education', i, 'university', e.target.value)} />
-                        <div className="grid grid-cols-2 gap-2">
-                          <input placeholder="Year" className="w-full bg-transparent border-b border-outline-variant/20 py-1 text-xs focus:outline-none" value={edu.year} onChange={e => updateItem('education', i, 'year', e.target.value)} />
-                          <input placeholder="CGPA" className="w-full bg-transparent border-b border-outline-variant/20 py-1 text-xs focus:outline-none" value={edu.cgpa} onChange={e => updateItem('education', i, 'cgpa', e.target.value)} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-              </form>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-8 border-t border-outline-variant/10 bg-surface-container/30 flex gap-4">
-              <button
-                onClick={() => setIsEditModalOpen(false)}
-                className="flex-1 px-8 py-4 rounded-[20px] font-black text-sm uppercase tracking-widest border border-outline-variant/20 hover:bg-surface transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                form="edit-profile-form"
-                disabled={saving}
-                className="flex-[2] gradient-button text-white px-8 py-4 rounded-[20px] font-black text-sm uppercase tracking-widest shadow-2xl flex items-center justify-center gap-3 disabled:opacity-50"
-              >
-                {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

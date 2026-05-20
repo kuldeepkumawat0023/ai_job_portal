@@ -58,7 +58,7 @@ const PortfolioBuilderView = () => {
   const [isRoleEditing, setIsRoleEditing] = useState(false);
 
   // Skill states
-  const [skillInputs, setSkillInputs] = useState({ frontend: '', backend: '', tools: '', soft: '' });
+  const [skillInputs, setSkillInputs] = useState({ technologies: '', frameworks: '', developerTools: '', databases: '' });
   // Projects states
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [optimizingProjectIdx, setOptimizingProjectIdx] = useState<number | null>(null);
@@ -153,31 +153,43 @@ const PortfolioBuilderView = () => {
 
   // Skills Management
   const categorizeSkills = (skillsArray: string[]) => {
-    const categories: { frontend: string[], backend: string[], tools: string[], soft: string[] } = { frontend: [], backend: [], tools: [], soft: [] };
-    const frontendKeywords = ['react', 'vue', 'angular', 'html', 'css', 'tailwind', 'next.js', 'svelte', 'javascript', 'typescript', 'frontend', 'ui', 'ux'];
-    const backendKeywords = ['node', 'python', 'java', 'go', 'c++', 'c#', 'php', 'ruby', 'backend', 'express', 'spring', 'django', 'fastapi'];
-    const toolsKeywords = ['git', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'mongo', 'sql', 'postgres', 'redis', 'linux', 'jenkins', 'ci/cd', 'jira'];
-    
+    const categories: { technologies: string[], frameworks: string[], developerTools: string[], databases: string[] } = {
+      technologies: [],
+      frameworks: [],
+      developerTools: [],
+      databases: []
+    };
+
+    const databaseKeywords = ['db', 'database', 'mongo', 'mysql', 'postgres', 'sql', 'redis', 'cassandra', 'sqlite', 'oracle', 'mariadb', 'dynamodb', 'firebase', 'supabase', 'prisma', 'mongoose'];
+    const devToolsKeywords = ['git', 'docker', 'kubernetes', 'postman', 'vs code', 'vscode', 'figma', 'xampp', 'webpack', 'vite', 'jenkins', 'aws', 'azure', 'gcp', 'github', 'gitlab', 'bitbucket', 'jira', 'npm', 'yarn', 'pnpm', 'eslint', 'prettier', 'cicd', 'ci/cd', 'ansible', 'terraform', 'postgressql'];
+    const frameworkKeywords = ['react', 'vue', 'angular', 'next.js', 'nextjs', 'nuxt', 'svelte', 'node', 'express', 'django', 'flask', 'spring', 'laravel', 'bootstrap', 'tailwind', 'jquery', 'fastify', 'nest', 'rails', 'asp.net', 'net core', 'libraries', 'library', 'framework'];
+
     (skillsArray || []).forEach(skill => {
-      const s = skill.toLowerCase();
-      if (frontendKeywords.some(k => s.includes(k))) categories.frontend.push(skill);
-      else if (backendKeywords.some(k => s.includes(k))) categories.backend.push(skill);
-      else if (toolsKeywords.some(k => s.includes(k))) categories.tools.push(skill);
-      else categories.soft.push(skill);
+      const s = skill.toLowerCase().trim();
+      if (databaseKeywords.some(k => s.includes(k))) {
+        categories.databases.push(skill);
+      } else if (devToolsKeywords.some(k => s.includes(k))) {
+        categories.developerTools.push(skill);
+      } else if (frameworkKeywords.some(k => s.includes(k))) {
+        categories.frameworks.push(skill);
+      } else {
+        categories.technologies.push(skill);
+      }
     });
+
     return categories;
   };
 
-  const handleAddSkillToCategory = async (category: 'frontend' | 'backend' | 'tools' | 'soft') => {
+  const handleAddSkillToCategory = async (category: 'technologies' | 'frameworks' | 'developerTools' | 'databases') => {
     const trimmedSkill = skillInputs[category].trim();
     if (!trimmedSkill) return;
     
-    const rawCats = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
+    const rawCats = profile?.categorizedSkills || {};
     const currentCats = {
-      frontend: rawCats.frontend || [],
-      backend: rawCats.backend || [],
-      tools: rawCats.tools || [],
-      soft: rawCats.soft || []
+      technologies: rawCats.technologies || rawCats.frontend || [],
+      frameworks: rawCats.frameworks || rawCats.backend || [],
+      developerTools: rawCats.developerTools || rawCats.tools || [],
+      databases: rawCats.databases || rawCats.soft || []
     };
 
     if (currentCats[category].map((s:string) => s.toLowerCase()).includes(trimmedSkill.toLowerCase())) {
@@ -194,13 +206,13 @@ const PortfolioBuilderView = () => {
     setSkillInputs(prev => ({ ...prev, [category]: '' }));
   };
 
-  const handleRemoveSkillFromCategory = async (category: 'frontend' | 'backend' | 'tools' | 'soft', skillToRemove: string) => {
-    const rawCats = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
+  const handleRemoveSkillFromCategory = async (category: 'technologies' | 'frameworks' | 'developerTools' | 'databases', skillToRemove: string) => {
+    const rawCats = profile?.categorizedSkills || {};
     const currentCats = {
-      frontend: rawCats.frontend || [],
-      backend: rawCats.backend || [],
-      tools: rawCats.tools || [],
-      soft: rawCats.soft || []
+      technologies: rawCats.technologies || rawCats.frontend || [],
+      frameworks: rawCats.frameworks || rawCats.backend || [],
+      developerTools: rawCats.developerTools || rawCats.tools || [],
+      databases: rawCats.databases || rawCats.soft || []
     };
 
     const updatedCats = {
@@ -212,17 +224,17 @@ const PortfolioBuilderView = () => {
 
   const handleAddAISkill = async (skillToAdd: string) => {
     const catResult = categorizeSkills([skillToAdd]);
-    let targetCategory: 'frontend' | 'backend' | 'tools' | 'soft' = 'soft';
-    if (catResult.frontend.length > 0) targetCategory = 'frontend';
-    else if (catResult.backend.length > 0) targetCategory = 'backend';
-    else if (catResult.tools.length > 0) targetCategory = 'tools';
+    let targetCategory: 'technologies' | 'frameworks' | 'developerTools' | 'databases' = 'technologies';
+    if (catResult.databases.length > 0) targetCategory = 'databases';
+    else if (catResult.developerTools.length > 0) targetCategory = 'developerTools';
+    else if (catResult.frameworks.length > 0) targetCategory = 'frameworks';
 
-    const rawCats = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
+    const rawCats = profile?.categorizedSkills || {};
     const currentCats = {
-      frontend: rawCats.frontend || [],
-      backend: rawCats.backend || [],
-      tools: rawCats.tools || [],
-      soft: rawCats.soft || []
+      technologies: rawCats.technologies || rawCats.frontend || [],
+      frameworks: rawCats.frameworks || rawCats.backend || [],
+      developerTools: rawCats.developerTools || rawCats.tools || [],
+      databases: rawCats.databases || rawCats.soft || []
     };
 
     if (currentCats[targetCategory].map((s:string) => s.toLowerCase()).includes(skillToAdd.toLowerCase())) {
@@ -311,202 +323,316 @@ const PortfolioBuilderView = () => {
 
     try {
       const doc = new jsPDF();
-      const margin = 20;
+      const margin = 15;
       let yPosition = 20;
 
       // Color theme
-      const primaryColor = [70, 72, 212]; // #4648d4
-      const secondaryColor = [39, 41, 109];
-      const textColor = [33, 33, 33];
-      const grayTextColor = [100, 116, 139];
+      const primaryColor = [37, 99, 235]; // Modern Royal Blue
+      const secondaryColor = [30, 41, 59]; // Slate 800
+      const textColor = [51, 65, 85]; // Slate 600
+      const grayTextColor = [100, 116, 139]; // Slate 500
 
       // Document Title/Name
       doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(26);
+      doc.setFontSize(24);
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.text(profile.fullname || user?.fullname || 'Resume', margin, yPosition);
-      yPosition += 8;
+      yPosition += 7;
 
       // Role
-      doc.setFont('Helvetica', 'normal');
-      doc.setFontSize(14);
-      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-      doc.text(targetRole, margin, yPosition);
-      yPosition += 8;
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+      doc.text(targetRole.toUpperCase(), margin, yPosition);
+      yPosition += 7;
 
       // Contact Details Row
-      doc.setFontSize(9);
-      doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
       const locationText = `Location: ${profile.location || 'Remote'}`;
       const emailText = `Email: ${profile.email || user?.email || 'N/A'}`;
       const phoneText = `Phone: ${profile.countryCode || '+91'} ${profile.phoneNumber || 'N/A'}`;
-      doc.text(`${locationText}  |  ${emailText}  |  ${phoneText}`, margin, yPosition);
-      yPosition += 6;
+      
+      let personalInfoText = `${locationText}  |  ${emailText}  |  ${phoneText}`;
+      if (profile.personalDetail?.dob) {
+        personalInfoText += `  |  DOB: ${profile.personalDetail.dob}`;
+      }
+      doc.text(personalInfoText, margin, yPosition);
+      yPosition += 5;
 
       // Horizontal Divider
       doc.setDrawColor(226, 232, 240);
       doc.setLineWidth(0.5);
       doc.line(margin, yPosition, 210 - margin, yPosition);
-      yPosition += 10;
+      yPosition += 8;
+
+      const checkPageBreak = (neededHeight: number) => {
+        if (yPosition + neededHeight > 275) {
+          doc.addPage();
+          yPosition = 20;
+          return true;
+        }
+        return false;
+      };
 
       // Summary/Bio
       if (profile.bio) {
+        checkPageBreak(25);
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(12);
+        doc.setFontSize(10);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.text('PROFESSIONAL SUMMARY', margin, yPosition);
-        yPosition += 5;
+        yPosition += 4;
 
         doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(10);
+        doc.setFontSize(9);
         doc.setTextColor(textColor[0], textColor[1], textColor[2]);
         const splitBio = doc.splitTextToSize(profile.bio, 210 - margin * 2);
         doc.text(splitBio, margin, yPosition);
-        yPosition += (splitBio.length * 5) + 6;
+        yPosition += (splitBio.length * 4.2) + 6;
+      }
+
+      // Work Experience
+      if (profile.workExperience && profile.workExperience.length > 0) {
+        checkPageBreak(25);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('WORK EXPERIENCE', margin, yPosition);
+        yPosition += 5;
+
+        profile.workExperience.forEach((exp: any) => {
+          checkPageBreak(22);
+
+          // Role & Company
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(9.5);
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          doc.text(`${exp.role} — ${exp.company}`, margin, yPosition);
+
+          // Duration right-aligned
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+          const durationStr = exp.duration || '';
+          doc.text(durationStr, 210 - margin - doc.getTextWidth(durationStr), yPosition);
+          yPosition += 4.5;
+
+          // Exp Desc
+          if (exp.description) {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            const splitExpDesc = doc.splitTextToSize(exp.description, 210 - margin * 2);
+            doc.text(splitExpDesc, margin, yPosition);
+            yPosition += (splitExpDesc.length * 4.2) + 5;
+          } else {
+            yPosition += 1;
+          }
+        });
+        yPosition += 2;
+      }
+
+      // Projects Showcase
+      if (profile.projects && profile.projects.length > 0) {
+        checkPageBreak(25);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('PERSONAL PROJECTS', margin, yPosition);
+        yPosition += 5;
+
+        profile.projects.forEach((proj: any, index: number) => {
+          checkPageBreak(22);
+
+          // Project Title
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(9.5);
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          doc.text(`${index + 1}. ${proj.title}`, margin, yPosition);
+
+          if (proj.link) {
+            const titleWidth = doc.getTextWidth(`${index + 1}. ${proj.title}`);
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            const linkText = ` (${proj.link})`;
+            doc.text(linkText, margin + titleWidth + 2, yPosition);
+          }
+          yPosition += 4.5;
+
+          // Tech stack
+          if (proj.stack && proj.stack.length > 0) {
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+            const stackStr = Array.isArray(proj.stack) ? proj.stack.join(', ') : proj.stack;
+            doc.text(`Technologies: ${stackStr}`, margin, yPosition);
+            yPosition += 4;
+          }
+
+          // Description
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+          const splitProjDesc = doc.splitTextToSize(proj.description, 210 - margin * 2);
+          doc.text(splitProjDesc, margin, yPosition);
+          yPosition += (splitProjDesc.length * 4.2) + 5;
+        });
+        yPosition += 2;
       }
 
       // Skills & Expertise
       const rawCatsForPDF = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
       const pdfCats = {
-        frontend: rawCatsForPDF.frontend || [],
-        backend: rawCatsForPDF.backend || [],
-        tools: rawCatsForPDF.tools || [],
-        soft: rawCatsForPDF.soft || []
+        technologies: rawCatsForPDF.technologies || rawCatsForPDF.frontend || [],
+        frameworks: rawCatsForPDF.frameworks || rawCatsForPDF.backend || [],
+        developerTools: rawCatsForPDF.developerTools || rawCatsForPDF.tools || [],
+        databases: rawCatsForPDF.databases || rawCatsForPDF.soft || []
       };
 
       const hasAnySkills = Object.values(pdfCats).some(arr => arr.length > 0);
 
       if (hasAnySkills) {
+        checkPageBreak(25);
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(12);
+        doc.setFontSize(10);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.text('SKILLS & EXPERTISE', margin, yPosition);
-        yPosition += 6;
+        yPosition += 5;
 
         const categoriesList = [
-          { label: 'Frontend', list: pdfCats.frontend },
-          { label: 'Backend', list: pdfCats.backend },
-          { label: 'Tools & DB', list: pdfCats.tools },
-          { label: 'Soft Skills', list: pdfCats.soft }
+          { label: 'Technologies', list: pdfCats.technologies },
+          { label: 'Frameworks/Libraries', list: pdfCats.frameworks },
+          { label: 'Developer Tools', list: pdfCats.developerTools },
+          { label: 'Databases', list: pdfCats.databases }
         ];
 
         categoriesList.forEach((cat) => {
           if (cat.list.length > 0) {
-            // Write Category Label (Bold)
+            checkPageBreak(10);
             doc.setFont('Helvetica', 'bold');
-            doc.setFontSize(9.5);
-            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            doc.setFontSize(9);
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
             const labelText = `${cat.label}: `;
             const labelWidth = doc.getTextWidth(labelText);
             doc.text(labelText, margin, yPosition);
 
-            // Write Category Skills (Normal)
             doc.setFont('Helvetica', 'normal');
-            doc.setFontSize(9.5);
+            doc.setFontSize(9);
             doc.setTextColor(textColor[0], textColor[1], textColor[2]);
             const skillsLineText = cat.list.join(', ');
             const splitSkills = doc.splitTextToSize(skillsLineText, 210 - margin * 2 - labelWidth);
             
-            // Render text
             doc.text(splitSkills, margin + labelWidth, yPosition);
-            yPosition += (splitSkills.length * 5) + 2;
+            yPosition += (splitSkills.length * 4.2) + 1.5;
           }
         });
         yPosition += 4;
       }
 
-      // Projects Showcase
-      if (profile.projects && profile.projects.length > 0) {
+      // Education Section
+      if (profile.education && profile.education.length > 0) {
+        checkPageBreak(25);
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(12);
+        doc.setFontSize(10);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('FEATURED PROJECTS', margin, yPosition);
-        yPosition += 8;
+        doc.text('EDUCATION', margin, yPosition);
+        yPosition += 5;
 
-        profile.projects.forEach((proj: any, index: number) => {
-          // Page boundary check
-          if (yPosition > 250) {
-            doc.addPage();
-            yPosition = 20;
-          }
+        profile.education.forEach((edu: any) => {
+          checkPageBreak(15);
 
-          // Project Title
+          // Degree & University
           doc.setFont('Helvetica', 'bold');
-          doc.setFontSize(11);
-          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-          doc.text(`${index + 1}. ${proj.title}`, margin, yPosition);
-          
-          if (proj.link) {
-            // Measure title width while current bold size 11 font is active
-            const titleWidth = doc.getTextWidth(`${index + 1}. ${proj.title}`);
-            
-            doc.setFont('Helvetica', 'italic');
-            doc.setFontSize(9);
-            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            const linkText = ` [Link: ${proj.link}]`;
-            doc.text(linkText, margin + titleWidth + 2, yPosition);
-          }
-          yPosition += 5;
-
-          // Tech stack
-          if (proj.stack && proj.stack.length > 0) {
-            doc.setFont('Helvetica', 'bold');
-            doc.setFontSize(9);
-            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-            doc.text(`Tech Stack: ${proj.stack.join(', ')}`, margin, yPosition);
-            yPosition += 5;
-          }
-
-          // Description
-          doc.setFont('Helvetica', 'normal');
           doc.setFontSize(9.5);
-          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-          const splitProjDesc = doc.splitTextToSize(proj.description, 210 - margin * 2);
-          doc.text(splitProjDesc, margin, yPosition);
-          yPosition += (splitProjDesc.length * 4.5) + 6;
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          const boardText = edu.board ? ` (${edu.board})` : '';
+          doc.text(`${edu.degree} — ${edu.university}${boardText}`, margin, yPosition);
+
+          // Year right-aligned
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+          const yearStr = edu.year || '';
+          doc.text(yearStr, 210 - margin - doc.getTextWidth(yearStr), yPosition);
+          yPosition += 4.5;
+
+          // CGPA / Grade
+          if (edu.cgpa) {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            doc.text(`CGPA/Grade: ${edu.cgpa}`, margin, yPosition);
+            yPosition += 4.5;
+          }
         });
+        yPosition += 2;
       }
 
-      // Work Experience
-      if (profile.workExperience && profile.workExperience.length > 0) {
-        if (yPosition > 230) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
+      // Certificates Section
+      if (profile.certificates && profile.certificates.length > 0) {
+        checkPageBreak(25);
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(12);
+        doc.setFontSize(10);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('PROFESSIONAL EXPERIENCE', margin, yPosition);
-        yPosition += 8;
+        doc.text('CERTIFICATES & AWARDS', margin, yPosition);
+        yPosition += 5;
 
-        profile.workExperience.forEach((exp: any) => {
-          if (yPosition > 250) {
-            doc.addPage();
-            yPosition = 20;
-          }
-
-          // Role & Company
+        profile.certificates.forEach((cert: any) => {
+          checkPageBreak(10);
           doc.setFont('Helvetica', 'bold');
-          doc.setFontSize(11);
-          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-          doc.text(`${exp.role} at ${exp.company}`, margin, yPosition);
-          
-          // Duration right-aligned
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(9.5);
-          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-          doc.text(exp.duration || '', 210 - margin - doc.getTextWidth(exp.duration || ''), yPosition);
-          yPosition += 5;
+          doc.setFontSize(9);
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          doc.text(cert.name, margin, yPosition);
 
-          // Exp Desc
-          if (exp.description) {
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+          const certInfo = `${cert.issuer || ''} (${cert.year || ''})`;
+          doc.text(certInfo, 210 - margin - doc.getTextWidth(certInfo), yPosition);
+          yPosition += 4.5;
+        });
+        yPosition += 2;
+      }
+
+      // Personal Details Section
+      const hasPersonalDetails = profile.personalDetail && (
+        profile.personalDetail.dob ||
+        profile.personalDetail.gender ||
+        profile.personalDetail.languages ||
+        profile.personalDetail.hobbies
+      );
+
+      if (hasPersonalDetails) {
+        checkPageBreak(25);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('PERSONAL DETAILS', margin, yPosition);
+        yPosition += 5;
+
+        const details = [
+          { label: 'Date of Birth', value: profile.personalDetail.dob },
+          { label: 'Gender', value: profile.personalDetail.gender },
+          { label: 'Languages Known', value: profile.personalDetail.languages },
+          { label: 'Hobbies', value: profile.personalDetail.hobbies }
+        ];
+
+        details.forEach((d) => {
+          if (d.value) {
+            checkPageBreak(8);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+            doc.text(`${d.label}: `, margin, yPosition);
+
             doc.setFont('Helvetica', 'normal');
-            doc.setFontSize(9.5);
+            doc.setFontSize(9);
             doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-            const splitExpDesc = doc.splitTextToSize(exp.description, 210 - margin * 2);
-            doc.text(splitExpDesc, margin, yPosition);
-            yPosition += (splitExpDesc.length * 4.5) + 6;
+            doc.text(d.value, margin + 40, yPosition);
+            yPosition += 4.5;
           }
         });
       }
@@ -520,6 +646,7 @@ const PortfolioBuilderView = () => {
       toast.error('Failed to compile PDF resume.');
     }
   };
+
 
   // Preview mock portfolio
   const handlePreview = () => {
@@ -827,18 +954,18 @@ const PortfolioBuilderView = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { key: 'frontend', label: 'Frontend', icon: <Code2 className="w-4 h-4 text-blue-500" />, colorClass: 'border-blue-500/20 focus-within:border-blue-500', textClass: 'text-blue-500', tagClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' },
-                { key: 'backend', label: 'Backend', icon: <Code2 className="w-4 h-4 text-purple-500" />, colorClass: 'border-purple-500/20 focus-within:border-purple-500', textClass: 'text-purple-500', tagClass: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20' },
-                { key: 'tools', label: 'Tools & DB', icon: <Globe className="w-4 h-4 text-emerald-500" />, colorClass: 'border-emerald-500/20 focus-within:border-emerald-500', textClass: 'text-emerald-500', tagClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
-                { key: 'soft', label: 'Soft Skills', icon: <User className="w-4 h-4 text-amber-500" />, colorClass: 'border-amber-500/20 focus-within:border-amber-500', textClass: 'text-amber-500', tagClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' }
+                { key: 'technologies', label: 'Technologies', icon: <Code2 className="w-4 h-4 text-blue-500" />, colorClass: 'border-blue-500/20 focus-within:border-blue-500', textClass: 'text-blue-500', tagClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' },
+                { key: 'frameworks', label: 'Frameworks/Libraries', icon: <Code2 className="w-4 h-4 text-purple-500" />, colorClass: 'border-purple-500/20 focus-within:border-purple-500', textClass: 'text-purple-500', tagClass: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20' },
+                { key: 'developerTools', label: 'Developer Tools', icon: <Globe className="w-4 h-4 text-emerald-500" />, colorClass: 'border-emerald-500/20 focus-within:border-emerald-500', textClass: 'text-emerald-500', tagClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
+                { key: 'databases', label: 'Databases', icon: <User className="w-4 h-4 text-amber-500" />, colorClass: 'border-amber-500/20 focus-within:border-amber-500', textClass: 'text-amber-500', tagClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' }
               ].map((cat) => {
-                const catKey = cat.key as 'frontend' | 'backend' | 'tools' | 'soft';
-                const rawCats = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
+                const catKey = cat.key as 'technologies' | 'frameworks' | 'developerTools' | 'databases';
+                const rawCats = profile?.categorizedSkills || {};
                 const currentCats = {
-                  frontend: rawCats.frontend || [],
-                  backend: rawCats.backend || [],
-                  tools: rawCats.tools || [],
-                  soft: rawCats.soft || []
+                  technologies: rawCats.technologies || rawCats.frontend || [],
+                  frameworks: rawCats.frameworks || rawCats.backend || [],
+                  developerTools: rawCats.developerTools || rawCats.tools || [],
+                  databases: rawCats.databases || rawCats.soft || []
                 };
                 const skillsList = currentCats[catKey];
 

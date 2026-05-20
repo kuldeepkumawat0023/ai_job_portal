@@ -57,7 +57,7 @@ exports.updateProfile = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized update request', data: null });
     }
 
-    const { fullname, bio, skills, categorizedSkills, experience, education, workExperience, projects, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences } = req.body;
+    const { fullname, bio, skills, categorizedSkills, experience, education, workExperience, projects, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences, certificates, personalDetail } = req.body;
 
     let user = await User.findById(req.params.id);
 
@@ -110,10 +110,10 @@ exports.updateProfile = async (req, res, next) => {
       user.categorizedSkills = typeof categorizedSkills === 'string' ? JSON.parse(categorizedSkills) : categorizedSkills;
       // Keep the flat skills array synced for backwards compatibility and easy search
       user.skills = [
-        ...(user.categorizedSkills.frontend || []),
-        ...(user.categorizedSkills.backend || []),
-        ...(user.categorizedSkills.tools || []),
-        ...(user.categorizedSkills.soft || [])
+        ...(user.categorizedSkills.technologies || user.categorizedSkills.frontend || []),
+        ...(user.categorizedSkills.frameworks || user.categorizedSkills.backend || []),
+        ...(user.categorizedSkills.developerTools || user.categorizedSkills.tools || []),
+        ...(user.categorizedSkills.databases || user.categorizedSkills.soft || [])
       ];
     } else if (skills) {
       user.skills = Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim());
@@ -136,6 +136,12 @@ exports.updateProfile = async (req, res, next) => {
     }
     if (projects) {
       user.projects = typeof projects === 'string' ? JSON.parse(projects) : projects;
+    }
+    if (certificates) {
+      user.certificates = typeof certificates === 'string' ? JSON.parse(certificates) : certificates;
+    }
+    if (personalDetail) {
+      user.personalDetail = typeof personalDetail === 'string' ? JSON.parse(personalDetail) : personalDetail;
     }
 
     if (role && req.user.role === 'admin') user.role = role;
