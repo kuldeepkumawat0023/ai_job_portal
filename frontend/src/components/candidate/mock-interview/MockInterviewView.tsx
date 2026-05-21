@@ -313,9 +313,51 @@ const MockInterviewView = () => {
     return `${m}:${s}`;
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // ─── Background Watermark Image ───
+    const logoImg = new window.Image();
+    logoImg.src = '/images/logo/logoimage.png';
+
+    await new Promise((resolve) => {
+      logoImg.onload = resolve;
+      logoImg.onerror = resolve;
+    });
+
+    const addWatermark = (pageDoc: jsPDF) => {
+      if (logoImg.complete && logoImg.naturalWidth > 0) {
+        pageDoc.saveGraphicsState();
+        pageDoc.setGState(new (pageDoc as any).GState({ opacity: 0.08 }));
+        const imgWidth = 130;
+        const imgHeight = (logoImg.naturalHeight / logoImg.naturalWidth) * imgWidth;
+        pageDoc.addImage(
+          logoImg,
+          'PNG',
+          (pageWidth - imgWidth) / 2,
+          (pageHeight - imgHeight) / 2,
+          imgWidth,
+          imgHeight
+        );
+        pageDoc.restoreGraphicsState();
+      } else {
+        pageDoc.saveGraphicsState();
+        pageDoc.setGState(new (pageDoc as any).GState({ opacity: 0.08 }));
+        pageDoc.setFont('helvetica', 'bold');
+        pageDoc.setFontSize(80);
+        pageDoc.setTextColor(200, 200, 200);
+        pageDoc.text('AI Job Fit', pageWidth / 2, pageHeight / 2, {
+          align: 'center',
+          angle: 45
+        });
+        pageDoc.restoreGraphicsState();
+      }
+    };
+
+    // Draw watermark on first page
+    addWatermark(doc);
     
     // Header
     doc.setFillColor(26, 32, 44);
@@ -359,6 +401,7 @@ const MockInterviewView = () => {
     allAnswers.forEach((item, idx) => {
       if (yPos > 250) {
         doc.addPage();
+        addWatermark(doc);
         yPos = 20;
       }
 

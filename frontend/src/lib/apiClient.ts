@@ -57,12 +57,7 @@ export interface AuthUser {
   location?: string;
   bio?: string;
   skills: string[];
-  categorizedSkills?: {
-    technologies?: string[];
-    frameworks?: string[];
-    developerTools?: string[];
-    databases?: string[];
-  };
+  categorizedSkills?: Array<{ title: string; skills: string[] }>;
   education: Education[];
   certificates?: Certificate[];
   personalDetail?: PersonalDetail;

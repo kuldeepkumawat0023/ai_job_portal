@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Camera, MapPin, Key, Sparkles, Loader2, BrainCircuit, Bell, CreditCard, Zap, CheckCircle2, Receipt, Shield } from 'lucide-react';
+import { Camera, MapPin, Key, Loader2, Bell, CreditCard, Zap, CheckCircle2, Receipt, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { userService } from '@/lib/services/user.services';
@@ -29,10 +29,6 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
 
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-  // Form states (AI Preferences)
-  const [aiScoreThreshold, setAiScoreThreshold] = useState(75);
-  const [aiFocus, setAiFocus] = useState('skills');
-  const [autoOptimize, setAutoOptimize] = useState(true);
 
   // Form states (Notifications)
   const [notifyJobMatch, setNotifyJobMatch] = useState(true);
@@ -45,7 +41,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
-      if (tabParam && ['profile', 'security', 'ai', 'notifications', 'billing'].includes(tabParam)) {
+      if (tabParam && ['profile', 'security', 'notifications', 'billing'].includes(tabParam)) {
         setActiveTab(tabParam);
       }
     }
@@ -104,14 +100,6 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
     }
   };
 
-  const handleSaveAIPrefs = () => {
-    setUpdating(true);
-    setTimeout(() => {
-      setUpdating(false);
-      toast.success('AI matchmaking preferences updated successfully!');
-    }, 600);
-  };
-
   const handleSaveNotifications = () => {
     setUpdating(true);
     setTimeout(() => {
@@ -148,7 +136,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
             </span>
           )}
         </div>
-        <p className="text-lg text-on-surface-variant">Manage your account preferences and AI settings.</p>
+        <p className="text-lg text-on-surface-variant">Manage your account preferences.</p>
       </header>
 
       <div className="flex gap-8 flex-col md:flex-row">
@@ -175,17 +163,6 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                   }`}
               >
                 Account Security & Privacy
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => { setActiveTab('ai'); window.history.pushState(null, '', '/candidate/settings?tab=ai'); }}
-                className={`w-full text-left block px-4 py-2.5 rounded-xl transition-all cursor-pointer ${activeTab === 'ai'
-                  ? 'bg-surface-container text-primary font-bold border-l-4 border-primary shadow-sm'
-                  : 'text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface font-medium'
-                  }`}
-              >
-                AI Preferences
               </button>
             </li>
             <li>
@@ -373,76 +350,6 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                     className="px-8 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 hover:shadow-md transition-all cursor-pointer"
                   >
                     Save Security Settings
-                  </button>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* TAB 3: AI Preferences */}
-          {activeTab === 'ai' && (
-            <section className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm space-y-8 animate-fadeIn">
-              <div className="mb-6 border-b border-outline-variant/20 pb-4">
-                <h2 className="text-3xl font-bold text-on-surface flex items-center gap-3">
-                  <BrainCircuit className="w-8 h-8 text-primary" />
-                  AI Preferences
-                </h2>
-                <p className="text-base text-on-surface-variant mt-2">Tailor the JobFit AI recommendation algorithms to your career goals.</p>
-              </div>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <label className="text-[12px] uppercase font-bold tracking-widest text-on-surface-variant">Match Score Threshold</label>
-                    <span className="text-sm font-bold text-primary">{aiScoreThreshold}% Score</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="50"
-                    max="100"
-                    value={aiScoreThreshold}
-                    onChange={(e) => setAiScoreThreshold(Number(e.target.value))}
-                    className="w-full h-2 bg-surface-container rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
-                  <p className="text-xs text-on-surface-variant mt-1">Only show job openings that match your profile at or above this score threshold.</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[12px] uppercase font-bold tracking-widest text-on-surface-variant font-medium">Resume Analysis Focus</label>
-                  <select
-                    value={aiFocus}
-                    onChange={(e) => setAiFocus(e.target.value)}
-                    className="w-full bg-surface-container border border-outline-variant/30 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary text-on-surface"
-                  >
-                    <option value="skills">Technical Skill Coverage & Match</option>
-                    <option value="experience">STAR Format Projects & Scope</option>
-                    <option value="leadership">Leadership & Domain Impact</option>
-                  </select>
-                  <p className="text-xs text-on-surface-variant mt-1">Select the key resume facet our AI optimizer should prioritize during optimization.</p>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-surface-container/20 rounded-xl border border-outline-variant/10">
-                  <div>
-                    <h4 className="text-sm font-bold text-on-surface">Auto-Suggest Cover Letters</h4>
-                    <p className="text-xs text-on-surface-variant mt-1">Allow JobFit AI to instantly draft high-relevance cover letters upon matching job postings.</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={autoOptimize}
-                      onChange={(e) => setAutoOptimize(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                  </label>
-                </div>
-
-                <div className="pt-4 flex justify-end">
-                  <button
-                    onClick={handleSaveAIPrefs}
-                    className="px-8 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 hover:shadow-md transition-all cursor-pointer"
-                  >
-                    Save AI Preferences
                   </button>
                 </div>
               </div>

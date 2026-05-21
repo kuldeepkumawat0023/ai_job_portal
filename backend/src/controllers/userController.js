@@ -57,7 +57,7 @@ exports.updateProfile = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized update request', data: null });
     }
 
-    const { fullname, bio, skills, categorizedSkills, experience, education, workExperience, projects, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences } = req.body;
+    const { fullname, bio, skills, categorizedSkills, experience, education, workExperience, projects, certificates, personalDetail, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences } = req.body;
 
     let user = await User.findById(req.params.id);
 
@@ -87,13 +87,13 @@ exports.updateProfile = async (req, res, next) => {
     }
 
     // Update text fields
-    if (fullname) user.fullname = fullname;
-    if (bio) user.bio = bio;
-    if (location) user.location = location;
-    if (phoneNumber) user.phoneNumber = phoneNumber;
-    if (countryCode) user.countryCode = countryCode;
-    if (jobRole) user.jobRole = jobRole;
-    if (department) user.department = department;
+    if (fullname !== undefined) user.fullname = fullname;
+    if (bio !== undefined) user.bio = bio;
+    if (location !== undefined) user.location = location;
+    if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+    if (countryCode !== undefined) user.countryCode = countryCode;
+    if (jobRole !== undefined) user.jobRole = jobRole;
+    if (department !== undefined) user.department = department;
 
     if (twoFactorEnabled !== undefined) {
       user.twoFactorEnabled = twoFactorEnabled === 'true' || twoFactorEnabled === true;
@@ -108,13 +108,16 @@ exports.updateProfile = async (req, res, next) => {
     // Parse skills if it's a string (e.g. from a form field)
     if (categorizedSkills) {
       user.categorizedSkills = typeof categorizedSkills === 'string' ? JSON.parse(categorizedSkills) : categorizedSkills;
-      // Keep the flat skills array synced for backwards compatibility and easy search
-      user.skills = [
-        ...(user.categorizedSkills.technologies || []),
-        ...(user.categorizedSkills.frameworks || []),
-        ...(user.categorizedSkills.developerTools || []),
-        ...(user.categorizedSkills.databases || [])
-      ];
+      // Flatten all skill groups into the skills[] array for backward compatibility and search
+      const allSkills = [];
+      if (Array.isArray(user.categorizedSkills)) {
+        user.categorizedSkills.forEach(group => {
+          if (Array.isArray(group.skills)) {
+            group.skills.forEach(s => { if (s && !allSkills.includes(s)) allSkills.push(s); });
+          }
+        });
+      }
+      user.skills = allSkills;
     } else if (skills) {
       user.skills = Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim());
     }
@@ -136,6 +139,12 @@ exports.updateProfile = async (req, res, next) => {
     }
     if (projects) {
       user.projects = typeof projects === 'string' ? JSON.parse(projects) : projects;
+    }
+    if (certificates) {
+      user.certificates = typeof certificates === 'string' ? JSON.parse(certificates) : certificates;
+    }
+    if (personalDetail) {
+      user.personalDetail = typeof personalDetail === 'string' ? JSON.parse(personalDetail) : personalDetail;
     }
 
     if (role && req.user.role === 'admin') user.role = role;

@@ -4,8 +4,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   X,
-  UploadCloud,
-  BrainCircuit,
   CheckCircle2,
   AlertCircle,
   User,
@@ -21,56 +19,25 @@ import {
   Code2,
   Calendar,
   ChevronRight,
+  ChevronDown,
   Sparkle,
   ArrowLeft
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { userService } from '@/lib/services/user.services';
-import { resumeService } from '@/lib/services/resume.services';
+
 import { cn } from '@/utils/cn';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProfileEditViewProps {
   profile: any;
   onClose: () => void;
 }
 
-type TabType = 'ai_scan' | 'basic' | 'skills' | 'work' | 'projects' | 'education' | 'certificates' | 'personal';
 
-const categorizeSkills = (skillsArray: string[]) => {
-  const categories: { technologies: string[], frameworks: string[], developerTools: string[], databases: string[] } = {
-    technologies: [],
-    frameworks: [],
-    developerTools: [],
-    databases: []
-  };
 
-  const databaseKeywords = ['db', 'database', 'mongo', 'mysql', 'postgres', 'sql', 'redis', 'cassandra', 'sqlite', 'oracle', 'mariadb', 'dynamodb', 'firebase', 'supabase', 'prisma', 'mongoose'];
-  const devToolsKeywords = ['git', 'docker', 'kubernetes', 'postman', 'vs code', 'vscode', 'figma', 'xampp', 'webpack', 'vite', 'jenkins', 'aws', 'azure', 'gcp', 'github', 'gitlab', 'bitbucket', 'jira', 'npm', 'yarn', 'pnpm', 'eslint', 'prettier', 'cicd', 'ci/cd', 'ansible', 'terraform', 'postgressql'];
-  const frameworkKeywords = ['react', 'vue', 'angular', 'next.js', 'nextjs', 'nuxt', 'svelte', 'node', 'express', 'django', 'flask', 'spring', 'laravel', 'bootstrap', 'tailwind', 'jquery', 'fastify', 'nest', 'rails', 'asp.net', 'net core', 'libraries', 'library', 'framework'];
 
-  (skillsArray || []).forEach(skill => {
-    const s = skill.toLowerCase().trim();
-    if (databaseKeywords.some(k => s.includes(k))) {
-      categories.databases.push(skill);
-    } else if (devToolsKeywords.some(k => s.includes(k))) {
-      categories.developerTools.push(skill);
-    } else if (frameworkKeywords.some(k => s.includes(k))) {
-      categories.frameworks.push(skill);
-    } else {
-      categories.technologies.push(skill);
-    }
-  });
 
-  return categories;
-};
-
-// Curated skill suggestions for quick recommendations
-const SKILL_RECOMMENDATIONS = {
-  technologies: ['JavaScript', 'TypeScript', 'Java', 'Python', 'C++', 'Go', 'PHP', 'HTML5', 'CSS3', 'Sass'],
-  frameworks: ['React.js', 'Next.js', 'Node.js', 'Express.js', 'NestJS', 'Angular', 'Vue.js', 'Django', 'Flask', 'Spring Boot', 'Tailwind CSS'],
-  developerTools: ['Git', 'GitHub', 'Docker', 'Kubernetes', 'AWS', 'GCP', 'Postman', 'Figma', 'VS Code', 'Vite', 'Webpack'],
-  databases: ['MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'Supabase', 'Firebase', 'Prisma', 'Mongoose', 'SQLite']
-};
 
 // Helper to format any date string into standard HTML date input format YYYY-MM-DD
 const formatDateForInput = (dateStr: string) => {
@@ -87,11 +54,36 @@ const formatDateForInput = (dateStr: string) => {
   return '';
 };
 
+const getGenderStyles = (gender: string) => {
+  const g = (gender || 'Male').toLowerCase();
+  if (g === 'male') {
+    return 'bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/30 dark:border-blue-500/40 text-blue-600 dark:text-blue-400 focus:border-blue-500';
+  }
+  if (g === 'female') {
+    return 'bg-pink-500/5 dark:bg-pink-500/10 border-pink-500/30 dark:border-pink-500/40 text-pink-600 dark:text-pink-400 focus:border-pink-500';
+  }
+  return 'bg-purple-500/5 dark:bg-purple-500/10 border-purple-500/30 dark:border-purple-500/40 text-purple-600 dark:text-purple-400 focus:border-purple-500';
+};
+
 export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>('ai_scan');
+  const { updateUser } = useAuth();
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Custom Gender Dropdown State & Ref
+  const [isGenderOpen, setIsGenderOpen] = useState(false);
+  const genderDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (genderDropdownRef.current && !genderDropdownRef.current.contains(event.target as Node)) {
+        setIsGenderOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleBack = () => {
     if (onClose) {
@@ -99,14 +91,6 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
     }
     router.push('/candidate/settings/profile');
   };
-
-  // Resume Upload / AI Scanner States
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [scannedResumeData, setScannedResumeData] = useState<any>(null);
-  const [autoFilled, setAutoFilled] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form State
   const [editForm, setEditForm] = useState<any>({
@@ -121,36 +105,38 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
     workExperience: [],
     projects: [],
     certificates: [],
+    skillGroups: [] as Array<{ title: string; skills: string[] }>,
     personalDetail: {
       dob: '',
-      gender: '',
+      gender: 'Male',
       languages: '',
       hobbies: ''
     }
   });
 
-  // Keep track of which fields were auto-filled by AI
-  const [aiFilledFields, setAiFilledFields] = useState<Record<string, boolean>>({});
-
   // Initialize edit form from profile prop
   useEffect(() => {
     if (profile) {
-      const rawCats = (profile.categorizedSkills || {}) as any;
-      const parsedSkillsObj = {
-        technologies: rawCats.technologies || rawCats.frontend || [],
-        frameworks: rawCats.frameworks || rawCats.backend || [],
-        developerTools: rawCats.developerTools || rawCats.tools || [],
-        databases: rawCats.databases || rawCats.soft || []
-      };
-      const hasExistingCategorized = Object.values(parsedSkillsObj).some(arr => arr && arr.length > 0);
-      const finalSkillsObj = hasExistingCategorized ? parsedSkillsObj : categorizeSkills(profile.skills || []);
+      // Migrate old categorizedSkills object → new array format if needed
+      const rawCats = profile.categorizedSkills;
+      let initialSkillGroups: Array<{ title: string; skills: string[] }> = [];
+
+      if (Array.isArray(rawCats) && rawCats.length > 0) {
+        // New dynamic array format — load as-is
+        initialSkillGroups = rawCats.map((g: any) => ({ title: g.title || '', skills: Array.isArray(g.skills) ? g.skills : [] }));
+      }
+
+      // If no categorized skill groups but has a flat skills array, put them in one group
+      if (initialSkillGroups.length === 0 && profile.skills?.length > 0) {
+        initialSkillGroups = [{ title: '', skills: profile.skills }];
+      }
 
       const newForm = {
         fullname: profile.fullname || '',
         bio: profile.bio || '',
         experience: profile.experience !== undefined ? profile.experience : 0,
         skills: profile.skills || [],
-        skillsObj: finalSkillsObj,
+        skillGroups: initialSkillGroups,
         location: profile.location || '',
         phoneNumber: profile.phoneNumber || '',
         countryCode: profile.countryCode || '+91',
@@ -160,122 +146,18 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
         certificates: profile.certificates || [],
         personalDetail: {
           dob: profile.personalDetail?.dob ? formatDateForInput(profile.personalDetail.dob) : '',
-          gender: profile.personalDetail?.gender || '',
+          gender: profile.personalDetail?.gender || 'Male',
           languages: profile.personalDetail?.languages || '',
           hobbies: profile.personalDetail?.hobbies || ''
         }
       };
 
       setEditForm(newForm);
-
-      // Pre-run validation checks removed to mirror MatrimonialCreate.tsx.
-      // We will only validate and populate errors upon saving the form.
       setErrors({});
     }
   }, [profile]);
 
-  // AI Scanner upload & parse logic
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-      toast.success(`Resume selected: ${e.target.files[0].name}`);
-    }
-  };
 
-  const handleStartResumeScan = async () => {
-    if (!file) return;
-    try {
-      setUploading(true);
-      const formData = new FormData();
-      formData.append('resume', file);
-
-      // 1. Upload Resume
-      const res = await resumeService.uploadResume(formData);
-      if (res.success && res.data) {
-        setUploading(false);
-        setAnalyzing(true);
-
-        // 2. Trigger AI Analysis
-        const analysisRes = await resumeService.analyzeResume(res.data._id);
-        if (analysisRes.success && analysisRes.data) {
-          setScannedResumeData(analysisRes.data);
-          toast.success('AI Resume Scan Complete!');
-        } else {
-          toast.error('AI Analysis failed to extract parameters.');
-        }
-      } else {
-        toast.error('Resume upload failed.');
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error('Failed to parse resume with AI.');
-    } finally {
-      setUploading(false);
-      setAnalyzing(false);
-    }
-  };
-
-  const handleApplyAiAutoFill = () => {
-    if (!scannedResumeData) return;
-
-    const parsedSkills = scannedResumeData.skills || [];
-    const parsedSkillsObj = categorizeSkills(parsedSkills);
-    const parsedSummary = scannedResumeData.summary || '';
-    const parsedExpLevel = scannedResumeData.experience; // 'Senior' | 'Mid' | 'Entry'
-    const experienceYears = parsedExpLevel === 'Senior' ? 5 : parsedExpLevel === 'Mid' ? 3 : 1;
-
-    // Apply auto-fill to form state
-    setEditForm((prev: any) => {
-      const updatedWorkExperience = [...prev.workExperience];
-      if (scannedResumeData.recommendedRoles && scannedResumeData.recommendedRoles.length > 0 && updatedWorkExperience.length === 0) {
-        updatedWorkExperience.push({
-          role: scannedResumeData.recommendedRoles[0],
-          company: 'Based on Resume Analysis',
-          duration: 'Current',
-          description: 'Auto-detected by JobFit AI during your resume upload analysis.'
-        });
-      }
-
-      return {
-        ...prev,
-        bio: parsedSummary || prev.bio,
-        skills: parsedSkills.length > 0 ? parsedSkills : prev.skills,
-        skillsObj: parsedSkills.length > 0 ? parsedSkillsObj : prev.skillsObj,
-        experience: prev.experience === 0 ? experienceYears : prev.experience,
-        workExperience: updatedWorkExperience
-      };
-    });
-
-    // Clear matching errors for newly auto-filled properties dynamically
-    setErrors(prev => {
-      const updated = { ...prev };
-      if (parsedSummary) delete updated.bio;
-      if (experienceYears) delete updated.experience;
-      if (scannedResumeData.recommendedRoles && scannedResumeData.recommendedRoles.length > 0 && editForm.workExperience.length === 0) {
-        delete updated['workExperience_0_role'];
-        delete updated['workExperience_0_company'];
-        delete updated['workExperience_0_duration'];
-        delete updated['workExperience_0_description'];
-      }
-      return updated;
-    });
-
-    // Tag fields as AI filled for sparkles UI indicators
-    setAiFilledFields({
-      bio: !!parsedSummary,
-      skills: parsedSkills.length > 0,
-      experience: editForm.experience === 0,
-      workExperience: editForm.workExperience.length === 0 && !!scannedResumeData.recommendedRoles?.[0]
-    });
-
-    setAutoFilled(true);
-    toast.success('🪄 Profile auto-filled with parsed resume data!', {
-      icon: '✨',
-      duration: 4000
-    });
-    // Navigate to basic tab to show changes
-    setActiveTab('basic');
-  };
 
   // Nest item manipulation helpers
   const addItem = (field: string, template: any) => {
@@ -380,30 +262,48 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
     });
   };
 
-  // Custom skills manipulations
-  const handleAddSkillTag = (category: string, skill: string) => {
-    const val = skill.trim();
-    if (val && editForm.skillsObj && !editForm.skillsObj[category].includes(val)) {
-      setEditForm((prev: any) => ({
-        ...prev,
-        skillsObj: {
-          ...prev.skillsObj,
-          [category]: [...prev.skillsObj[category], val]
-        }
-      }));
-    }
+  // Skill Group helpers (dynamic categorized skills)
+  const addSkillGroup = () => {
+    setEditForm((prev: any) => ({
+      ...prev,
+      skillGroups: [...(prev.skillGroups || []), { title: '', skills: [] }]
+    }));
   };
 
-  const handleRemoveSkillTag = (category: string, skill: string) => {
-    if (editForm.skillsObj) {
-      setEditForm((prev: any) => ({
-        ...prev,
-        skillsObj: {
-          ...prev.skillsObj,
-          [category]: prev.skillsObj[category].filter((s: string) => s !== skill)
-        }
-      }));
-    }
+  const removeSkillGroup = (index: number) => {
+    setEditForm((prev: any) => ({
+      ...prev,
+      skillGroups: (prev.skillGroups || []).filter((_: any, i: number) => i !== index)
+    }));
+  };
+
+  const updateSkillGroupTitle = (index: number, title: string) => {
+    setEditForm((prev: any) => {
+      const updated = [...(prev.skillGroups || [])];
+      updated[index] = { ...updated[index], title };
+      return { ...prev, skillGroups: updated };
+    });
+  };
+
+  const addSkillToGroup = (groupIndex: number, skill: string) => {
+    const val = skill.trim();
+    if (!val) return;
+    setEditForm((prev: any) => {
+      const updated = [...(prev.skillGroups || [])];
+      const currentSkills = updated[groupIndex]?.skills || [];
+      if (!currentSkills.includes(val)) {
+        updated[groupIndex] = { ...updated[groupIndex], skills: [...currentSkills, val] };
+      }
+      return { ...prev, skillGroups: updated };
+    });
+  };
+
+  const removeSkillFromGroup = (groupIndex: number, skill: string) => {
+    setEditForm((prev: any) => {
+      const updated = [...(prev.skillGroups || [])];
+      updated[groupIndex] = { ...updated[groupIndex], skills: (updated[groupIndex]?.skills || []).filter((s: string) => s !== skill) };
+      return { ...prev, skillGroups: updated };
+    });
   };
 
   // Dynamic Validation Engine
@@ -636,25 +536,25 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
 
     setSaving(true);
     try {
-      const mergedSkills = [
-        ...(editForm.skillsObj?.technologies || []),
-        ...(editForm.skillsObj?.frameworks || []),
-        ...(editForm.skillsObj?.developerTools || []),
-        ...(editForm.skillsObj?.databases || [])
-      ];
+      // Build flat skills array from all skill groups
+      const allSkills: string[] = [];
+      (editForm.skillGroups || []).forEach((g: any) => {
+        (g.skills || []).forEach((s: string) => { if (s && !allSkills.includes(s)) allSkills.push(s); });
+      });
 
       const payload = {
         ...editForm,
-        skills: mergedSkills.length > 0 ? mergedSkills : editForm.skills,
-        categorizedSkills: editForm.skillsObj
+        skills: allSkills,
+        categorizedSkills: editForm.skillGroups || []
       };
-      delete payload.skillsObj; // Remove raw view helper
+      delete payload.skillGroups;
 
       const res = await userService.updateProfile(profile._id, payload);
       if (res.success) {
         toast.success('Your professional portfolio has been saved successfully!');
         // Update local storage to keep candidate data synchronized
         localStorage.setItem('portal_user', JSON.stringify(res.data));
+        updateUser(res.data);
         onClose();
       }
     } catch (error) {
@@ -665,32 +565,7 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
     }
   };
 
-  // Section completion check (sidebar checkmarks)
-  const isSectionComplete = (section: TabType): boolean => {
-    switch (section) {
-      case 'basic':
-        return !!(editForm.fullname && editForm.location && editForm.bio);
-      case 'skills':
-        return !!(
-          editForm.skillsObj?.technologies?.length ||
-          editForm.skillsObj?.frameworks?.length ||
-          editForm.skillsObj?.developerTools?.length ||
-          editForm.skillsObj?.databases?.length
-        );
-      case 'work':
-        return editForm.workExperience?.length > 0;
-      case 'projects':
-        return editForm.projects?.length > 0;
-      case 'education':
-        return editForm.education?.length > 0;
-      case 'certificates':
-        return editForm.certificates?.length > 0;
-      case 'personal':
-        return !!(editForm.personalDetail?.dob || editForm.personalDetail?.gender || editForm.personalDetail?.languages);
-      default:
-        return false;
-    }
-  };
+
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 pb-20 px-4 md:px-0 animate-fadeIn">
@@ -733,119 +608,7 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-        {/* 1. AI Resume Optimizer Section */}
-        <div className="relative overflow-hidden bg-primary/5 rounded-[24px] p-6 md:p-8 border border-outline-variant/10">
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary/10 rounded-full blur-[100px] pointer-events-none"></div>
-          <h3 className="text-lg font-black text-on-surface flex items-center gap-3 mb-4 uppercase tracking-wider">
-            <BrainCircuit className="w-5 h-5 text-primary animate-pulse" /> AI Resume Optimizer
-          </h3>
-          <p className="text-sm text-on-surface-variant mb-6 font-medium max-w-2xl">
-            Instantly scan and deconstruct your resume. Our AI engine will auto-fill your core expertise, professional summary, work history, and key projects down below!
-          </p>
-
-          {!scannedResumeData && !uploading && !analyzing ? (
-            <div
-              className="border-2 border-dashed border-primary/20 hover:border-primary/50 transition-all rounded-3xl p-8 flex flex-col items-center justify-center text-center cursor-pointer bg-white dark:bg-black/10 hover:bg-primary/[0.02] group relative overflow-hidden"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,.docx" onChange={handleFileChange} />
-              <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-inner">
-                <UploadCloud className="w-6 h-6" />
-              </div>
-              <h4 className="text-sm font-black text-on-surface mb-1">
-                {file ? file.name : "Drag or select your CV document"}
-              </h4>
-              <p className="text-[11px] text-on-surface-variant font-medium max-w-sm mb-4">
-                Supports PDF or DOCX up to 5MB. Highly recommended for accurate profile creation.
-              </p>
-              {file && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleStartResumeScan();
-                  }}
-                  className="gradient-button text-white font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-xl shadow-lg hover:scale-[1.02] transition-all flex items-center gap-2 cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5" /> Start AI Extraction
-                </button>
-              )}
-            </div>
-          ) : uploading || analyzing ? (
-            <div className="border border-outline-variant/20 rounded-3xl p-12 flex flex-col items-center justify-center text-center relative overflow-hidden bg-surface-container/20">
-              <div className="absolute inset-0 bg-primary/[0.01] animate-pulse"></div>
-              <div className="relative w-24 h-24 mb-4">
-                <div className="absolute inset-0 rounded-full border-4 border-primary/10 animate-ping"></div>
-                <div className="absolute inset-0 rounded-full border-2 border-dashed border-primary animate-spin-slow"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <BrainCircuit className="w-8 h-8 text-primary animate-bounce" />
-                </div>
-              </div>
-              <h4 className="text-base font-black text-on-surface mb-1">
-                {uploading ? "Uploading Document..." : "AI Intelligence Parsing..."}
-              </h4>
-              <p className="text-[11px] text-on-surface-variant max-w-xs font-medium">
-                {uploading
-                  ? "Uploading files securely to AI JobFit Cloud Engine..."
-                  : "Deconstructing paragraphs, scoring keywords, and parsing structural nodes..."}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="p-5 bg-white dark:bg-black/15 border border-outline-variant/10 rounded-2xl grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                <div className="md:col-span-3 flex flex-col items-center text-center">
-                  <div className="relative w-20 h-20 flex items-center justify-center mb-1">
-                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36">
-                      <circle cx="18" cy="18" r="16" fill="none" className="stroke-surface-container-highest" strokeWidth="2.5" />
-                      <circle
-                        cx="18" cy="18" r="16" fill="none"
-                        className="stroke-primary"
-                        strokeWidth="2.5"
-                        strokeDasharray={`${scannedResumeData.score || 0}, 100`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <span className="text-2xl font-black text-primary">{scannedResumeData.score || 0}%</span>
-                  </div>
-                  <span className="text-[8px] font-black uppercase tracking-widest text-on-surface-variant">ATS Score</span>
-                </div>
-
-                <div className="md:col-span-9 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded border border-emerald-500/20 uppercase tracking-widest">
-                      Extraction Successful
-                    </span>
-                    <span className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20 uppercase tracking-widest">
-                      {scannedResumeData.experience || 'Entry'} Level
-                    </span>
-                  </div>
-                  <p className="text-xs font-semibold text-on-surface leading-relaxed italic">
-                    "{scannedResumeData.summary || 'No summary was generated.'}"
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleApplyAiAutoFill}
-                  className="flex-1 bg-gradient-to-r from-primary to-secondary text-white font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg hover:scale-[1.01] transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4 animate-spin-slow" /> Apply AI Auto-fill to Forms
-                </button>
-                <button
-                  onClick={() => {
-                    setScannedResumeData(null);
-                    setFile(null);
-                  }}
-                  className="px-5 py-3 border border-outline-variant/20 rounded-xl text-xs font-bold text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer"
-                >
-                  Scan Another
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="border-t border-outline-variant/10 pt-10">
+        <div>
           {/* 2. Basic Information Section */}
           <h3 className="text-lg font-black text-on-surface flex items-center gap-3 mb-6 uppercase tracking-widest">
             <User className="w-5 h-5 text-primary" /> Basic Information
@@ -970,38 +733,33 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="space-y-1.5">
               <label className={cn("text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1.5", errors.experience && "!text-red-500")}>Experience (Years)</label>
-              <div className="relative">
-                <input
-                  id="experience"
-                  type="number"
-                  className={cn(
-                    "w-full bg-surface-container/40 border rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-medium text-sm text-on-surface",
-                    errors.experience ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/20 focus:border-primary"
-                  )}
-                  value={editForm.experience}
-                  onChange={e => {
-                    const val = e.target.value;
-                    setEditForm({ ...editForm, experience: val === '' ? '' : parseInt(val) || 0 });
-                    if (val === '') {
-                      setErrors(prev => ({ ...prev, experience: 'Experience is required' }));
-                    } else {
-                      const expNum = parseInt(val);
-                      if (isNaN(expNum) || expNum < 0 || expNum > 100) {
-                        setErrors(prev => ({ ...prev, experience: 'Experience must be between 0 and 100 years' }));
-                      } else {
-                        setErrors(prev => {
-                          const updated = { ...prev };
-                          delete updated.experience;
-                          return updated;
-                        });
-                      }
-                    }
-                  }}
-                />
-                {aiFilledFields.experience && (
-                  <Sparkles className="w-4 h-4 text-emerald-500 absolute right-4 top-1/2 -translate-y-1/2" />
+              <input
+                id="experience"
+                type="number"
+                className={cn(
+                  "w-full bg-surface-container/40 border rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-medium text-sm text-on-surface",
+                  errors.experience ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/20 focus:border-primary"
                 )}
-              </div>
+                value={editForm.experience}
+                onChange={e => {
+                  const val = e.target.value;
+                  setEditForm({ ...editForm, experience: val === '' ? '' : parseInt(val) || 0 });
+                  if (val === '') {
+                    setErrors(prev => ({ ...prev, experience: 'Experience is required' }));
+                  } else {
+                    const expNum = parseInt(val);
+                    if (isNaN(expNum) || expNum < 0 || expNum > 100) {
+                      setErrors(prev => ({ ...prev, experience: 'Experience must be between 0 and 100 years' }));
+                    } else {
+                      setErrors(prev => {
+                        const updated = { ...prev };
+                        delete updated.experience;
+                        return updated;
+                      });
+                    }
+                  }
+                }}
+              />
               {errors.experience && <p className="text-[10px] !text-red-500 font-bold ml-1.5 mt-1 uppercase tracking-widest">{errors.experience}</p>}
             </div>
           </div>
@@ -1011,110 +769,137 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
               <label className={cn("text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1.5", errors.bio && "!text-red-500")}>Professional Bio</label>
               <span className="text-[10px] text-on-surface-variant opacity-60 font-bold uppercase tracking-wider">{editForm.bio?.length || 0} / 500 characters</span>
             </div>
-            <div className="relative">
-              <textarea
-                id="bio"
-                rows={4}
-                maxLength={500}
-                className={cn(
-                  "w-full bg-surface-container/40 border rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-medium resize-none text-sm text-on-surface leading-relaxed",
-                  errors.bio ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/20 focus:border-primary"
-                )}
-                value={editForm.bio}
-                onChange={e => {
-                  setEditForm({ ...editForm, bio: e.target.value });
-                  if (e.target.value.trim() === '') {
-                    setErrors(prev => ({ ...prev, bio: 'Professional bio is required' }));
-                  } else if (e.target.value.length < 10) {
-                    setErrors(prev => ({ ...prev, bio: 'Bio must be at least 10 characters long' }));
-                  } else {
-                    setErrors(prev => {
-                      const updated = { ...prev };
-                      delete updated.bio;
-                      return updated;
-                    });
-                  }
-                }}
-                placeholder="Write a brief, impactful introductory bio about your career path..."
-              />
-              {aiFilledFields.bio && (
-                <Sparkles className="w-4 h-4 text-emerald-500 absolute right-4 bottom-4" />
+            <textarea
+              id="bio"
+              rows={4}
+              maxLength={500}
+              className={cn(
+                "w-full bg-surface-container/40 border rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-medium resize-none text-sm text-on-surface leading-relaxed",
+                errors.bio ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/20 focus:border-primary"
               )}
-            </div>
+              value={editForm.bio}
+              onChange={e => {
+                setEditForm({ ...editForm, bio: e.target.value });
+                if (e.target.value.trim() === '') {
+                  setErrors(prev => ({ ...prev, bio: 'Professional bio is required' }));
+                } else if (e.target.value.length < 10) {
+                  setErrors(prev => ({ ...prev, bio: 'Bio must be at least 10 characters long' }));
+                } else {
+                  setErrors(prev => {
+                    const updated = { ...prev };
+                    delete updated.bio;
+                    return updated;
+                  });
+                }
+              }}
+              placeholder="Write a brief, impactful introductory bio about your career path..."
+            />
             {errors.bio && <p className="text-[10px] !text-red-500 font-bold ml-1.5 mt-1 uppercase tracking-widest">{errors.bio}</p>}
           </div>
         </div>
 
         <div className="border-t border-outline-variant/10 pt-10">
           {/* 3. Skill Galaxy Section */}
-          <h3 className="text-lg font-black text-on-surface flex items-center gap-3 mb-6 uppercase tracking-widest">
-            <Code2 className="w-5 h-5 text-primary" /> Skill Galaxy
-          </h3>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-black text-on-surface flex items-center gap-3 uppercase tracking-widest">
+              <Code2 className="w-5 h-5 text-primary" /> Skill Galaxy
+            </h3>
+            <button
+              type="button"
+              onClick={addSkillGroup}
+              className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl hover:bg-primary/20 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> Add Skill Group
+            </button>
+          </div>
 
-          {editForm.skillsObj && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { key: 'technologies', label: 'Technologies & Languages', color: 'bg-blue-500/10 border-blue-500/20 text-blue-500', suggestions: SKILL_RECOMMENDATIONS.technologies },
-                { key: 'frameworks', label: 'Frameworks & Libraries', color: 'bg-purple-500/10 border-purple-500/20 text-purple-500', suggestions: SKILL_RECOMMENDATIONS.frameworks },
-                { key: 'developerTools', label: 'Developer Tools & CI/CD', color: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500', suggestions: SKILL_RECOMMENDATIONS.developerTools },
-                { key: 'databases', label: 'Databases & Cloud Stores', color: 'bg-amber-500/10 border-amber-500/20 text-amber-500', suggestions: SKILL_RECOMMENDATIONS.databases }
-              ].map((cat) => (
-                <div key={cat.key} className="space-y-4 p-5 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner flex flex-col justify-between min-h-[250px]">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0", cat.color)}>
-                        <Code2 className="w-4 h-4" />
-                      </div>
-                      <h4 className="font-black text-xs text-on-surface uppercase tracking-wider">{cat.label}</h4>
-                    </div>
+          <div className="space-y-6">
+            {(editForm.skillGroups || []).map((group: any, gi: number) => {
+              // Cycle through distinct colors per group
+              const groupColors = [
+                { dot: 'bg-blue-500', tag: 'bg-blue-500/10 border-blue-500/20 text-blue-500', inputFocus: 'focus:border-blue-400', border: 'border-blue-500/20 hover:border-blue-400/40' },
+                { dot: 'bg-purple-500', tag: 'bg-purple-500/10 border-purple-500/20 text-purple-500', inputFocus: 'focus:border-purple-400', border: 'border-purple-500/20 hover:border-purple-400/40' },
+                { dot: 'bg-emerald-500', tag: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500', inputFocus: 'focus:border-emerald-400', border: 'border-emerald-500/20 hover:border-emerald-400/40' },
+                { dot: 'bg-amber-500', tag: 'bg-amber-500/10 border-amber-500/20 text-amber-500', inputFocus: 'focus:border-amber-400', border: 'border-amber-500/20 hover:border-amber-400/40' },
+                { dot: 'bg-rose-500', tag: 'bg-rose-500/10 border-rose-500/20 text-rose-500', inputFocus: 'focus:border-rose-400', border: 'border-rose-500/20 hover:border-rose-400/40' },
+                { dot: 'bg-cyan-500', tag: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-500', inputFocus: 'focus:border-cyan-400', border: 'border-cyan-500/20 hover:border-cyan-400/40' },
+              ];
+              const col = groupColors[gi % groupColors.length];
 
+              return (
+                <div key={gi} className={cn(
+                  "p-6 bg-surface-container/20 rounded-3xl border relative group transition-all duration-300",
+                  col.border
+                )}>
+                  {/* Delete Group Button */}
+                  <button
+                    type="button"
+                    onClick={() => removeSkillGroup(gi)}
+                    className="absolute top-4 right-4 p-2 text-on-surface-variant hover:text-error hover:bg-error/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+
+                  {/* Group Title */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={cn("w-3 h-3 rounded-full shrink-0", col.dot)}></div>
                     <input
-                      className="w-full bg-white dark:bg-black/15 border border-outline-variant/15 rounded-xl px-3 py-2.5 text-xs focus:border-primary outline-none"
-                      placeholder="Press Enter to add tag..."
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const target = e.target as HTMLInputElement;
-                          if (target.value.trim()) {
-                            handleAddSkillTag(cat.key, target.value);
-                            target.value = '';
-                          }
-                        }
-                      }}
+                      type="text"
+                      maxLength={40}
+                      placeholder="Group title (e.g. Marketing, Development, Design...)"
+                      value={group.title}
+                      onChange={e => updateSkillGroupTitle(gi, e.target.value)}
+                      className="flex-1 bg-transparent border-b border-outline-variant/20 px-1 py-1 text-sm font-black text-on-surface uppercase tracking-widest focus:outline-none focus:border-primary placeholder:normal-case placeholder:tracking-normal placeholder:font-medium placeholder:text-on-surface-variant/40 transition-colors"
                     />
-
-                    <div className="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto pt-1">
-                      {editForm.skillsObj[cat.key]?.map((skill: string) => (
-                        <span key={skill} className={cn("flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold rounded-lg border group", cat.color)}>
-                          {skill}
-                          <X className="w-2.5 h-2.5 cursor-pointer opacity-60 group-hover:opacity-100 shrink-0" onClick={() => handleRemoveSkillTag(cat.key, skill)} />
-                        </span>
-                      ))}
-                      {(!editForm.skillsObj[cat.key] || editForm.skillsObj[cat.key].length === 0) && (
-                        <span className="text-[10px] text-on-surface-variant opacity-40 font-bold italic py-1">No tags listed.</span>
-                      )}
-                    </div>
                   </div>
 
-                  <div className="pt-3 border-t border-outline-variant/10 space-y-1.5">
-                    <span className="text-[9px] font-black uppercase tracking-wider text-on-surface-variant opacity-60">Suggested tags:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {cat.suggestions.filter(s => !editForm.skillsObj[cat.key]?.includes(s)).slice(0, 4).map(s => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => handleAddSkillTag(cat.key, s)}
-                          className="text-[9px] font-bold px-2 py-0.5 rounded border border-outline-variant/20 hover:border-primary/30 text-on-surface-variant hover:text-primary transition-all bg-white dark:bg-black/5 cursor-pointer"
-                        >
-                          + {s}
-                        </button>
-                      ))}
-                    </div>
+                  {/* Tag Input */}
+                  <input
+                    className={cn(
+                      "w-full bg-white dark:bg-black/15 border border-outline-variant/15 rounded-xl px-3 py-2.5 text-xs mb-3 outline-none transition-all",
+                      col.inputFocus
+                    )}
+                    placeholder="Type a skill and press Enter to add..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const target = e.target as HTMLInputElement;
+                        if (target.value.trim()) {
+                          addSkillToGroup(gi, target.value);
+                          target.value = '';
+                        }
+                      }
+                    }}
+                  />
+
+                  {/* Skill Tags */}
+                  <div className="flex flex-wrap gap-1.5 min-h-[32px]">
+                    {group.skills?.map((skill: string) => (
+                      <span key={skill} className={cn(
+                        "flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold rounded-lg border group/tag cursor-default",
+                        col.tag
+                      )}>
+                        {skill}
+                        <X
+                          className="w-2.5 h-2.5 cursor-pointer opacity-60 group-hover/tag:opacity-100 shrink-0"
+                          onClick={() => removeSkillFromGroup(gi, skill)}
+                        />
+                      </span>
+                    ))}
+                    {(!group.skills || group.skills.length === 0) && (
+                      <span className="text-[10px] text-on-surface-variant opacity-40 font-bold italic py-1">No skills added yet. Type above and press Enter.</span>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+
+            {(!editForm.skillGroups || editForm.skillGroups.length === 0) && (
+              <div className="py-10 text-center text-on-surface-variant/40 font-bold italic text-sm border border-dashed border-outline-variant/20 rounded-2xl">
+                No skill groups yet. Click &quot;Add Skill Group&quot; to create your first category.
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="border-t border-outline-variant/10 pt-10">
@@ -1579,26 +1364,39 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
               {errors.dob && <p className="text-[10px] !text-red-500 font-bold ml-1.5 mt-1 uppercase tracking-widest">{errors.dob}</p>}
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" ref={genderDropdownRef}>
               <label className={cn("text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1.5", errors.gender && "!text-red-500")}>Gender</label>
-              <div
-                id="gender"
-                className={cn(
-                  "flex bg-surface-container/40 border rounded-2xl p-1 gap-1",
-                  errors.gender ? "!border-red-500 !bg-red-500/5" : "border-outline-variant/20"
-                )}
-              >
-                {['Male', 'Female', 'Other'].map(g => {
-                  const isSelected = editForm.personalDetail?.gender?.toLowerCase() === g.toLowerCase();
-                  return (
+              <div className="relative">
+                <button
+                  type="button"
+                  id="gender"
+                  onClick={() => setIsGenderOpen(!isGenderOpen)}
+                  className={cn(
+                    "w-full border rounded-2xl pl-12 pr-10 py-3.5 focus:outline-none transition-all font-bold text-sm cursor-pointer text-left flex items-center justify-between",
+                    errors.gender ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500" : getGenderStyles(editForm.personalDetail?.gender)
+                  )}
+                >
+                  <span>{editForm.personalDetail?.gender || 'Male'}</span>
+                  <ChevronDown className={cn("w-4 h-4 transition-transform duration-350 ease-out", isGenderOpen && "rotate-180")} />
+                </button>
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+                  <User className={cn(
+                    "w-5 h-5 transition-colors duration-300",
+                    (editForm.personalDetail?.gender?.toLowerCase() === 'female') ? "text-pink-500" :
+                    (editForm.personalDetail?.gender?.toLowerCase() === 'other') ? "text-purple-500" : "text-blue-500"
+                  )} />
+                </div>
+
+                {isGenderOpen && (
+                  <div className="absolute z-50 left-0 right-0 mt-2 bg-white/90 dark:bg-zinc-900/95 backdrop-blur-xl border border-outline-variant/30 rounded-2xl shadow-2xl p-2 space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
                     <button
-                      key={g}
                       type="button"
                       onClick={() => {
                         setEditForm({
                           ...editForm,
-                          personalDetail: { ...editForm.personalDetail, gender: g }
+                          personalDetail: { ...editForm.personalDetail, gender: 'Male' }
                         });
+                        setIsGenderOpen(false);
                         if (errors.gender) {
                           setErrors(prev => {
                             const updated = { ...prev };
@@ -1608,16 +1406,78 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
                         }
                       }}
                       className={cn(
-                        "flex-1 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer",
-                        isSelected
-                          ? "bg-primary text-white shadow-md shadow-primary/20"
-                          : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50"
+                        "w-full px-4 py-3 text-left rounded-xl font-bold text-sm flex items-center justify-between transition-all cursor-pointer border",
+                        editForm.personalDetail?.gender === 'Male'
+                          ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30"
+                          : "bg-transparent border-transparent text-on-surface-variant hover:bg-blue-500/5 hover:text-blue-500 hover:border-blue-500/20"
                       )}
                     >
-                      {g}
+                      <span className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+                        Male ♂
+                      </span>
+                      <span className="text-[10px] opacity-60 uppercase font-black tracking-widest">Gentleman</span>
                     </button>
-                  );
-                })}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditForm({
+                          ...editForm,
+                          personalDetail: { ...editForm.personalDetail, gender: 'Female' }
+                        });
+                        setIsGenderOpen(false);
+                        if (errors.gender) {
+                          setErrors(prev => {
+                            const updated = { ...prev };
+                            delete updated.gender;
+                            return updated;
+                          });
+                        }
+                      }}
+                      className={cn(
+                        "w-full px-4 py-3 text-left rounded-xl font-bold text-sm flex items-center justify-between transition-all cursor-pointer border",
+                        editForm.personalDetail?.gender === 'Female'
+                          ? "bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/30"
+                          : "bg-transparent border-transparent text-on-surface-variant hover:bg-pink-500/5 hover:text-pink-500 hover:border-pink-500/20"
+                      )}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-pink-500 animate-pulse"></span>
+                        Female ♀
+                      </span>
+                      <span className="text-[10px] opacity-60 uppercase font-black tracking-widest">Lady</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditForm({
+                          ...editForm,
+                          personalDetail: { ...editForm.personalDetail, gender: 'Other' }
+                        });
+                        setIsGenderOpen(false);
+                        if (errors.gender) {
+                          setErrors(prev => {
+                            const updated = { ...prev };
+                            delete updated.gender;
+                            return updated;
+                          });
+                        }
+                      }}
+                      className={cn(
+                        "w-full px-4 py-3 text-left rounded-xl font-bold text-sm flex items-center justify-between transition-all cursor-pointer border",
+                        editForm.personalDetail?.gender === 'Other'
+                          ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30"
+                          : "bg-transparent border-transparent text-on-surface-variant hover:bg-purple-500/5 hover:text-purple-500 hover:border-purple-500/20"
+                      )}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
+                        Other ⚧
+                      </span>
+                      <span className="text-[10px] opacity-60 uppercase font-black tracking-widest">Diverse</span>
+                    </button>
+                  </div>
+                )}
               </div>
               {errors.gender && <p className="text-[10px] !text-red-500 font-bold ml-1.5 mt-1 uppercase tracking-widest">{errors.gender}</p>}
             </div>

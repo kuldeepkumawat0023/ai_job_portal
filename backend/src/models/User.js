@@ -45,12 +45,12 @@ const userSchema = new mongoose.Schema({
     type: [String],
     default: []
   },
-  categorizedSkills: {
-    technologies: { type: [String], default: [] },
-    frameworks: { type: [String], default: [] },
-    developerTools: { type: [String], default: [] },
-    databases: { type: [String], default: [] }
-  },
+  categorizedSkills: [
+    {
+      title: { type: String, default: '' },
+      skills: { type: [String], default: [] }
+    }
+  ],
   education: [
     {
       degree: String,

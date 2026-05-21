@@ -34,33 +34,7 @@ import { toast } from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import { cn } from '@/utils/cn';
 
-const categorizeSkills = (skillsArray: string[]) => {
-  const categories: { technologies: string[], frameworks: string[], developerTools: string[], databases: string[] } = {
-    technologies: [],
-    frameworks: [],
-    developerTools: [],
-    databases: []
-  };
 
-  const databaseKeywords = ['db', 'database', 'mongo', 'mysql', 'postgres', 'sql', 'redis', 'cassandra', 'sqlite', 'oracle', 'mariadb', 'dynamodb', 'firebase', 'supabase', 'prisma', 'mongoose'];
-  const devToolsKeywords = ['git', 'docker', 'kubernetes', 'postman', 'vs code', 'vscode', 'figma', 'xampp', 'webpack', 'vite', 'jenkins', 'aws', 'azure', 'gcp', 'github', 'gitlab', 'bitbucket', 'jira', 'npm', 'yarn', 'pnpm', 'eslint', 'prettier', 'cicd', 'ci/cd', 'ansible', 'terraform', 'postgressql'];
-  const frameworkKeywords = ['react', 'vue', 'angular', 'next.js', 'nextjs', 'nuxt', 'svelte', 'node', 'express', 'django', 'flask', 'spring', 'laravel', 'bootstrap', 'tailwind', 'jquery', 'fastify', 'nest', 'rails', 'asp.net', 'net core', 'libraries', 'library', 'framework'];
-
-  (skillsArray || []).forEach(skill => {
-    const s = skill.toLowerCase().trim();
-    if (databaseKeywords.some(k => s.includes(k))) {
-      categories.databases.push(skill);
-    } else if (devToolsKeywords.some(k => s.includes(k))) {
-      categories.developerTools.push(skill);
-    } else if (frameworkKeywords.some(k => s.includes(k))) {
-      categories.frameworks.push(skill);
-    } else {
-      categories.technologies.push(skill);
-    }
-  });
-
-  return categories;
-};
 
 interface ProfileWizardModalProps {
   isOpen: boolean;
@@ -79,12 +53,7 @@ interface WizardData {
   bio: string;
   education: { degree: string; university: string; cgpa: string; year: string }[];
   workExperience: { role: string; company: string; duration: string; description: string }[];
-  skills: {
-    technologies: string[];
-    frameworks: string[];
-    developerTools: string[];
-    databases: string[];
-  };
+  skills: Array<{ title: string; skills: string[] }>;
   projects: { title: string; stack: string[]; description: string; link: string }[];
   resumeStyle: string;
   isFresher?: boolean;
@@ -180,15 +149,14 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
     education: user?.education?.length ? user.education : [{ degree: '', university: '', cgpa: '', year: '' }],
     workExperience: user?.workExperience?.length ? user.workExperience : [{ role: '', company: '', duration: '', description: '' }],
     skills: (() => {
-      const rawCats = (user?.categorizedSkills || {}) as any;
-      const parsedSkillsObj = {
-        technologies: rawCats.technologies || rawCats.frontend || [],
-        frameworks: rawCats.frameworks || rawCats.backend || [],
-        developerTools: rawCats.developerTools || rawCats.tools || [],
-        databases: rawCats.databases || rawCats.soft || []
-      };
-      const hasExistingCategorized = Object.values(parsedSkillsObj).some(arr => arr && arr.length > 0);
-      return hasExistingCategorized ? parsedSkillsObj : categorizeSkills(user?.skills || []);
+      const rawCats = user?.categorizedSkills;
+      if (Array.isArray(rawCats) && rawCats.length > 0) {
+        return rawCats.map((g: any) => ({ title: g.title || '', skills: Array.isArray(g.skills) ? g.skills : [] }));
+      }
+      if (user?.skills?.length) {
+        return [{ title: 'My Skills', skills: user.skills }];
+      }
+      return [];
     })(),
     projects: user?.projects?.length ? user.projects : [{ title: '', stack: [], description: '', link: '' }],
     resumeStyle: 'modern',
@@ -208,15 +176,14 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
         education: user.education?.length ? [...user.education] : [{ degree: '', university: '', cgpa: '', year: '' }],
         workExperience: user.workExperience?.length ? [...user.workExperience] : [{ role: '', company: '', duration: '', description: '' }],
         skills: (() => {
-          const rawCats = (user.categorizedSkills || {}) as any;
-          const parsedSkillsObj = {
-            technologies: rawCats.technologies || rawCats.frontend || [],
-            frameworks: rawCats.frameworks || rawCats.backend || [],
-            developerTools: rawCats.developerTools || rawCats.tools || [],
-            databases: rawCats.databases || rawCats.soft || []
-          };
-          const hasExistingCategorized = Object.values(parsedSkillsObj).some(arr => arr && arr.length > 0);
-          return hasExistingCategorized ? parsedSkillsObj : categorizeSkills(user.skills || []);
+          const rawCats = user.categorizedSkills;
+          if (Array.isArray(rawCats) && rawCats.length > 0) {
+            return rawCats.map((g: any) => ({ title: g.title || '', skills: Array.isArray(g.skills) ? g.skills : [] }));
+          }
+          if (user.skills?.length) {
+            return [{ title: 'My Skills', skills: user.skills }];
+          }
+          return [];
         })(),
         projects: user.projects?.length ? [...user.projects] : [{ title: '', stack: [], description: '', link: '' }],
         resumeStyle: 'modern',
@@ -716,14 +683,7 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
       }
 
       // Skills & Expertise
-      const pdfCats = {
-        technologies: formData.skills.technologies || [],
-        frameworks: formData.skills.frameworks || [],
-        developerTools: formData.skills.developerTools || [],
-        databases: formData.skills.databases || []
-      };
-
-      const hasAnySkills = Object.values(pdfCats).some(arr => arr.length > 0);
+      const hasAnySkills = formData.skills.some((g: any) => g.skills && g.skills.length > 0);
 
       if (hasAnySkills) {
         checkPageBreak(25);
@@ -733,32 +693,24 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
         doc.text('SKILLS & EXPERTISE', margin, yPosition);
         yPosition += 5;
 
-        const categoriesList = [
-          { label: 'Technologies', list: pdfCats.technologies },
-          { label: 'Frameworks/Libraries', list: pdfCats.frameworks },
-          { label: 'Developer Tools', list: pdfCats.developerTools },
-          { label: 'Databases', list: pdfCats.databases }
-        ];
+        formData.skills.forEach((group: any) => {
+          if (!group.skills || group.skills.length === 0) return;
+          checkPageBreak(10);
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(9);
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          const labelText = group.title ? `${group.title}: ` : '';
+          const labelWidth = labelText ? doc.getTextWidth(labelText) : 0;
+          if (labelText) doc.text(labelText, margin, yPosition);
 
-        categoriesList.forEach((cat) => {
-          if (cat.list.length > 0) {
-            checkPageBreak(10);
-            doc.setFont('Helvetica', 'bold');
-            doc.setFontSize(9);
-            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-            const labelText = `${cat.label}: `;
-            const labelWidth = doc.getTextWidth(labelText);
-            doc.text(labelText, margin, yPosition);
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+          const skillsLineText = group.skills.join(', ');
+          const splitSkills = doc.splitTextToSize(skillsLineText, 210 - margin * 2 - labelWidth);
 
-            doc.setFont('Helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-            const skillsLineText = cat.list.join(', ');
-            const splitSkills = doc.splitTextToSize(skillsLineText, 210 - margin * 2 - labelWidth);
-
-            doc.text(splitSkills, margin + labelWidth, yPosition);
-            yPosition += (splitSkills.length * 4.2) + 1.5;
-          }
+          doc.text(splitSkills, margin + labelWidth, yPosition);
+          yPosition += (splitSkills.length * 4.2) + 1.5;
         });
         yPosition += 4;
       }
@@ -891,23 +843,21 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
     if (!validateStep(currentStep)) return;
     setIsSubmitting(true);
     try {
-      // Merge all skill categories into one array for the backend
-      const mergedSkills = [
-        ...formData.skills.technologies,
-        ...formData.skills.frameworks,
-        ...formData.skills.developerTools,
-        ...formData.skills.databases
-      ];
+      // Flatten all skill groups into a single skills[] array
+      const allSkills: string[] = [];
+      formData.skills.forEach((g: any) => {
+        (g.skills || []).forEach((s: string) => { if (s && !allSkills.includes(s)) allSkills.push(s); });
+      });
 
       const payload = {
         ...formData,
-        skills: mergedSkills,
+        skills: allSkills,
         categorizedSkills: formData.skills
       };
 
       const res = await userService.updateProfile(user._id, payload);
       if (res.success) {
-        updateUser(payload);
+        updateUser({ ...payload, categorizedSkills: formData.skills });
         toast.success('Profile updated successfully!');
         handleNext();
       }
@@ -1428,136 +1378,115 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
 
                       {/* Step 4: Skill Galaxy */}
                       {currentStep === 4 && (
-                        <div className="space-y-8">
-                          <div className="mb-8">
-                            <h3 className="text-2xl font-black text-on-surface">Skill Galaxy</h3>
-                            <p className="text-sm text-on-surface-variant">Categorize your expertise for better AI matching.</p>
+                        <div className="space-y-6">
+                          <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                              <h3 className="text-2xl font-black text-on-surface">Skill Galaxy</h3>
+                              <p className="text-sm text-on-surface-variant">Add skill groups — any field (Tech, Marketing, Design...)</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, skills: [...formData.skills, { title: '', skills: [] }] })}
+                              className="px-4 py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-xl hover:bg-primary/20 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shrink-0"
+                            >
+                              <Plus className="w-4 h-4" /> Add Skill Group
+                            </button>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Technologies Skills */}
-                            <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
-                              <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                  <Code2 className="w-5 h-5" />
-                                </div>
-                                <h4 className="font-bold text-on-surface">Technologies</h4>
-                              </div>
-                              <input
-                                className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    const val = (e.target as HTMLInputElement).value.trim();
-                                    if (val && !formData.skills.technologies.includes(val)) {
-                                      setFormData({ ...formData, skills: { ...formData.skills, technologies: [...formData.skills.technologies, val] } });
-                                      (e.target as HTMLInputElement).value = '';
-                                    }
-                                  }
-                                }}
-                                placeholder="HTML5, CSS3, JavaScript, Java..."
-                              />
-                              <div className="flex flex-wrap gap-2">
-                                {formData.skills.technologies.map(skill => (
-                                  <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/5 text-blue-500 text-[10px] font-bold rounded-lg border border-blue-500/10">
-                                    {skill}
-                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, technologies: formData.skills.technologies.filter(s => s !== skill) } })} />
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
+                          <div className="space-y-4">
+                            {formData.skills.map((group, gi) => {
+                              const groupColors = [
+                                { dot: 'bg-blue-500', tag: 'bg-blue-500/10 border-blue-500/20 text-blue-500', inputFocus: 'focus:border-blue-400', border: 'border-blue-500/20 hover:border-blue-400/40' },
+                                { dot: 'bg-purple-500', tag: 'bg-purple-500/10 border-purple-500/20 text-purple-500', inputFocus: 'focus:border-purple-400', border: 'border-purple-500/20 hover:border-purple-400/40' },
+                                { dot: 'bg-emerald-500', tag: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500', inputFocus: 'focus:border-emerald-400', border: 'border-emerald-500/20 hover:border-emerald-400/40' },
+                                { dot: 'bg-amber-500', tag: 'bg-amber-500/10 border-amber-500/20 text-amber-500', inputFocus: 'focus:border-amber-400', border: 'border-amber-500/20 hover:border-amber-400/40' },
+                                { dot: 'bg-rose-500', tag: 'bg-rose-500/10 border-rose-500/20 text-rose-500', inputFocus: 'focus:border-rose-400', border: 'border-rose-500/20 hover:border-rose-400/40' },
+                                { dot: 'bg-cyan-500', tag: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-500', inputFocus: 'focus:border-cyan-400', border: 'border-cyan-500/20 hover:border-cyan-400/40' },
+                              ];
+                              const col = groupColors[gi % groupColors.length];
+                              return (
+                                <div key={gi} className={cn(
+                                  "p-5 rounded-3xl bg-surface-container-low/50 border relative group transition-all duration-300",
+                                  col.border
+                                )}>
+                                  {/* Delete Group */}
+                                  <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, skills: formData.skills.filter((_, i) => i !== gi) })}
+                                    className="absolute top-4 right-4 p-1.5 text-on-surface-variant hover:text-red-500 hover:bg-red-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
 
-                            {/* Frameworks / Libraries Skills */}
-                            <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
-                              <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
-                                  <Code2 className="w-5 h-5" />
-                                </div>
-                                <h4 className="font-bold text-on-surface">Frameworks / Libraries</h4>
-                              </div>
-                              <input
-                                className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    const val = (e.target as HTMLInputElement).value.trim();
-                                    if (val && !formData.skills.frameworks.includes(val)) {
-                                      setFormData({ ...formData, skills: { ...formData.skills, frameworks: [...formData.skills.frameworks, val] } });
-                                      (e.target as HTMLInputElement).value = '';
-                                    }
-                                  }
-                                }}
-                                placeholder="React.js, Node.js, Next.js, Express.js..."
-                              />
-                              <div className="flex flex-wrap gap-2">
-                                {formData.skills.frameworks.map(skill => (
-                                  <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/5 text-purple-500 text-[10px] font-bold rounded-lg border border-purple-500/10">
-                                    {skill}
-                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, frameworks: formData.skills.frameworks.filter(s => s !== skill) } })} />
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
+                                  {/* Group Title */}
+                                  <div className="flex items-center gap-3 mb-3">
+                                    <div className={cn("w-3 h-3 rounded-full shrink-0", col.dot)}></div>
+                                    <input
+                                      type="text"
+                                      maxLength={40}
+                                      placeholder="Group title (e.g. Marketing, Development, Design...)"
+                                      value={group.title}
+                                      onChange={e => {
+                                        const updated = [...formData.skills];
+                                        updated[gi] = { ...updated[gi], title: e.target.value };
+                                        setFormData({ ...formData, skills: updated });
+                                      }}
+                                      className="flex-1 bg-transparent border-b border-outline-variant/20 px-1 py-1 text-sm font-black text-on-surface uppercase tracking-widest focus:outline-none focus:border-primary placeholder:normal-case placeholder:tracking-normal placeholder:font-medium placeholder:text-on-surface-variant/40 transition-colors"
+                                    />
+                                  </div>
 
-                            {/* Developer Tools */}
-                            <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
-                              <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                                  <Globe className="w-5 h-5" />
-                                </div>
-                                <h4 className="font-bold text-on-surface">Developer Tools</h4>
-                              </div>
-                              <input
-                                className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    const val = (e.target as HTMLInputElement).value.trim();
-                                    if (val && !formData.skills.developerTools.includes(val)) {
-                                      setFormData({ ...formData, skills: { ...formData.skills, developerTools: [...formData.skills.developerTools, val] } });
-                                      (e.target as HTMLInputElement).value = '';
-                                    }
-                                  }
-                                }}
-                                placeholder="Postman, VS Code, Figma, XAMPP..."
-                              />
-                              <div className="flex flex-wrap gap-2">
-                                {formData.skills.developerTools.map(skill => (
-                                  <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/5 text-emerald-500 text-[10px] font-bold rounded-lg border border-emerald-500/10">
-                                    {skill}
-                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, developerTools: formData.skills.developerTools.filter(s => s !== skill) } })} />
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
+                                  {/* Tag Input */}
+                                  <input
+                                    className={cn(
+                                      "w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-3 py-2.5 text-xs mb-3 outline-none transition-all",
+                                      col.inputFocus
+                                    )}
+                                    placeholder="Type a skill and press Enter to add..."
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        const val = (e.target as HTMLInputElement).value.trim();
+                                        if (val && !group.skills.includes(val)) {
+                                          const updated = [...formData.skills];
+                                          updated[gi] = { ...updated[gi], skills: [...updated[gi].skills, val] };
+                                          setFormData({ ...formData, skills: updated });
+                                          (e.target as HTMLInputElement).value = '';
+                                        }
+                                      }
+                                    }}
+                                  />
 
-                            {/* Databases */}
-                            <div className="space-y-4 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-inner">
-                              <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
-                                  <User className="w-5 h-5" />
+                                  {/* Skill Tags */}
+                                  <div className="flex flex-wrap gap-1.5 min-h-[28px]">
+                                    {group.skills.map(skill => (
+                                      <span key={skill} className={cn(
+                                        "flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold rounded-lg border cursor-default group/tag",
+                                        col.tag
+                                      )}>
+                                        {skill}
+                                        <X
+                                          className="w-2.5 h-2.5 cursor-pointer opacity-60 group-hover/tag:opacity-100 shrink-0"
+                                          onClick={() => {
+                                            const updated = [...formData.skills];
+                                            updated[gi] = { ...updated[gi], skills: updated[gi].skills.filter(s => s !== skill) };
+                                            setFormData({ ...formData, skills: updated });
+                                          }}
+                                        />
+                                      </span>
+                                    ))}
+                                    {group.skills.length === 0 && (
+                                      <span className="text-[10px] text-on-surface-variant opacity-40 font-bold italic py-1">No skills added yet. Type above and press Enter.</span>
+                                    )}
+                                  </div>
                                 </div>
-                                <h4 className="font-bold text-on-surface">Databases</h4>
+                              );
+                            })}
+
+                            {formData.skills.length === 0 && (
+                              <div className="py-10 text-center text-on-surface-variant/40 font-bold italic text-sm border border-dashed border-outline-variant/20 rounded-2xl">
+                                No skill groups yet. Click &quot;Add Skill Group&quot; to begin.
                               </div>
-                              <input
-                                className="w-full bg-white dark:bg-black/20 border border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none"
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    const val = (e.target as HTMLInputElement).value.trim();
-                                    if (val && !formData.skills.databases.includes(val)) {
-                                      setFormData({ ...formData, skills: { ...formData.skills, databases: [...formData.skills.databases, val] } });
-                                      (e.target as HTMLInputElement).value = '';
-                                    }
-                                  }
-                                }}
-                                placeholder="MySQL, MongoDB, PostgreSQL..."
-                              />
-                              <div className="flex flex-wrap gap-2">
-                                {formData.skills.databases.map(skill => (
-                                  <span key={skill} className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/5 text-amber-500 text-[10px] font-bold rounded-lg border border-amber-500/10">
-                                    {skill}
-                                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFormData({ ...formData, skills: { ...formData.skills, databases: formData.skills.databases.filter(s => s !== skill) } })} />
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
+                            )}
                           </div>
                         </div>
                       )}

@@ -44,7 +44,6 @@ const navLinks: NavLink[] = [
   { name: 'Messages', href: '/candidate/messages', icon: MessageSquare },
   { name: 'AI Suggestions', href: '/candidate/ai-suggestions', icon: Lightbulb },
   { name: 'AI Mock Interview', href: '/candidate/aimock-interview', icon: Mic2 },
-  { name: 'AI Portfolio Builder', href: '/candidate/portfolio', icon: UserCircle },
   {
     name: 'Settings',
     href: '/candidate/settings',
@@ -60,11 +59,11 @@ const navLinks: NavLink[] = [
 const isLinkActive = (href: string, pathname: string, siblings: NavLink[] = []) => {
   if (pathname === href) return true;
   if (href === '/candidate/dashboard' || href === '/recruiter/dashboard') return false;
-  
+
   if (pathname.startsWith(href)) {
-    const hasBetterSiblingMatch = siblings.some(sib => 
-      sib.href !== href && 
-      pathname.startsWith(sib.href) && 
+    const hasBetterSiblingMatch = siblings.some(sib =>
+      sib.href !== href &&
+      pathname.startsWith(sib.href) &&
       sib.href.length > href.length
     );
     return !hasBetterSiblingMatch;

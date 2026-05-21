@@ -31,6 +31,7 @@ import { resumeService } from '@/lib/services/resume.services';
 import { jsPDF } from 'jspdf';
 import Image from 'next/image';
 import { ProfileEditView } from './ProfileEditView';
+import { useAuth } from '@/hooks/useAuth';
 
 const categorizeSkills = (skillsArray: string[]) => {
   const categories: { technologies: string[], frameworks: string[], developerTools: string[], databases: string[] } = {
@@ -61,6 +62,7 @@ const categorizeSkills = (skillsArray: string[]) => {
 };
 
 const PortfolioView = () => {
+  const { updateUser } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -615,6 +617,7 @@ const PortfolioView = () => {
         setProfile(res.data);
         setImageError(false);
         localStorage.setItem('portal_user', JSON.stringify(res.data));
+        updateUser(res.data);
         toast.success('Photo updated!');
       }
     } catch (error) {
