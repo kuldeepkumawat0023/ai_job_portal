@@ -603,14 +603,16 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
           doc.setFontSize(9.5);
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           doc.text(`${exp.role || 'Role'} — ${exp.company || 'Company'}`, margin, yPosition);
-
-          // Duration right-aligned
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(8.5);
-          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-          const durationStr = exp.duration || '';
-          doc.text(durationStr, 210 - margin - doc.getTextWidth(durationStr), yPosition);
           yPosition += 4.5;
+
+          // Duration below role/company
+          if (exp.duration) {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+            doc.text(exp.duration, margin, yPosition);
+            yPosition += 4.5;
+          }
 
           // Exp Desc
           if (exp.description) {
@@ -735,14 +737,16 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           const boardText = edu.board ? ` (${edu.board})` : '';
           doc.text(`${edu.degree} — ${edu.university}${boardText}`, margin, yPosition);
-
-          // Year right-aligned
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(8.5);
-          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-          const yearStr = edu.year || '';
-          doc.text(yearStr, 210 - margin - doc.getTextWidth(yearStr), yPosition);
           yPosition += 4.5;
+
+          // Year below degree & university
+          if (edu.year) {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+            doc.text(edu.year, margin, yPosition);
+            yPosition += 4.5;
+          }
 
           // CGPA / Grade
           if (edu.cgpa) {
@@ -772,13 +776,21 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
           doc.setFontSize(9);
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           doc.text(cert.name, margin, yPosition);
-
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(8.5);
-          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-          const certInfo = `${cert.issuer || ''} (${cert.year || ''})`;
-          doc.text(certInfo, 210 - margin - doc.getTextWidth(certInfo), yPosition);
           yPosition += 4.5;
+
+          // Issuer & Year below certificate name
+          const infoParts = [];
+          if (cert.issuer) infoParts.push(cert.issuer);
+          if (cert.year) infoParts.push(`(${cert.year})`);
+          const certInfo = infoParts.join(' ');
+
+          if (certInfo) {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+            doc.text(certInfo, margin, yPosition);
+            yPosition += 4.5;
+          }
         });
         yPosition += 2;
       }

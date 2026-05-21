@@ -8,7 +8,7 @@ const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudina
 // @access  Public
 exports.getUsers = async (req, res, next) => {
   try {
-    const users = await User.find({ isActive: true }).select('fullname profilePhoto bio skills role');
+    const users = await User.find({ isActive: true }).select('fullname profilePhoto bio skills categorizedSkills role');
     res.status(200).json({
       success: true,
       statusCode: 200,
@@ -57,7 +57,7 @@ exports.updateProfile = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized update request', data: null });
     }
 
-    const { fullname, bio, skills, categorizedSkills, experience, education, workExperience, projects, certificates, personalDetail, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences } = req.body;
+    const { fullname, bio, categorizedSkills, experience, education, workExperience, projects, certificates, personalDetail, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences } = req.body;
 
     let user = await User.findById(req.params.id);
 
@@ -105,10 +105,10 @@ exports.updateProfile = async (req, res, next) => {
         : notificationPreferences;
     }
 
-    // Parse skills if it's a string (e.g. from a form field)
-    if (categorizedSkills) {
+    // Update categorizedSkills — always auto-derive the flat skills[] from groups for search/AI
+    if (categorizedSkills !== undefined) {
       user.categorizedSkills = typeof categorizedSkills === 'string' ? JSON.parse(categorizedSkills) : categorizedSkills;
-      // Flatten all skill groups into the skills[] array for backward compatibility and search
+      // Auto-rebuild flat skills[] index from all groups
       const allSkills = [];
       if (Array.isArray(user.categorizedSkills)) {
         user.categorizedSkills.forEach(group => {
@@ -117,9 +117,7 @@ exports.updateProfile = async (req, res, next) => {
           }
         });
       }
-      user.skills = allSkills;
-    } else if (skills) {
-      user.skills = Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim());
+      user.skills = allSkills; // kept for job search / AI matching
     }
 
     if (experience !== undefined) {

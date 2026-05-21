@@ -56,7 +56,7 @@ export interface AuthUser {
   profilePhoto?: string;
   location?: string;
   bio?: string;
-  skills: string[];
+  skills?: string[];   // auto-derived from categorizedSkills \u2014 read-only on frontend
   categorizedSkills?: Array<{ title: string; skills: string[] }>;
   education: Education[];
   certificates?: Certificate[];

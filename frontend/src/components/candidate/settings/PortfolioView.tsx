@@ -33,33 +33,7 @@ import Image from 'next/image';
 import { ProfileEditView } from './ProfileEditView';
 import { useAuth } from '@/hooks/useAuth';
 
-const categorizeSkills = (skillsArray: string[]) => {
-  const categories: { technologies: string[], frameworks: string[], developerTools: string[], databases: string[] } = {
-    technologies: [],
-    frameworks: [],
-    developerTools: [],
-    databases: []
-  };
 
-  const databaseKeywords = ['db', 'database', 'mongo', 'mysql', 'postgres', 'sql', 'redis', 'cassandra', 'sqlite', 'oracle', 'mariadb', 'dynamodb', 'firebase', 'supabase', 'prisma', 'mongoose'];
-  const devToolsKeywords = ['git', 'docker', 'kubernetes', 'postman', 'vs code', 'vscode', 'figma', 'xampp', 'webpack', 'vite', 'jenkins', 'aws', 'azure', 'gcp', 'github', 'gitlab', 'bitbucket', 'jira', 'npm', 'yarn', 'pnpm', 'eslint', 'prettier', 'cicd', 'ci/cd', 'ansible', 'terraform', 'postgressql'];
-  const frameworkKeywords = ['react', 'vue', 'angular', 'next.js', 'nextjs', 'nuxt', 'svelte', 'node', 'express', 'django', 'flask', 'spring', 'laravel', 'bootstrap', 'tailwind', 'jquery', 'fastify', 'nest', 'rails', 'asp.net', 'net core', 'libraries', 'library', 'framework'];
-
-  (skillsArray || []).forEach(skill => {
-    const s = skill.toLowerCase().trim();
-    if (databaseKeywords.some(k => s.includes(k))) {
-      categories.databases.push(skill);
-    } else if (devToolsKeywords.some(k => s.includes(k))) {
-      categories.developerTools.push(skill);
-    } else if (frameworkKeywords.some(k => s.includes(k))) {
-      categories.frameworks.push(skill);
-    } else {
-      categories.technologies.push(skill);
-    }
-  });
-
-  return categories;
-};
 
 const PortfolioView = () => {
   const { updateUser } = useAuth();
@@ -136,23 +110,21 @@ const PortfolioView = () => {
 
         setProfile(profileData);
         setImageError(false);
-        // Initialize edit form with ALL fields
-        const rawCats = (profileData.categorizedSkills || {}) as any;
-        const parsedSkillsObj = {
-          technologies: rawCats.technologies || rawCats.frontend || [],
-          frameworks: rawCats.frameworks || rawCats.backend || [],
-          developerTools: rawCats.developerTools || rawCats.tools || [],
-          databases: rawCats.databases || rawCats.soft || []
-        };
-        const hasExistingCategorized = Object.values(parsedSkillsObj).some(arr => arr && arr.length > 0);
-        const finalSkillsObj = hasExistingCategorized ? parsedSkillsObj : categorizeSkills(profileData.skills || []);
+        // Build initial skillGroups from new dynamic array format
+        const rawCats = profileData.categorizedSkills;
+        let skillGroups: Array<{ title: string; skills: string[] }> = [];
+        if (Array.isArray(rawCats) && rawCats.length > 0) {
+          skillGroups = rawCats.map((g: any) => ({ title: g.title || '', skills: Array.isArray(g.skills) ? g.skills : [] }));
+        } else if (profileData.skills?.length > 0) {
+          skillGroups = [{ title: '', skills: profileData.skills }];
+        }
 
         setEditForm({
           fullname: profileData.fullname || '',
           bio: profileData.bio || '',
           experience: profileData.experience || 0,
           skills: profileData.skills || [],
-          skillsObj: finalSkillsObj,
+          skillGroups,
           location: profileData.location || '',
           phoneNumber: profileData.phoneNumber || '',
           countryCode: profileData.countryCode || '+91',
@@ -333,14 +305,16 @@ const PortfolioView = () => {
           doc.setFontSize(9.5);
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           doc.text(`${exp.role} — ${exp.company}`, margin, yPosition);
-
-          // Duration right-aligned
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(8.5);
-          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-          const durationStr = exp.duration || '';
-          doc.text(durationStr, 210 - margin - doc.getTextWidth(durationStr), yPosition);
           yPosition += 4.5;
+
+          // Duration on next line (below role/company, left-aligned as subtitle)
+          if (exp.duration) {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+            doc.text(exp.duration, margin, yPosition);
+            yPosition += 4.5;
+          }
 
           // Exp Desc
           if (exp.description) {
@@ -407,15 +381,11 @@ const PortfolioView = () => {
       }
 
       // Skills & Expertise
-      const rawCatsForPDF = profile?.categorizedSkills || categorizeSkills(profile?.skills || []);
-      const pdfCats = {
-        technologies: rawCatsForPDF.technologies || rawCatsForPDF.frontend || [],
-        frameworks: rawCatsForPDF.frameworks || rawCatsForPDF.backend || [],
-        developerTools: rawCatsForPDF.developerTools || rawCatsForPDF.tools || [],
-        databases: rawCatsForPDF.databases || rawCatsForPDF.soft || []
-      };
+      const skillGroups: Array<{ title: string; skills: string[] }> = Array.isArray(profile?.categorizedSkills)
+        ? profile.categorizedSkills.map((g: any) => ({ title: g.title || '', skills: Array.isArray(g.skills) ? g.skills : [] }))
+        : profile?.skills?.length > 0 ? [{ title: '', skills: profile.skills }] : [];
 
-      const hasAnySkills = Object.values(pdfCats).some(arr => arr.length > 0);
+      const hasAnySkills = skillGroups.some(g => g.skills.length > 0);
 
       if (hasAnySkills) {
         checkPageBreak(25);
@@ -425,32 +395,23 @@ const PortfolioView = () => {
         doc.text('SKILLS & EXPERTISE', margin, yPosition);
         yPosition += 5;
 
-        const categoriesList = [
-          { label: 'Technologies', list: pdfCats.technologies },
-          { label: 'Frameworks/Libraries', list: pdfCats.frameworks },
-          { label: 'Developer Tools', list: pdfCats.developerTools },
-          { label: 'Databases', list: pdfCats.databases }
-        ];
+        skillGroups.forEach((group) => {
+          if (!group.skills || group.skills.length === 0) return;
+          checkPageBreak(10);
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(9);
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          const labelText = group.title ? `${group.title}: ` : '';
+          const labelWidth = labelText ? doc.getTextWidth(labelText) : 0;
+          if (labelText) doc.text(labelText, margin, yPosition);
 
-        categoriesList.forEach((cat) => {
-          if (cat.list.length > 0) {
-            checkPageBreak(10);
-            doc.setFont('Helvetica', 'bold');
-            doc.setFontSize(9);
-            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-            const labelText = `${cat.label}: `;
-            const labelWidth = doc.getTextWidth(labelText);
-            doc.text(labelText, margin, yPosition);
-
-            doc.setFont('Helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-            const skillsLineText = cat.list.join(', ');
-            const splitSkills = doc.splitTextToSize(skillsLineText, 210 - margin * 2 - labelWidth);
-
-            doc.text(splitSkills, margin + labelWidth, yPosition);
-            yPosition += (splitSkills.length * 4.2) + 1.5;
-          }
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+          const skillsLineText = group.skills.join(', ');
+          const splitSkills = doc.splitTextToSize(skillsLineText, 210 - margin * 2 - labelWidth);
+          doc.text(splitSkills, margin + labelWidth, yPosition);
+          yPosition += (splitSkills.length * 4.2) + 1.5;
         });
         yPosition += 4;
       }
@@ -473,14 +434,16 @@ const PortfolioView = () => {
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           const boardText = edu.board ? ` (${edu.board})` : '';
           doc.text(`${edu.degree} — ${edu.university}${boardText}`, margin, yPosition);
-
-          // Year right-aligned
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(8.5);
-          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-          const yearStr = edu.year || '';
-          doc.text(yearStr, 210 - margin - doc.getTextWidth(yearStr), yPosition);
           yPosition += 4.5;
+
+          // Year below degree & university
+          if (edu.year) {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+            doc.text(edu.year, margin, yPosition);
+            yPosition += 4.5;
+          }
 
           // CGPA / Grade
           if (edu.cgpa) {
@@ -509,13 +472,21 @@ const PortfolioView = () => {
           doc.setFontSize(9);
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           doc.text(cert.name, margin, yPosition);
-
-          doc.setFont('Helvetica', 'normal');
-          doc.setFontSize(8.5);
-          doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
-          const certInfo = `${cert.issuer || ''} (${cert.year || ''})`;
-          doc.text(certInfo, 210 - margin - doc.getTextWidth(certInfo), yPosition);
           yPosition += 4.5;
+
+          // Issuer & Year below certificate name
+          const infoParts = [];
+          if (cert.issuer) infoParts.push(cert.issuer);
+          if (cert.year) infoParts.push(`(${cert.year})`);
+          const certInfo = infoParts.join(' ');
+
+          if (certInfo) {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(grayTextColor[0], grayTextColor[1], grayTextColor[2]);
+            doc.text(certInfo, margin, yPosition);
+            yPosition += 4.5;
+          }
         });
         yPosition += 2;
       }
@@ -574,19 +545,18 @@ const PortfolioView = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const mergedSkills = [
-        ...(editForm.skillsObj?.technologies || []),
-        ...(editForm.skillsObj?.frameworks || []),
-        ...(editForm.skillsObj?.developerTools || []),
-        ...(editForm.skillsObj?.databases || [])
-      ];
+      // Flatten all skill groups into a single skills[] array
+      const allSkills: string[] = [];
+      (editForm.skillGroups || []).forEach((g: any) => {
+        (g.skills || []).forEach((s: string) => { if (s && !allSkills.includes(s)) allSkills.push(s); });
+      });
 
       const payload = {
         ...editForm,
-        skills: mergedSkills.length > 0 ? mergedSkills : editForm.skills,
-        categorizedSkills: editForm.skillsObj
+        skills: allSkills,
+        categorizedSkills: editForm.skillGroups || []
       };
-      delete payload.skillsObj; // Remove from payload
+      delete payload.skillGroups;
 
       const res = await userService.updateProfile(profile._id, payload);
       if (res.success) {
@@ -877,80 +847,48 @@ const PortfolioView = () => {
             <h3 className="text-xl font-black text-on-surface flex items-center gap-3 mb-8 uppercase tracking-widest text-[13px]">
               <BrainCircuit className="w-5 h-5 text-primary" /> Core Expertise
             </h3>
-            {profile.skills?.length > 0 ? (() => {
-              const rawCats = (profile.categorizedSkills || {}) as any;
-              const displaySkills = {
-                technologies: rawCats.technologies || rawCats.frontend || [],
-                frameworks: rawCats.frameworks || rawCats.backend || [],
-                developerTools: rawCats.developerTools || rawCats.tools || [],
-                databases: rawCats.databases || rawCats.soft || []
-              };
-              const hasSkills = Object.values(displaySkills).some(arr => arr && arr.length > 0);
-              const finalDisplaySkills = hasSkills ? displaySkills : categorizeSkills(profile.skills);
+            {(() => {
+              const groups: Array<{ title: string; skills: string[] }> = Array.isArray(profile?.categorizedSkills) && profile.categorizedSkills.length > 0
+                ? profile.categorizedSkills.map((g: any) => ({ title: g.title || '', skills: Array.isArray(g.skills) ? g.skills : [] }))
+                : profile?.skills?.length > 0 ? [{ title: '', skills: profile.skills }] : [];
+
+              const hasAnySkills = groups.some(g => g.skills.length > 0);
+              if (!hasAnySkills) return <div className="text-on-surface-variant/50 font-bold italic text-sm">No skills added.</div>;
+
+              const groupColors = [
+                { tag: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 hover:border-blue-500/40' },
+                { tag: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 hover:border-purple-500/40' },
+                { tag: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:border-emerald-500/40' },
+                { tag: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:border-amber-500/40' },
+                { tag: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 hover:border-rose-500/40' },
+                { tag: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20 hover:border-cyan-500/40' },
+              ];
 
               return (
-                <div className="space-y-6">
-                  {finalDisplaySkills.technologies && finalDisplaySkills.technologies.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
-                        <Code2 className="w-3.5 h-3.5 text-blue-500" /> Technologies
-                      </h4>
-                      <div className="flex flex-wrap gap-2.5">
-                        {finalDisplaySkills.technologies.map((skill: string) => (
-                          <span key={skill} className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 border px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-default shadow-sm hover:border-blue-500/40">
-                            {skill}
-                          </span>
-                        ))}
+                <div className="space-y-5">
+                  {groups.map((group, gi) => {
+                    if (!group.skills || group.skills.length === 0) return null;
+                    const col = groupColors[gi % groupColors.length];
+                    return (
+                      <div key={gi} className="space-y-2.5">
+                        {group.title && (
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
+                            <Code2 className="w-3.5 h-3.5 text-primary" /> {group.title}
+                          </h4>
+                        )}
+                        <div className="flex flex-wrap gap-2">
+                          {group.skills.map((skill: string) => (
+                            <span key={skill} className={`border px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-default shadow-sm ${col.tag}`}>
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {finalDisplaySkills.frameworks && finalDisplaySkills.frameworks.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
-                        <Code2 className="w-3.5 h-3.5 text-purple-500" /> Frameworks / Libraries
-                      </h4>
-                      <div className="flex flex-wrap gap-2.5">
-                        {finalDisplaySkills.frameworks.map((skill: string) => (
-                          <span key={skill} className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 border px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-default shadow-sm hover:border-purple-500/40">
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {finalDisplaySkills.developerTools && finalDisplaySkills.developerTools.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
-                        <Globe className="w-3.5 h-3.5 text-emerald-500" /> Developer Tools
-                      </h4>
-                      <div className="flex flex-wrap gap-2.5">
-                        {finalDisplaySkills.developerTools.map((skill: string) => (
-                          <span key={skill} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 border px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-default shadow-sm hover:border-emerald-500/40">
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {finalDisplaySkills.databases && finalDisplaySkills.databases.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
-                        <Database className="w-3.5 h-3.5 text-amber-500" /> Databases
-                      </h4>
-                      <div className="flex flex-wrap gap-2.5">
-                        {finalDisplaySkills.databases.map((skill: string) => (
-                          <span key={skill} className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 border px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-default shadow-sm hover:border-amber-500/40">
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
               );
-            })() : (
-              <div className="text-on-surface-variant/50 font-bold italic text-sm">No skills added.</div>
-            )}
+            })()}
           </div>
 
           {/* Education */}
