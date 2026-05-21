@@ -29,8 +29,10 @@ exports.register = async (req, res, next) => {
       return res.status(400).json({ success: false, statusCode: 400, message: 'Passwords do not match', data: null });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     // Check if user exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: normalizedEmail });
     
     if (userExists) {
       if (userExists.isActive) {
@@ -121,7 +123,7 @@ exports.register = async (req, res, next) => {
     // Create new user
     const user = await User.create({
       fullname,
-      email,
+      email: normalizedEmail,
       countryCode: countryCode || '+91',
       phoneNumber,
       password
@@ -196,8 +198,10 @@ exports.login = async (req, res, next) => {
       return res.status(400).json({ success: false, statusCode: 400, message: 'Please provide an email and password', data: null });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     // Check for user
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
     if (!user) {
       return res.status(401).json({ success: false, statusCode: 401, message: 'Invalid credentials', data: null });
     }
@@ -354,7 +358,8 @@ exports.forgotPassword = async (req, res, next) => {
       return res.status(400).json({ success: false, statusCode: 400, message: 'Please provide an email', data: null });
     }
 
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'There is no user with that email', data: null });
     }
@@ -455,8 +460,10 @@ exports.verifyOtp = async (req, res, next) => {
       return res.status(400).json({ success: false, statusCode: 400, message: 'Please provide email and OTP', data: null });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     const user = await User.findOne({
-      email,
+      email: normalizedEmail,
       otp,
       otpExpiry: { $gt: Date.now() } // Ensure OTP is not expired
     });
@@ -495,8 +502,10 @@ exports.resetPassword = async (req, res, next) => {
       return res.status(400).json({ success: false, statusCode: 400, message: 'Passwords do not match', data: null });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     const user = await User.findOne({
-      email,
+      email: normalizedEmail,
       isOtpVerified: true,
       otpExpiry: { $gt: Date.now() } // Ensure they set password within the expiry window
     });
@@ -560,8 +569,10 @@ exports.reactivateAccount = async (req, res, next) => {
       return res.status(400).json({ success: false, statusCode: 400, message: 'Passwords do not match', data: null });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     const user = await User.findOne({
-      email,
+      email: normalizedEmail,
       isOtpVerified: true,
       otpExpiry: { $gt: Date.now() } // Ensure OTP is not expired
     });
