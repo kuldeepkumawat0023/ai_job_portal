@@ -49,6 +49,7 @@ const MockInterviewView = () => {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [introText, setIntroText] = useState<string | null>(null);
   const [candidateName, setCandidateName] = useState('Candidate');
+  const [recognitionLang, setRecognitionLang] = useState('en-IN');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -78,7 +79,7 @@ const MockInterviewView = () => {
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = 'en-US';
+      recognition.lang = recognitionLang;
       
       recognition.onresult = (event: any) => {
         let final = '';
@@ -99,6 +100,24 @@ const MockInterviewView = () => {
         setInterimTranscript(interim);
       };
 
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        
+        if (event.error === 'not-allowed') {
+          toast.error('Microphone access denied! Please enable microphone permission in your browser address bar.');
+          setIsListening(false);
+          isListeningRef.current = false;
+        } else if (event.error === 'aborted') {
+          console.log('Speech recognition aborted.');
+        } else if (event.error === 'network') {
+          toast.error('Network error occurred. Please check your internet connection.');
+        } else if (event.error === 'no-speech') {
+          console.warn('No speech detected.');
+        } else {
+          toast.error(`Mic error: ${event.error}`);
+        }
+      };
+
       recognition.onend = () => {
         if (isListeningRef.current) {
           try {
@@ -110,14 +129,27 @@ const MockInterviewView = () => {
       };
 
       recognitionRef.current = recognition;
+
+      // Automatically restart if it was active
+      if (isListeningRef.current) {
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error('Recognition start error on lang change:', e);
+        }
+      }
     }
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.error('Failed to stop recognition:', e);
+        }
       }
     };
-  }, []);
+  }, [recognitionLang]);
 
   const checkResume = async () => {
     try {
@@ -535,20 +567,44 @@ const MockInterviewView = () => {
               </div>
 
               <div className="flex-1 w-full space-y-4">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center flex-wrap gap-2">
                   <span className="text-[11px] font-black text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
                     <ClosedCaption className="w-4 h-4" />
                     Live Transcription
                   </span>
-                  <div className="flex items-center gap-4">
-                    <span className="text-lg font-black text-on-surface tabular-nums">{formatTime(timeLeft)}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold text-on-surface-variant/60 uppercase">Language:</span>
+                    <select
+                      value={recognitionLang}
+                      onChange={(e) => {
+                        setRecognitionLang(e.target.value);
+                      }}
+                      className="bg-surface-container/60 hover:bg-surface-container border border-outline-variant/20 rounded-xl px-3 py-1.5 text-[10px] font-black text-on-surface-variant uppercase tracking-wider focus:outline-none focus:ring-1 focus:ring-primary/30 cursor-pointer transition-all"
+                    >
+                      <option value="en-IN">English (India) 🇮🇳</option>
+                      <option value="en-US">English (US) 🇺🇸</option>
+                      <option value="hi-IN">Hindi (हिंदी) 🇮🇳</option>
+                    </select>
+                    <span className="text-lg font-black text-on-surface tabular-nums ml-2">{formatTime(timeLeft)}</span>
                   </div>
                 </div>
-                <div className="min-h-[80px] md:min-h-[120px] p-6 rounded-2xl bg-surface-container/30 border border-outline-variant/10 text-on-surface text-lg font-medium leading-relaxed italic">
-                  {transcript}
-                  <span className="text-on-surface/50">{interimTranscript}</span>
-                  {!transcript && !interimTranscript && !isListening && "Click the mic to start speaking your answer..."}
-                  {!transcript && !interimTranscript && isListening && "Listening..."}
+                <div className="relative w-full">
+                  <textarea
+                    value={transcript}
+                    onChange={(e) => setTranscript(e.target.value)}
+                    placeholder={
+                      isListening 
+                        ? "Listening... Speak clearly into your mic (or type/edit your answer here directly)..." 
+                        : "Click the mic button to speak your answer, or type/edit your answer here directly..."
+                    }
+                    className="w-full min-h-[120px] md:min-h-[150px] p-6 pb-12 rounded-2xl bg-surface-container/30 border border-outline-variant/10 text-on-surface text-lg font-medium leading-relaxed resize-none focus:outline-none focus:border-primary/50 transition-all placeholder:text-on-surface-variant/40"
+                  />
+                  {interimTranscript && (
+                    <div className="absolute bottom-3 left-6 text-sm text-primary font-bold italic pointer-events-none animate-pulse flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+                      Speaking: {interimTranscript}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex gap-3">

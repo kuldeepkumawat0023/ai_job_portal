@@ -170,20 +170,83 @@ const PortfolioView = () => {
   };
 
   // PDF Generation Engine using jsPDF
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     if (!profile) {
       toast.error('Profile data not loaded yet');
       return;
     }
 
+    toast.loading('Generating PDF Resume...', { id: 'portfolio-pdf-gen' });
+
     try {
       const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 15;
       let yPosition = 20;
 
-      // Color theme
-      const primaryColor = [37, 99, 235]; // Modern Royal Blue
-      const secondaryColor = [30, 41, 59]; // Slate 800
+      // ─────────────────────────────────────
+      // WATERMARK LOGO
+      // ─────────────────────────────────────
+      const logoImg = new window.Image();
+      logoImg.src = '/images/logo/logoimage.png';
+
+      await new Promise((resolve) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = resolve;
+      });
+
+      if (logoImg.complete && logoImg.naturalWidth > 0) {
+        doc.saveGraphicsState();
+
+        // Watermark opacity
+        doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
+
+        const imgWidth = 130;
+        const imgHeight =
+          (logoImg.naturalHeight / logoImg.naturalWidth) * imgWidth;
+
+        doc.addImage(
+          logoImg,
+          'PNG',
+          (pageWidth - imgWidth) / 2,
+          (pageHeight - imgHeight) / 2,
+          imgWidth,
+          imgHeight
+        );
+
+        doc.restoreGraphicsState();
+      } else {
+        // Fallback watermark text
+        doc.saveGraphicsState();
+
+        doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
+
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(80);
+        doc.setTextColor(200, 200, 200);
+
+        doc.text('AI Job Fit', pageWidth / 2, pageHeight / 2, {
+          align: 'center',
+          angle: 45
+        });
+
+        doc.restoreGraphicsState();
+      }
+
+      // Color theme based on profile.resumeStyle
+      const style = profile.resumeStyle || 'modern';
+      let primaryColor = [70, 72, 212];
+      let secondaryColor = [129, 39, 207];
+
+      if (style === 'ats') {
+        primaryColor = [15, 23, 42];
+        secondaryColor = [71, 85, 105];
+      } else if (style === 'simple') {
+        primaryColor = [63, 63, 70];
+        secondaryColor = [113, 113, 122];
+      }
+
       const textColor = [51, 65, 85]; // Slate 600
       const grayTextColor = [100, 116, 139]; // Slate 500
 
@@ -498,9 +561,10 @@ const PortfolioView = () => {
       // Save the generated document
       const filename = `${(profile.fullname || 'Resume').replace(/\s+/g, '_')}_Resume.pdf`;
       doc.save(filename);
+      toast.success('Resume PDF downloaded!', { id: 'portfolio-pdf-gen' });
     } catch (pdfErr: any) {
       console.error('PDF generation failed:', pdfErr);
-      toast.error('Failed to compile PDF resume.');
+      toast.error('Failed to compile PDF resume.', { id: 'portfolio-pdf-gen' });
     }
   };
 

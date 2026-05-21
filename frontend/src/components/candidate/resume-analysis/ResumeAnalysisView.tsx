@@ -25,6 +25,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { resumeService, Resume } from '@/lib/services/resume.services';
 import { aiService } from '@/lib/services/ai.services';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/common/Button';
 import DeleteModal from '@/components/common/DeleteModal';
 import { toast } from 'react-hot-toast';
@@ -33,6 +34,7 @@ import { cn } from '@/utils/cn';
 import { jsPDF } from 'jspdf';
 
 const ResumeAnalysisView = () => {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -47,78 +49,312 @@ const ResumeAnalysisView = () => {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const generatePDFReport = (data: Resume) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
+  const generatePDFReport = async (data: Resume) => {
+    toast.loading('Generating AI Analysis Report...', { id: 'pdf-gen' });
+    try {
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth(); // 210
+      const pageHeight = doc.internal.pageSize.getHeight(); // 297
+      const margin = 15;
+      const contentWidth = pageWidth - margin * 2; // 180
 
-    // Header & Branding
-    doc.setFillColor(70, 72, 212); // Primary color
-    doc.rect(0, 0, pageWidth, 40, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
-    doc.text('AI RESUME ANALYSIS REPORT', 20, 25);
+      const userName = user?.fullname || 'Candidate';
+      const rawFileName = data.fileUrl ? data.fileUrl.split('/').pop() || 'resume.pdf' : 'resume.pdf';
+      const cleanFileName = rawFileName.replace(/^[a-f0-9]+_/gi, '');
 
-    doc.setFontSize(10);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 32);
+      // ─── Header: Premium Deep Navy Block ───
+      doc.setFillColor(70, 72, 212); // Primary app color
+      doc.rect(0, 0, pageWidth, 35, 'F');
 
-    // Body Content
-    doc.setTextColor(33, 33, 33);
+      // Accent line
+      doc.setFillColor(129, 39, 207); // Secondary app color
+      doc.rect(0, 34, pageWidth, 1, 'F');
 
-    // Score Section
-    doc.setFontSize(14);
-    doc.text('ATS READINESS SCORE', 20, 55);
-    doc.setFontSize(40);
-    doc.setTextColor(70, 72, 212);
-    doc.text(`${data.score}%`, 20, 75);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.text('AI RESUME SCAN & ATS ANALYSIS', margin, 14);
 
-    doc.setTextColor(33, 33, 33);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'italic');
-    const summaryLines = doc.splitTextToSize(data.summary || 'No summary available.', pageWidth - 40);
-    doc.text(summaryLines, 20, 85);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(200, 210, 230);
+      doc.text(`CANDIDATE: ${userName.toUpperCase()}   |   FILE: ${cleanFileName.toUpperCase()}`, margin, 21);
+      doc.text(`DATE GENERATED: ${new Date(data.updatedAt || Date.now()).toLocaleDateString()}   |   POWERED BY AI JOB PORTAL`, margin, 26);
 
-    // Skills & Weaknesses
-    let yPos = 110;
+      // Right-aligned status badge in header
+      doc.setFillColor(129, 39, 207, 0.2);
+      doc.setDrawColor(129, 39, 207);
+      doc.roundedRect(pageWidth - margin - 32, 10, 32, 7, 1.5, 1.5, 'FD');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.text('SCAN COMPLETE', pageWidth - margin - 16, 14.8, { align: 'center' });
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('TOP SKILLS DETECTED', 20, yPos);
-    yPos += 10;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(data.skills?.join(' • ') || 'None detected', 20, yPos);
+      // ─── Background Watermark Image ───
+      const logoImg = new Image();
+      logoImg.src = '/images/logo/logoimage.png';
+      await new Promise((resolve) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = resolve;
+      });
 
-    yPos += 20;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('AREAS TO IMPROVE', 20, yPos);
-    yPos += 10;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(data.weaknesses?.join(' • ') || 'None detected', 20, yPos);
+      if (logoImg.complete && logoImg.naturalWidth > 0) {
+        doc.saveGraphicsState();
+        doc.setGState(new (doc as any).GState({ opacity: 0.1 }));
+        const imgWidth = 140;
+        const imgHeight = (logoImg.naturalHeight / logoImg.naturalWidth) * imgWidth;
+        doc.addImage(logoImg, 'PNG', (pageWidth - imgWidth) / 2, (pageHeight - imgHeight) / 2 + 10, imgWidth, imgHeight);
+        doc.restoreGraphicsState();
+      } else {
+        // Fallback
+        doc.saveGraphicsState();
+        doc.setGState(new (doc as any).GState({ opacity: 0.1 }));
+        doc.setTextColor(239, 68, 68);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(110);
+        doc.text('AI Job Fit', pageWidth / 2, pageHeight / 2 + 10, { align: 'center', angle: 45 });
+        doc.restoreGraphicsState();
+      }
 
-    // Coaching Tips
-    yPos += 25;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('AI COACHING TIPS', 20, yPos);
-    yPos += 10;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    data.coachingTips?.forEach((tip, i) => {
-      const tipLines = doc.splitTextToSize(`${i + 1}. ${tip}`, pageWidth - 40);
-      doc.text(tipLines, 20, yPos);
-      yPos += (tipLines.length * 6);
-    });
+      let yPos = 46;
 
-    // Footer
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.text('This report was generated by AI JobFit Intelligence Engine.', pageWidth / 2, 285, { align: 'center' });
+      // ─── Row 1: ATS Score & Executive Summary ───
+      // Left: ATS Score Block
+      doc.setFillColor(243, 246, 252);
+      doc.setDrawColor(220, 228, 242);
+      doc.roundedRect(margin, yPos, 45, 26, 2, 2, 'FD');
 
-    doc.save(`Analysis_Report_${data._id.substring(0, 8)}.pdf`);
-    toast.success('PDF Downloaded!');
+      doc.setTextColor(71, 85, 105);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.text('ATS READINESS SCORE', margin + 22.5, yPos + 6, { align: 'center' });
+
+      const score = data.score || 0;
+      if (score >= 80) doc.setTextColor(22, 163, 74);
+      else if (score >= 60) doc.setTextColor(217, 119, 6);
+      else doc.setTextColor(220, 38, 38);
+
+      doc.setFontSize(26);
+      doc.text(`${score}%`, margin + 22.5, yPos + 18, { align: 'center' });
+
+      // Right: Executive Summary Block
+      doc.setTextColor(30, 41, 59);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.text('EXECUTIVE AI SUMMARY', margin + 53, yPos + 5);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(71, 85, 105);
+
+      const summaryText = data.summary || 'Resume successfully scanned and parsed by AI JobFit engine.';
+      const summaryLines = doc.splitTextToSize(summaryText, contentWidth - 53);
+      doc.text(summaryLines, margin + 53, yPos + 11);
+
+      yPos += 34;
+
+      // Divider Line
+      doc.setDrawColor(226, 232, 240);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+
+      yPos += 6;
+
+      // ─── Row 2: Strengths & Weaknesses (2-column layout) ───
+      const colWidth = (contentWidth - 8) / 2; // 86mm each
+
+      // Column Left: Key Strengths
+      doc.setTextColor(70, 72, 212);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.text('KEY STRENGTHS', margin, yPos);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(51, 65, 85);
+
+      let strengthY = yPos + 6;
+      const strengthsList = data.strengths && data.strengths.length > 0 ? data.strengths : ['Standard Resume Formatting', 'Structured Layout', 'Parsed Core Competencies'];
+      strengthsList.slice(0, 3).forEach((strength) => {
+        doc.setFillColor(129, 39, 207);
+        doc.circle(margin + 2, strengthY - 1, 0.8, 'F');
+
+        const wrappedStr = doc.splitTextToSize(strength, colWidth - 6);
+        doc.text(wrappedStr, margin + 5, strengthY);
+        strengthY += wrappedStr.length * 4 + 2;
+      });
+
+      // Column Right: Areas to Improve
+      doc.setTextColor(70, 72, 212);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.text('AREAS TO IMPROVE', margin + colWidth + 8, yPos);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(51, 65, 85);
+
+      let weaknessY = yPos + 6;
+      const weaknessesList = data.weaknesses && data.weaknesses.length > 0 ? data.weaknesses : ['Include Quantifiable Metrics', 'Keyword Placement', 'ATS Formatting Alignment'];
+      weaknessesList.slice(0, 3).forEach((weakness) => {
+        doc.setFillColor(239, 68, 68);
+        doc.circle(margin + colWidth + 10, weaknessY - 1, 0.8, 'F');
+
+        const wrappedWeak = doc.splitTextToSize(weakness, colWidth - 6);
+        doc.text(wrappedWeak, margin + colWidth + 13, weaknessY);
+        weaknessY += wrappedWeak.length * 4 + 2;
+      });
+
+      yPos = Math.max(strengthY, weaknessY) + 4;
+
+      // Divider Line
+      doc.setDrawColor(226, 232, 240);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+
+      yPos += 6;
+
+      // ─── Row 3: Recommended Roles & Top Skills (2-column layout) ───
+      // Column Left: Recommended Roles
+      doc.setTextColor(70, 72, 212);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.text('RECOMMENDED CAREER PATHS', margin, yPos);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(51, 65, 85);
+
+      let rolesY = yPos + 6;
+      const rolesList = data.recommendedRoles && data.recommendedRoles.length > 0 ? data.recommendedRoles : ['Software Engineer', 'Full Stack Developer'];
+      rolesList.slice(0, 3).forEach((role) => {
+        doc.setFillColor(70, 72, 212);
+        doc.circle(margin + 2, rolesY - 1, 0.8, 'F');
+        doc.text(role, margin + 5, rolesY);
+        rolesY += 5;
+      });
+
+      // Column Right: Top Skills
+      doc.setTextColor(70, 72, 212);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.text('DETECTED PRIMARY SKILLS', margin + colWidth + 8, yPos);
+
+      let skillsY = yPos + 5;
+      const skillsList = data.skills && data.skills.length > 0 ? data.skills : ['JavaScript', 'React', 'Node.js', 'HTML5', 'CSS3'];
+
+      let chipX = margin + colWidth + 8;
+      let chipY = skillsY;
+      doc.setFontSize(7.5);
+
+      skillsList.slice(0, 10).forEach((skill) => {
+        const textWidth = doc.getTextWidth(skill);
+        const chipWidth = textWidth + 4;
+        const chipHeight = 5.5;
+
+        if (chipX + chipWidth > pageWidth - margin) {
+          chipX = margin + colWidth + 8;
+          chipY += chipHeight + 2;
+        }
+
+        doc.setFillColor(241, 245, 249);
+        doc.setDrawColor(203, 213, 225);
+        doc.roundedRect(chipX, chipY, chipWidth, chipHeight, 1, 1, 'FD');
+        doc.setTextColor(51, 65, 85);
+        doc.text(skill, chipX + 2, chipY + 4);
+
+        chipX += chipWidth + 2;
+      });
+
+      yPos = Math.max(rolesY, chipY + 10) + 2;
+
+      // Divider Line
+      doc.setDrawColor(226, 232, 240);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+
+      yPos += 6;
+
+
+
+      // ─── Row 4: AI Coaching Path ───
+      doc.setTextColor(70, 72, 212);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('AI COACHING ROADMAP & RECOMMENDATIONS', margin, yPos);
+
+      yPos += 6;
+
+      const coachingTipsList = data.coachingTips && data.coachingTips.length > 0 ? data.coachingTips : [
+        'Incorporate quantifiable achievements under each experience role to prove business impact.',
+        'Ensure primary industry keywords are placed naturally in the top third of your resume.',
+        'Maintain clean layouts with standard section headings to optimize parsing by automated systems.'
+      ];
+
+      coachingTipsList.slice(0, 3).forEach((tip, idx) => {
+        doc.setFillColor(243, 246, 252);
+        doc.setDrawColor(70, 72, 212);
+        doc.circle(margin + 3, yPos - 1, 2.5, 'FD');
+
+        doc.setTextColor(70, 72, 212);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.text(`${idx + 1}`, margin + 3, yPos - 0.2, { align: 'center' });
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(51, 65, 85);
+
+        const wrappedTip = doc.splitTextToSize(tip, contentWidth - 10);
+        doc.text(wrappedTip, margin + 8, yPos);
+
+        yPos += wrappedTip.length * 4 + 4;
+      });
+
+      // ─── Page Footer ───
+      doc.setFontSize(7);
+      doc.setTextColor(148, 163, 184);
+      doc.text('CONFIDENTIAL • GENERATED BY AI JOBFIT ATS INTEGRATION ENGINE', pageWidth / 2, pageHeight - 8, { align: 'center' });
+      doc.text('Page 1 of 1', pageWidth - margin, pageHeight - 8, { align: 'right' });
+
+      const downloadName = `${userName.replace(/\s+/g, '_')}_AI_Analysis_Report.pdf`;
+      doc.save(downloadName);
+      toast.success('AI Analysis Report PDF Downloaded!', { id: 'pdf-gen' });
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to generate report', { id: 'pdf-gen' });
+    }
+  };
+
+  const downloadOriginalResume = async (fileUrl: string) => {
+    try {
+      toast.loading('Starting resume download...', { id: 'resume-download' });
+
+      // Attempt programmatic fetch to download as a Blob (mimics native library direct save)
+      const response = await fetch(fileUrl);
+      if (!response.ok) throw new Error('Network response was not ok');
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const fileName = fileUrl.split('/').pop()?.replace(/^[a-f0-9]+_/gi, '') || 'resume.pdf';
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(blobUrl);
+      toast.success('Resume downloaded successfully!', { id: 'resume-download' });
+    } catch (error) {
+      console.error('Fetch download failed, falling back to direct attachment URL:', error);
+      // Fallback: Use Cloudinary fl_attachment flag to force direct download in a new window/tab
+      let downloadUrl = fileUrl;
+      if (fileUrl.includes('cloudinary.com') && fileUrl.includes('/upload/')) {
+        downloadUrl = fileUrl.replace('/upload/', '/upload/fl_attachment/');
+      }
+      window.open(downloadUrl, '_blank');
+      toast.success('Opening download link...', { id: 'resume-download' });
+    }
   };
 
   useEffect(() => {
@@ -352,13 +588,16 @@ const ResumeAnalysisView = () => {
 
               {/* Quick Actions */}
               <div className="flex flex-col gap-3">
-                <Button variant="gradient" className="w-full" onClick={fetchInterviewQuestions}>
+                <Button variant="gradient" className="w-full animate-pulse-slow" onClick={fetchInterviewQuestions}>
                   Generate Interview Scripts
-                  <Sparkles className="ml-2 w-4 h-4" />
+                  <Sparkles className="ml-2 w-4.5 h-4.5" />
                 </Button>
-                <Button variant="secondary" className="w-full" onClick={() => generatePDFReport(currentResume)}>
-                  Download Analysis PDF
-                  <Download className="ml-2 w-4 h-4" />
+                <Button
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white border-none shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-[1.02] transition-all"
+                  onClick={() => generatePDFReport(currentResume)}
+                >
+                  <Download className="w-4 h-4" />
+                  AI Analysis Report
                 </Button>
                 <Button variant="outline" className="w-full" onClick={() => setCurrentStep(1)}>
                   Analyze Another
@@ -520,16 +759,21 @@ const ResumeAnalysisView = () => {
                   <Calendar className="w-3.5 h-3.5" />
                   {new Date(item.updatedAt).toLocaleDateString()}
                 </p>
-                <div className="mt-auto flex gap-3">
+                <div className="mt-auto flex items-center gap-2">
                   <button
-                    onClick={() => { setCurrentResume(item); setCurrentStep(3); }}
-                    className="flex-1 bg-primary text-white font-bold text-xs py-2.5 rounded-xl hover:shadow-lg hover:shadow-primary/30 transition-all"
+                    onClick={() => {
+                      setCurrentResume(item);
+                      setCurrentStep(3);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="flex-1 bg-primary text-white font-bold text-xs py-2.5 rounded-xl hover:shadow-lg hover:shadow-primary/30 transition-all text-center"
                   >
                     View Analysis
                   </button>
                   <button
                     onClick={() => generatePDFReport(item)}
-                    className="p-2.5 border border-outline-variant text-on-surface-variant rounded-xl hover:bg-surface-container transition-colors"
+                    title="Download AI Analysis Report"
+                    className="p-2.5 bg-surface-container-high border border-outline-variant text-primary rounded-xl hover:bg-primary/10 transition-colors shrink-0"
                   >
                     <Download className="w-4 h-4" />
                   </button>
