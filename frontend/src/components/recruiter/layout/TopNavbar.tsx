@@ -16,7 +16,10 @@ import {
   Search,
   Calendar as CalendarIcon,
   Star,
-  BrainCircuit
+  BrainCircuit,
+  CheckCircle2,
+  Plus,
+  Building2
 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { cn } from '@/utils/cn';
@@ -124,23 +127,25 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
     }
   }, [user, user?.companyId]);
 
-  const handleSwitchCompany = async (companyId: string) => {
-    if (companyId === activeCompany?._id) return;
+  const handleSwitchCompany = async (company: any) => {
+    if (company._id === activeCompany?._id) {
+      setIsWorkspaceDropdownOpen(false);
+      return;
+    }
     try {
       setIsSwitchingWorkspace(true);
-      const response = await companyService.switchCompany(companyId);
+      const response = await companyService.switchCompany(company._id);
       if (response.success && response.data) {
-        toast.success(`Switched workspace to ${response.data.company.name}`);
-        updateUser({ companyId: response.data.company._id });
+        toast.success(`Switched to ${company.name}`);
+        setActiveCompany(company);
+        updateUser({ companyId: company._id });
         setIsWorkspaceDropdownOpen(false);
-        // Force refresh to reload all recruiter data metrics
-        window.location.reload();
+        window.location.href = '/recruiter/dashboard';
       } else {
-        toast.error(response.message || 'Failed to switch workspace');
+        toast.error('Failed to switch workspace');
       }
-    } catch (err) {
-      console.error('Error switching company:', err);
-      toast.error('Failed to switch workspace context');
+    } catch {
+      toast.error('Failed to switch workspace');
     } finally {
       setIsSwitchingWorkspace(false);
     }
@@ -239,45 +244,45 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 className="absolute left-0 top-full mt-2 w-64 bg-white dark:bg-zinc-950 backdrop-blur-xl border border-outline-variant/30 rounded-2xl shadow-2xl py-2 overflow-hidden z-50 shadow-primary/10"
               >
-                <div className="px-4 py-2.5 border-b border-outline-variant/10 mb-1">
-                  <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Active Workspace</p>
+                <div className="px-4 py-2 border-b border-outline-variant/10">
+                  <p className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">Switch Workspace</p>
                 </div>
                 <div className="px-2 max-h-48 overflow-y-auto space-y-0.5">
-                  {companies.map((company) => (
+                  {companies.map((company: any) => (
                     <button
                       key={company._id}
-                      onClick={() => handleSwitchCompany(company._id)}
+                      onClick={() => handleSwitchCompany(company)}
                       className={cn(
-                        "w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer",
+                        "w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors cursor-pointer",
                         company._id === activeCompany?._id
-                          ? "bg-primary/10 text-primary border border-primary/20"
-                          : "text-on-surface hover:bg-surface-container"
+                          ? "text-primary bg-primary/5"
+                          : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low"
                       )}
                     >
-                      <div className="flex items-center gap-2.5 truncate">
+                      <div className="w-6 h-6 rounded-md bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 overflow-hidden">
                         {company.logo ? (
-                          <img src={company.logo} alt={company.name} className="w-5 h-5 rounded-md object-cover" />
+                          <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-5 h-5 rounded-md bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-[8px] font-black text-white">
-                            {company.name.charAt(0).toUpperCase()}
-                          </div>
+                          <span className="text-[10px] font-black text-primary">{company.name.charAt(0).toUpperCase()}</span>
                         )}
-                        <span className="truncate">{company.name}</span>
                       </div>
+                      <span className="text-sm font-medium truncate flex-1">{company.name}</span>
                       {company._id === activeCompany?._id && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        <CheckCircle2 size={14} className="text-primary shrink-0" />
                       )}
                     </button>
                   ))}
                 </div>
-                <div className="mt-2 pt-2 border-t border-outline-variant/10 px-2">
+                <div className="px-2 pt-1.5 mt-1 border-t border-outline-variant/10">
                   <Link
-                    href="/recruiter/settings"
+                    href="/recruiter/settings/profile"
                     onClick={() => setIsWorkspaceDropdownOpen(false)}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-black text-primary hover:bg-primary/5 rounded-xl transition-colors uppercase tracking-widest"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left text-primary hover:bg-primary/5 transition-colors rounded-lg group cursor-pointer"
                   >
-                    <Settings size={14} />
-                    Manage Workspaces
+                    <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-all">
+                      <Plus size={14} />
+                    </div>
+                    <span className="text-[11px] font-black uppercase tracking-widest truncate">Add Company</span>
                   </Link>
                 </div>
               </motion.div>
