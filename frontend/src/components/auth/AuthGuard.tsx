@@ -10,24 +10,68 @@ interface AuthGuardProps {
 
 /**
  * 🔒 AuthGuard
- * Prevents unauthenticated users from accessing protected pages.
+ * SEO + Accessibility Optimized
+ * Prevents unauthenticated users
+ * from accessing protected pages.
  */
-const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
-  const { isAuthenticated, isInitialized } = useAuth();
+const AuthGuard: React.FC<AuthGuardProps> = ({
+  children
+}) => {
+  const {
+    isAuthenticated,
+    isInitialized
+  } = useAuth();
+
   const router = useRouter();
 
   useEffect(() => {
-    if (isInitialized && !isAuthenticated) {
+    if (
+      isInitialized &&
+      !isAuthenticated
+    ) {
       router.push('/');
     }
-  }, [isAuthenticated, isInitialized, router]);
+  }, [
+    isAuthenticated,
+    isInitialized,
+    router
+  ]);
 
-  // Show nothing while initializing or if not authenticated
-  if (!isInitialized || !isAuthenticated) {
+  // Loading State
+  if (
+    !isInitialized ||
+    !isAuthenticated
+  ) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-background">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
+      <section
+        className="h-screen w-full flex items-center justify-center bg-background"
+        aria-label="Authentication loading screen"
+      >
+        {/* SEO Hidden H1 */}
+        <h1 className="sr-only">
+          Secure Authentication Verification
+        </h1>
+
+        {/* SEO Description */}
+        <p className="sr-only">
+          Verifying user authentication and
+          checking access permissions for
+          protected AI JobFit pages.
+        </p>
+
+        {/* Loader */}
+        <div
+          className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading authentication status"
+        />
+
+        {/* Screen Reader Text */}
+        <span className="sr-only">
+          Loading authentication...
+        </span>
+      </section>
     );
   }
 

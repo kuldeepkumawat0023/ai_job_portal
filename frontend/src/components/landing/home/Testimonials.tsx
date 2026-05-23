@@ -86,8 +86,8 @@ const Testimonials = () => {
               <div className="flex items-center gap-4">
                 <div
                   className={`w-14 h-14 rounded-full border-2 overflow-hidden relative ${t.color === 'primary'
-                    ? 'border-primary/20'
-                    : 'border-secondary/20'
+                      ? 'border-primary/20'
+                      : 'border-secondary/20'
                     }`}
                 >
                   <Image
