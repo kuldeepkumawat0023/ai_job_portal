@@ -166,7 +166,21 @@ exports.getJobById = async (req, res, next) => {
 // @access  Private/Recruiter
 exports.getAdminJobs = async (req, res, next) => {
   try {
-    const jobs = await Job.find({ postedBy: req.user.id, isDeleted: { $ne: true } }).populate('companyId', 'name');
+    const Company = require('../models/Company');
+    let companyId = req.user.companyId;
+    if (!companyId) {
+      const company = await Company.findOne({ userId: req.user.id });
+      companyId = company ? company._id : null;
+    }
+
+    const query = { isDeleted: { $ne: true } };
+    if (companyId) {
+      query.companyId = companyId;
+    } else {
+      query.postedBy = req.user.id;
+    }
+
+    const jobs = await Job.find(query).populate('companyId', 'name');
     res.status(200).json({
       success: true,
       statusCode: 200,

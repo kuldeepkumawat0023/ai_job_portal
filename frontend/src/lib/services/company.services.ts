@@ -54,4 +54,13 @@ export const companyService = {
     const response = await apiClient.put(`/company/update/${id}`, data);
     return response.data;
   },
+
+  /**
+   * Switch the active company workspace context
+   * PUT /api/v1/company/switch/:id
+   */
+  switchCompany: async (id: string): Promise<ApiResponse<{ user: any; company: Company }>> => {
+    const response = await apiClient.put(`/company/switch/${id}`);
+    return response.data;
+  },
 };

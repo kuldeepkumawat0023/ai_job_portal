@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Users, 
   CreditCard, 
@@ -33,8 +34,17 @@ interface RecruiterSettingsViewProps {
   initialTab?: 'profile' | 'team' | 'notifications' | 'billing' | 'security';
 }
 
+const TAB_ROUTES: Record<string, string> = {
+  profile: '/recruiter/settings/personal',
+  team: '/recruiter/settings',
+  notifications: '/recruiter/settings/notifications',
+  billing: '/recruiter/settings/billing',
+  security: '/recruiter/settings/security',
+};
+
 const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTab = 'profile' }) => {
   const { user, updateUser } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'notifications' | 'billing' | 'security'>(initialTab);
 
   // Profile Form State
@@ -349,7 +359,10 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
             key={tab.id}
             id={`tab-control-${tab.id}`}
             aria-selected={activeTab === tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => {
+              setActiveTab(tab.id as any);
+              router.push(TAB_ROUTES[tab.id]);
+            }}
             className={cn(
               "px-8 py-4 font-black text-[10px] uppercase tracking-[0.2em] transition-all relative flex items-center gap-2 whitespace-nowrap cursor-pointer",
               activeTab === tab.id 

@@ -231,19 +231,22 @@ exports.updateStatus = async (req, res, next) => {
 // @access  Private/Recruiter
 exports.getRecruiterApplications = async (req, res, next) => {
   try {
-    // 1. Find all companies owned by this user/recruiter
-    const companies = await Company.find({ userId: req.user.id }).select('_id');
-    const companyIds = companies.map(c => c._id);
+    // 1. Resolve company context
+    let companyId = req.user.companyId;
+    if (!companyId) {
+      const company = await Company.findOne({ userId: req.user.id }).select('_id');
+      companyId = company ? company._id : null;
+    }
 
-    // 2. Find all active jobs belonging to those companies or posted by the user
-    const jobs = await Job.find({ 
-      $or: [
-        { postedBy: req.user.id },
-        { companyId: { $in: companyIds } }
-      ],
-      isDeleted: { $ne: true }
-    }).select('_id');
-    
+    const jobsQuery = { isDeleted: { $ne: true } };
+    if (companyId) {
+      jobsQuery.companyId = companyId;
+    } else {
+      jobsQuery.postedBy = req.user.id;
+    }
+
+    // 2. Find jobs belonging to the active company
+    const jobs = await Job.find(jobsQuery).select('_id');
     const jobIds = jobs.map(j => j._id);
 
     // 3. Find all applications for these jobs

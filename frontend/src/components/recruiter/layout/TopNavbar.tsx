@@ -26,6 +26,7 @@ import { companyService } from '@/lib/services/company.services';
 import { useRouter } from 'next/navigation';
 import { getBackendBaseUrl } from '@/lib/apiClient';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 interface TopNavbarProps {
   onMenuClick: () => void;
@@ -72,10 +73,15 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [companyName, setCompanyName] = useState<string>('TechNova Solutions');
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [activeCompany, setActiveCompany] = useState<any>(null);
+  const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
+  const [isSwitchingWorkspace, setIsSwitchingWorkspace] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
+  const workspaceRef = useRef<HTMLDivElement>(null);
 
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -87,26 +93,58 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
         setShowNotifications(false);
       }
+      if (workspaceRef.current && !workspaceRef.current.contains(event.target as Node)) {
+        setIsWorkspaceDropdownOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
-    const fetchCompany = async () => {
+    const fetchCompanies = async () => {
       try {
         const response = await companyService.getCompanies();
-        if (response.success && response.data && response.data.length > 0) {
-          setCompanyName(response.data[0].name);
+        if (response.success && response.data) {
+          setCompanies(response.data);
+          if (response.data.length > 0) {
+            const active = response.data.find(c => c._id === user?.companyId) || response.data[0];
+            setActiveCompany(active);
+            setCompanyName(active.name);
+          } else {
+            setCompanyName('No Company Profile');
+          }
         }
       } catch (err) {
         console.error('Error fetching company details in navbar:', err);
       }
     };
     if (user) {
-      fetchCompany();
+      fetchCompanies();
     }
-  }, [user]);
+  }, [user, user?.companyId]);
+
+  const handleSwitchCompany = async (companyId: string) => {
+    if (companyId === activeCompany?._id) return;
+    try {
+      setIsSwitchingWorkspace(true);
+      const response = await companyService.switchCompany(companyId);
+      if (response.success && response.data) {
+        toast.success(`Switched workspace to ${response.data.company.name}`);
+        updateUser({ companyId: response.data.company._id });
+        setIsWorkspaceDropdownOpen(false);
+        // Force refresh to reload all recruiter data metrics
+        window.location.reload();
+      } else {
+        toast.error(response.message || 'Failed to switch workspace');
+      }
+    } catch (err) {
+      console.error('Error switching company:', err);
+      toast.error('Failed to switch workspace context');
+    } finally {
+      setIsSwitchingWorkspace(false);
+    }
+  };
 
   const renderCompanyName = (name: string) => {
     const parts = name.split(' ');
@@ -154,7 +192,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
         </Button>
 
         {/* Brand Name */}
-        <Link href="/recruiter/dashboard" className="flex items-center gap-2 group">
+        <Link href="/recruiter/dashboard" className="flex items-center gap-2 group lg:hidden">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white shadow-sm shadow-primary/30">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -162,19 +200,89 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
               <path d="M2 12l10 5 10-5" />
             </svg>
           </div>
-          <span className="text-sm font-bold text-on-surface hidden sm:block">
-            AI JobFit
-          </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-4 ml-2">
-          <div className="h-6 w-[1px] bg-outline-variant/20 mx-2" />
-          <div className="flex items-center gap-2.5 px-4 py-1.5 bg-surface-container/50 rounded-2xl border border-outline-variant/10">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs font-black text-on-surface uppercase tracking-widest italic">
+        <div className="flex items-center gap-1 md:gap-4 ml-1 md:ml-2 relative" ref={workspaceRef}>
+          <div className="h-6 w-[1px] bg-outline-variant/20 mx-1 md:mx-2" />
+          <button
+            onClick={() => setIsWorkspaceDropdownOpen(!isWorkspaceDropdownOpen)}
+            disabled={isSwitchingWorkspace}
+            className="flex items-center gap-1.5 md:gap-2.5 px-2 py-1 md:px-4 md:py-1.5 bg-surface-container/50 hover:bg-surface-container hover:shadow-sm rounded-xl md:rounded-2xl border border-outline-variant/10 text-left transition-all group cursor-pointer disabled:opacity-50"
+          >
+            {/* Company logo or initials icon */}
+            <div className="flex items-center justify-center shrink-0">
+              {activeCompany?.logo ? (
+                <img src={activeCompany.logo} alt={companyName} className="w-5 h-5 rounded-md object-cover" />
+              ) : (
+                <div className="w-5 h-5 rounded-md bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-[9px] font-black text-white">
+                  {companyName.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            {/* Company name text: hidden on mobile */}
+            <span className="hidden md:inline text-xs font-black text-on-surface uppercase tracking-widest italic select-none">
               {renderCompanyName(companyName)}
             </span>
-          </div>
+
+            <ChevronDown className={cn(
+              "w-3 h-3 md:w-3.5 md:h-3.5 text-on-surface-variant group-hover:text-primary transition-all duration-300",
+              isWorkspaceDropdownOpen ? "rotate-180" : ""
+            )} />
+          </button>
+
+          <AnimatePresence>
+            {isWorkspaceDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="absolute left-0 top-full mt-2 w-64 bg-white dark:bg-zinc-950 backdrop-blur-xl border border-outline-variant/30 rounded-2xl shadow-2xl py-2 overflow-hidden z-50 shadow-primary/10"
+              >
+                <div className="px-4 py-2.5 border-b border-outline-variant/10 mb-1">
+                  <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Active Workspace</p>
+                </div>
+                <div className="px-2 max-h-48 overflow-y-auto space-y-0.5">
+                  {companies.map((company) => (
+                    <button
+                      key={company._id}
+                      onClick={() => handleSwitchCompany(company._id)}
+                      className={cn(
+                        "w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer",
+                        company._id === activeCompany?._id
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "text-on-surface hover:bg-surface-container"
+                      )}
+                    >
+                      <div className="flex items-center gap-2.5 truncate">
+                        {company.logo ? (
+                          <img src={company.logo} alt={company.name} className="w-5 h-5 rounded-md object-cover" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-md bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-[8px] font-black text-white">
+                            {company.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="truncate">{company.name}</span>
+                      </div>
+                      {company._id === activeCompany?._id && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2 pt-2 border-t border-outline-variant/10 px-2">
+                  <Link
+                    href="/recruiter/settings"
+                    onClick={() => setIsWorkspaceDropdownOpen(false)}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-black text-primary hover:bg-primary/5 rounded-xl transition-colors uppercase tracking-widest"
+                  >
+                    <Settings size={14} />
+                    Manage Workspaces
+                  </Link>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

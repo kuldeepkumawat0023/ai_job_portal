@@ -124,3 +124,37 @@ exports.updateCompany = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Switch active company context
+// @route   PUT /api/v1/company/switch/:id
+// @access  Private/Recruiter/Admin
+exports.switchCompany = async (req, res, next) => {
+  try {
+    const company = await Company.findById(req.params.id);
+    if (!company) {
+      return res.status(404).json({ success: false, statusCode: 404, message: 'Company not found', data: null });
+    }
+
+    // Security: Check if user owns the company
+    if (company.userId.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized to switch to this company', data: null });
+    }
+
+    // Update user's active company ID
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, {
+      companyId: company._id
+    }, { new: true });
+
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: 'Switched active company workspace successfully',
+      data: {
+        user: updatedUser,
+        company
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

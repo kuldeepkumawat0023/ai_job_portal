@@ -22,7 +22,8 @@ import {
   Building2,
   User,
   Bell,
-  Lock
+  Lock,
+  CreditCard
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Button } from '@/components/common/Button';
@@ -58,10 +59,11 @@ const recruiterNavLinks: NavLink[] = [
     href: '/recruiter/settings',
     icon: Settings,
     children: [
-      { name: 'Team Management', href: '/recruiter/settings', icon: Users },
       { name: 'Company Profile', href: '/recruiter/settings/profile', icon: Building2 },
+      { name: 'Team Management', href: '/recruiter/settings', icon: Users },
       { name: 'Personal Profile', href: '/recruiter/settings/personal', icon: User },
       { name: 'Notifications', href: '/recruiter/settings/notifications', icon: Bell },
+      { name: 'Billing & Plan', href: '/recruiter/settings/billing', icon: CreditCard },
       { name: 'Security', href: '/recruiter/settings/security', icon: Lock },
     ]
   },
@@ -70,11 +72,11 @@ const recruiterNavLinks: NavLink[] = [
 const isLinkActive = (href: string, pathname: string, siblings: NavLink[] = []) => {
   if (pathname === href) return true;
   if (href === '/candidate/dashboard' || href === '/recruiter/dashboard') return false;
-  
+
   if (pathname.startsWith(href)) {
-    const hasBetterSiblingMatch = siblings.some(sib => 
-      sib.href !== href && 
-      pathname.startsWith(sib.href) && 
+    const hasBetterSiblingMatch = siblings.some(sib =>
+      sib.href !== href &&
+      pathname.startsWith(sib.href) &&
       sib.href.length > href.length
     );
     return !hasBetterSiblingMatch;

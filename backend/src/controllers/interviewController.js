@@ -25,8 +25,14 @@ exports.scheduleInterview = async (req, res, next) => {
       if (job && job.companyId) {
         resolvedCompanyId = job.companyId;
       } else {
-        // Fallback: get from recruiter's own company profile
-        const recruiterCompany = await Company.findOne({ userId: req.user.id }).select('_id');
+        // Fallback: get from recruiter's active company profile or first company profile
+        let recruiterCompany = null;
+        if (req.user.companyId) {
+          recruiterCompany = await Company.findOne({ _id: req.user.companyId, userId: req.user.id }).select('_id');
+        }
+        if (!recruiterCompany) {
+          recruiterCompany = await Company.findOne({ userId: req.user.id }).select('_id');
+        }
         if (recruiterCompany) {
           resolvedCompanyId = recruiterCompany._id;
         }

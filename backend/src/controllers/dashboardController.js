@@ -87,11 +87,24 @@ exports.getRecruiterStats = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    // Find company profile associated with this recruiter
-    const company = await Company.findOne({ userId });
+    // Find active company profile associated with this recruiter
+    let company = null;
+    if (req.user.companyId) {
+      company = await Company.findOne({ _id: req.user.companyId, userId });
+    }
+    if (!company) {
+      company = await Company.findOne({ userId });
+    }
 
-    // Find jobs posted by this recruiter
-    const jobs = await Job.find({ postedBy: userId, isDeleted: { $ne: true } }).select('_id');
+    // Find jobs posted for this company context
+    const jobsQuery = { isDeleted: { $ne: true } };
+    if (company) {
+      jobsQuery.companyId = company._id;
+    } else {
+      jobsQuery.postedBy = userId;
+    }
+
+    const jobs = await Job.find(jobsQuery).select('_id');
     const jobIds = jobs.map(j => j._id);
 
     const totalJobsPosted = jobs.length;
@@ -181,8 +194,24 @@ exports.getRecruiterAnalytics = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    // Find jobs posted by this recruiter
-    const jobs = await Job.find({ postedBy: userId, isDeleted: { $ne: true } }).select('_id');
+    // Find active company profile associated with this recruiter
+    let company = null;
+    if (req.user.companyId) {
+      company = await Company.findOne({ _id: req.user.companyId, userId });
+    }
+    if (!company) {
+      company = await Company.findOne({ userId });
+    }
+
+    // Find jobs posted for this company context
+    const jobsQuery = { isDeleted: { $ne: true } };
+    if (company) {
+      jobsQuery.companyId = company._id;
+    } else {
+      jobsQuery.postedBy = userId;
+    }
+
+    const jobs = await Job.find(jobsQuery).select('_id');
     const jobIds = jobs.map(j => j._id);
 
     // Fetch all applications for these jobs
