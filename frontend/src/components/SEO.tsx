@@ -1,4 +1,3 @@
-"use client";
 import { defaultSEO } from "@/utils/seoConfig";
 import Script from 'next/script';
 
