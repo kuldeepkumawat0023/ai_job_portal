@@ -18,21 +18,29 @@ export default function InstallPWAButton() {
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
-      // Only show the global popup if the user is not logged in
+      (window as any).deferredPrompt = e;
+      window.dispatchEvent(new Event('pwa-ready'));
+
+      // Only show the global popup automatically if the user is not logged in
       if (!user) {
         setDeferredPrompt(e);
         setIsVisible(true);
       }
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Custom event to trigger modal manually from TopNavbar
-    const handleShowModal = () => {
-      if ((window as any).deferredPrompt) {
+    // Check if it was already fired
+    if ((window as any).deferredPrompt) {
+      if (!user) {
         setDeferredPrompt((window as any).deferredPrompt);
         setIsVisible(true);
       }
+    } else {
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    }
+
+    const handleShowModal = () => {
+      // Always allow modal to open for manual fallback
+      setIsVisible(true);
     };
     window.addEventListener('showInstallModal', handleShowModal);
 
@@ -43,17 +51,37 @@ export default function InstallPWAButton() {
   }, [user]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-
-    if (outcome === 'accepted') {
-      console.log('User accepted the PWA install prompt');
+    const promptEvent = deferredPrompt || (window as any).deferredPrompt;
+    
+    if (!promptEvent) {
+      import('react-hot-toast').then(({ toast }) => {
+        toast.success("To install: Open your browser menu (⋮) and tap 'Install App' or 'Add to Home Screen'");
+      });
+      setIsVisible(false);
+      return;
     }
 
-    setDeferredPrompt(null);
-    setIsVisible(false);
+    try {
+      // Close custom modal immediately before showing native prompt
+      setIsVisible(false);
+      
+      await promptEvent.prompt();
+      const { outcome } = await promptEvent.userChoice;
+      if (outcome === 'accepted') {
+        console.log('User accepted the PWA install prompt');
+      }
+      // Clear it so it cannot be reused
+      setDeferredPrompt(null);
+      (window as any).deferredPrompt = null;
+    } catch (err) {
+      console.error('Install prompt failed:', err);
+      // Event was likely already consumed or blocked by Chrome
+      import('react-hot-toast').then(({ toast }) => {
+        toast.success("To install: Open your browser menu (⋮) and tap 'Install App' or 'Add to Home Screen'");
+      });
+      setDeferredPrompt(null);
+      (window as any).deferredPrompt = null;
+    }
   };
 
   return (
