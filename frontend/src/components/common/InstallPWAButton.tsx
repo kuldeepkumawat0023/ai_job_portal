@@ -13,7 +13,21 @@ import { Button } from './Button';
 export default function InstallPWAButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const { user } = useAuth();
+  const { user, isInitialized } = useAuth();
+
+  useEffect(() => {
+    // If initialized, not logged in, and not installed as app, auto-show popup after 3 seconds
+    if (isInitialized && !user) {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+      
+      if (!isStandalone) {
+        const timer = setTimeout(() => {
+          setIsVisible(true);
+        }, 3000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user, isInitialized]);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {

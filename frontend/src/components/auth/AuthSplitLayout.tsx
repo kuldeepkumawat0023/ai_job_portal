@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { Bot } from 'lucide-react';
+import { Bot, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 interface AuthSplitLayoutProps {
   children: React.ReactNode;
@@ -27,6 +28,20 @@ export default function AuthSplitLayout({ children }: AuthSplitLayoutProps) {
       role="main"
       aria-label="AI JobFit Authentication Layout"
     >
+      {/* Back to Home Button */}
+      <Link 
+        href="/"
+        className={`absolute top-6 left-6 sm:top-8 sm:left-8 z-50 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 backdrop-blur-md border shadow-sm ${
+          isDark 
+            ? 'bg-zinc-900/50 border-white/10 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:shadow-black/50' 
+            : 'bg-white/60 border-zinc-200/60 text-zinc-600 hover:bg-white hover:text-zinc-900 hover:shadow-zinc-200/50'
+        }`}
+        aria-label="Return to Home Page"
+      >
+        <ArrowLeft size={16} />
+        <span>Back to Home</span>
+      </Link>
+
       {/* Form Column */}
       <div
         className="flex items-center justify-center p-4 sm:p-8 lg:p-12 w-full min-h-screen z-10 relative"
