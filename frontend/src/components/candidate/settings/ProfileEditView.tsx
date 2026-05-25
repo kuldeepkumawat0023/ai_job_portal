@@ -568,21 +568,22 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
 
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8 pb-20 px-4 md:px-0 animate-fadeIn">
+    <main className="w-full max-w-5xl mx-auto space-y-8 pb-20 px-4 md:px-0 animate-fadeIn">
 
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-4">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-4">
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={handleBack}
             className="glass-card p-3 rounded-2xl text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-all border-outline-variant/20 cursor-pointer flex items-center justify-center shadow-md hover:scale-105"
+            aria-label="Go back to profile settings"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5" aria-hidden="true" />
           </button>
           <div>
             <h1 className="text-3xl font-black text-on-surface uppercase tracking-widest flex items-center gap-2">
-              Edit Profile <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+              Edit Profile <Sparkles className="w-6 h-6 text-primary animate-pulse" aria-hidden="true" />
             </h1>
             <p className="text-sm text-on-surface-variant font-medium">Detailed configuration of your professional identity</p>
           </div>
@@ -594,17 +595,17 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
             className="gradient-button text-white px-6 py-2.5 rounded-2xl text-sm font-black shadow-xl hover:scale-[1.02] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
             ) : (
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
             )}
             Save Changes
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Unified Form Card Container */}
-      <div className="glass-card rounded-[32px] p-8 md:p-12 border-outline-variant/10 shadow-xl relative overflow-hidden bg-surface-container/5 space-y-12">
+      <form onSubmit={handleSaveProfile} className="glass-card rounded-[32px] p-8 md:p-12 border-outline-variant/10 shadow-xl relative overflow-hidden bg-surface-container/5 space-y-12">
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/5 rounded-full blur-[120px] pointer-events-none"></div>
 
@@ -925,17 +926,18 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
               const descError = errors[`workExperience_${i}_description`];
 
               return (
-                <div key={i} className="p-6 bg-surface-container/20 rounded-3xl border border-outline-variant/10 relative group hover:border-primary/20 transition-all duration-300">
+                <article key={i} className="p-6 bg-surface-container/20 rounded-3xl border border-outline-variant/10 relative group hover:border-primary/20 transition-all duration-300">
                   <button
                     type="button"
                     onClick={() => removeItem('workExperience', i)}
                     className="absolute top-4 right-4 p-2 text-on-surface-variant hover:text-error hover:bg-error/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                    aria-label={`Remove work experience entry ${i + 1}`}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div className="space-y-1">
-                      <label className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", roleError && "!text-red-500")}>Role Title</label>
+                      <label htmlFor={`workExperience_${i}_role`} className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", roleError && "!text-red-500")}>Role Title</label>
                       <input
                         id={`workExperience_${i}_role`}
                         maxLength={50}
@@ -950,7 +952,7 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
                       {roleError && <p className="text-[9px] !text-red-500 font-bold ml-1.5 mt-1 uppercase tracking-widest">{roleError}</p>}
                     </div>
                     <div className="space-y-1">
-                      <label className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", companyError && "!text-red-500")}>Company Name</label>
+                      <label htmlFor={`workExperience_${i}_company`} className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", companyError && "!text-red-500")}>Company Name</label>
                       <input
                         id={`workExperience_${i}_company`}
                         maxLength={50}
@@ -965,7 +967,7 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
                       {companyError && <p className="text-[9px] !text-red-500 font-bold ml-1.5 mt-1 uppercase tracking-widest">{companyError}</p>}
                     </div>
                     <div className="space-y-1">
-                      <label className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", durationError && "!text-red-500")}>Duration</label>
+                      <label htmlFor={`workExperience_${i}_duration`} className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", durationError && "!text-red-500")}>Duration</label>
                       <input
                         id={`workExperience_${i}_duration`}
                         maxLength={50}
@@ -981,7 +983,7 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", descError && "!text-red-500")}>Responsibilities & Achievements</label>
+                    <label htmlFor={`workExperience_${i}_description`} className={cn("text-[9px] font-black uppercase tracking-widest text-on-surface-variant ml-1", descError && "!text-red-500")}>Responsibilities & Achievements</label>
                     <textarea
                       id={`workExperience_${i}_description`}
                       placeholder="Detail your key objectives, achievements, and responsibilities in STAR format..."
@@ -995,7 +997,7 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
                     />
                     {descError && <p className="text-[9px] !text-red-500 font-bold ml-1.5 mt-1 uppercase tracking-widest">{descError}</p>}
                   </div>
-                </div>
+                </article>
               );
             })}
             {(!editForm.workExperience || editForm.workExperience.length === 0) && (
@@ -1567,8 +1569,8 @@ export const ProfileEditView = ({ profile, onClose }: ProfileEditViewProps) => {
             )}
           </button>
         </div>
-      </div>
+      </form>
 
-    </div>
+    </main>
   );
 };

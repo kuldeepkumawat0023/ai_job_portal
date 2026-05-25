@@ -169,7 +169,7 @@ const InterviewsView = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-20">
+    <main className="max-w-7xl mx-auto space-y-8 pb-20">
       {/* Dynamic Radial Background */}
       <div
         className="fixed inset-0 pointer-events-none -z-20 opacity-40"
@@ -180,15 +180,15 @@ const InterviewsView = () => {
       ></div>
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-4">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-4">
         <div>
           <h1 className="text-4xl font-black text-on-surface mb-2 tracking-tight">Interview Center</h1>
           <p className="text-lg text-on-surface-variant font-medium">Join upcoming sessions and evaluate company interview consistency.</p>
         </div>
-      </div>
+      </header>
 
       {/* Tab Switcher */}
-      <div className="flex items-center gap-3 p-1.5 bg-surface-container/20 rounded-2xl md:rounded-full border border-outline-variant/10 max-w-md">
+      <nav aria-label="Interview categories" className="flex items-center gap-3 p-1.5 bg-surface-container/20 rounded-2xl md:rounded-full border border-outline-variant/10 max-w-md">
         {(['upcoming', 'completed', 'cancelled'] as const).map((tab) => {
           const count = interviews.filter(item => {
             if (tab === 'upcoming') return item.status === 'scheduled';
@@ -220,10 +220,10 @@ const InterviewsView = () => {
             </button>
           );
         })}
-      </div>
+      </nav>
 
       {/* Interview Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <section aria-label="Scheduled interviews" className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {currentTabInterviews.map((item) => {
           const jobTitle = item.jobId?.title || 'Job Role';
           const companyName = item.companyId?.name || 'Company Name';
@@ -233,7 +233,7 @@ const InterviewsView = () => {
           const isCompleted = activeTab === 'completed';
 
           return (
-            <div
+            <article
               key={item._id}
               className="bg-surface-container-lowest/80 backdrop-blur-md border border-outline-variant/30 rounded-[40px] p-8 hover:shadow-[0_20px_50px_-12px_rgba(70,72,212,0.12)] transition-all flex flex-col justify-between group relative overflow-hidden"
             >
@@ -413,18 +413,18 @@ const InterviewsView = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </article>
           );
         })}
 
         {currentTabInterviews.length === 0 && (
           <div className="col-span-full border-4 border-dashed border-outline-variant/10 rounded-[48px] p-24 flex flex-col items-center justify-center text-center opacity-40 bg-surface-container/10">
-            <Calendar className="w-16 h-16 text-outline-variant mb-6" />
+            <Calendar className="w-16 h-16 text-outline-variant mb-6" aria-hidden="true" />
             <h3 className="text-xl font-black text-on-surface uppercase tracking-widest">No Interviews</h3>
             <p className="text-sm font-bold text-on-surface-variant mt-2">You don't have any scheduled sessions in this category.</p>
           </div>
         )}
-      </div>
+      </section>
 
       {/* FEEDBACK MODAL */}
       {showFeedbackModal && selectedInterview && (
@@ -630,7 +630,7 @@ const InterviewsView = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </main>
   );
 };
 

@@ -115,7 +115,7 @@ const ApplicationForm = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-16">
+    <main className="max-w-4xl mx-auto space-y-8 pb-16">
       {/* Base Gradient Background */}
       <div 
         className="fixed inset-0 pointer-events-none -z-20 opacity-50"
@@ -129,13 +129,14 @@ const ApplicationForm = () => {
       <button 
         onClick={() => router.back()}
         className="inline-flex items-center gap-2 text-sm font-bold text-on-surface-variant hover:text-primary transition-colors group cursor-pointer outline-none border-none bg-transparent"
+        aria-label="Go back to previous page"
       >
-        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" aria-hidden="true" />
         Back to previous page
       </button>
 
       {/* Application Header */}
-      <div className="text-center space-y-3">
+      <header className="text-center space-y-3">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest mb-2 border border-primary/20">
           Application Portal
         </div>
@@ -143,16 +144,16 @@ const ApplicationForm = () => {
           Apply for {job?.title || 'Job Role'}
         </h1>
         <p className="text-lg text-on-surface-variant font-bold flex items-center justify-center gap-2">
-          <Building2 className="w-5 h-5 text-primary animate-pulse" />
+          <Building2 className="w-5 h-5 text-primary animate-pulse" aria-hidden="true" />
           {job?.companyId?.name || 'Company'} 
-          <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
-          <MapPin className="w-5 h-5 text-secondary" />
+          <span className="w-1 h-1 rounded-full bg-outline-variant" aria-hidden="true"></span>
+          <MapPin className="w-5 h-5 text-secondary" aria-hidden="true" />
           {job?.location || 'Remote'}
         </p>
-      </div>
+      </header>
 
       {/* Dynamic Main Flow Panel */}
-      <div className="bg-surface-container-lowest/90 backdrop-blur-3xl border border-outline-variant/30 shadow-2xl rounded-[40px] p-8 md:p-12 relative overflow-hidden">
+      <section role="region" aria-label="Application credentials form" className="bg-surface-container-lowest/90 backdrop-blur-3xl border border-outline-variant/30 shadow-2xl rounded-[40px] p-8 md:p-12 relative overflow-hidden">
         
         {isComplete ? (
           /* CASE A: Profile Completed Screen */
@@ -160,7 +161,7 @@ const ApplicationForm = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-emerald-500/5 border border-emerald-500/20 p-6 rounded-[2.5rem]">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-6 h-6" />
+                  <CheckCircle2 className="w-6 h-6" aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-on-surface">Profile Completed! ✅</h3>
@@ -181,22 +182,22 @@ const ApplicationForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
               <div className="space-y-6">
                 <h4 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                  <User className="w-4 h-4" /> Personal Information
+                  <User className="w-4 h-4" aria-hidden="true" /> Personal Information
                 </h4>
                 <div className="space-y-3 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10">
                   <p className="text-sm text-on-surface font-black">{user?.fullname}</p>
-                  <p className="text-xs text-on-surface-variant flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> {user?.email}</p>
-                  {user?.phoneNumber && <p className="text-xs text-on-surface-variant flex items-center gap-2"><Phone className="w-3.5 h-3.5" /> {user.phoneNumber}</p>}
-                  {user?.location && <p className="text-xs text-on-surface-variant flex items-center gap-2"><MapPin className="w-3.5 h-3.5" /> {user.location}</p>}
+                  <p className="text-xs text-on-surface-variant flex items-center gap-2"><Mail className="w-3.5 h-3.5" aria-hidden="true" /> {user?.email}</p>
+                  {user?.phoneNumber && <p className="text-xs text-on-surface-variant flex items-center gap-2"><Phone className="w-3.5 h-3.5" aria-hidden="true" /> {user.phoneNumber}</p>}
+                  {user?.location && <p className="text-xs text-on-surface-variant flex items-center gap-2"><MapPin className="w-3.5 h-3.5" aria-hidden="true" /> {user.location}</p>}
                 </div>
 
                 <h4 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                  <Briefcase className="w-4 h-4" /> Latest Experience
+                  <Briefcase className="w-4 h-4" aria-hidden="true" /> Latest Experience
                 </h4>
                 <div className="p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 space-y-2">
                   {user?.experience === 0 || user?.isFresher ? (
                     <div className="flex items-center gap-2 p-2 bg-primary/5 rounded-2xl border border-primary/10">
-                      <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                      <Sparkles className="w-4 h-4 text-primary animate-pulse" aria-hidden="true" />
                       <p className="text-[10px] font-black text-primary uppercase tracking-widest">Fresher (Ready to start career)</p>
                     </div>
                   ) : user?.workExperience?.[0] ? (
@@ -212,14 +213,14 @@ const ApplicationForm = () => {
 
               <div className="space-y-6">
                 <h4 className="text-xs font-black uppercase tracking-widest text-secondary flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" /> Professional Credentials
+                  <Sparkles className="w-4 h-4" aria-hidden="true" /> Professional Credentials
                 </h4>
                 
                 {/* Resume Card Preview */}
                 <div className="p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 flex items-center justify-between gap-4 group">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center">
-                      <FileText className="w-5 h-5" />
+                      <FileText className="w-5 h-5" aria-hidden="true" />
                     </div>
                     <div>
                       <p className="text-xs font-black text-on-surface">Attached Resume PDF</p>
@@ -231,13 +232,14 @@ const ApplicationForm = () => {
                     target="_blank" 
                     rel="noreferrer" 
                     className="p-2 rounded-xl bg-surface-container-lowest hover:bg-primary hover:text-white transition-all text-on-surface flex items-center justify-center border border-outline-variant/20 shadow-md group-hover:scale-105"
+                    aria-label="View uploaded resume PDF"
                   >
-                    <ExternalLink className="w-4 h-4" />
+                    <ExternalLink className="w-4 h-4" aria-hidden="true" />
                   </a>
                 </div>
 
                 <h4 className="text-xs font-black uppercase tracking-widest text-secondary flex items-center gap-2">
-                  <BrainCircuit className="w-4 h-4" /> Core Skill Badges
+                  <BrainCircuit className="w-4 h-4" aria-hidden="true" /> Core Skill Badges
                 </h4>
                 <div className="flex flex-wrap gap-2 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10">
                   {user?.skills?.map((skill: string) => (
@@ -264,7 +266,7 @@ const ApplicationForm = () => {
                 onClick={handleApply}
                 disabled={submitting}
               >
-                {submitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : '🚀 Apply to this Job'}
+                {submitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" aria-hidden="true" /> : '🚀 Apply to this Job'}
               </Button>
             </div>
           </div>
@@ -272,7 +274,7 @@ const ApplicationForm = () => {
           /* CASE B: Profile Incomplete Screen */
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-center py-6">
             <div className="w-20 h-20 rounded-[2rem] bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-2 border border-amber-500/20 animate-pulse">
-              <AlertTriangle className="w-9 h-9" />
+              <AlertTriangle className="w-9 h-9" aria-hidden="true" />
             </div>
             
             <div className="space-y-3 max-w-xl mx-auto">
@@ -308,7 +310,7 @@ const ApplicationForm = () => {
             </div>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Render the Wizard Modal pre-filled */}
       <ProfileWizardModal 
@@ -316,7 +318,7 @@ const ApplicationForm = () => {
         onClose={() => setIsWizardOpen(false)} 
         jobId={jobId as string}
       />
-    </div>
+    </main>
   );
 };
 
