@@ -43,6 +43,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isHiringModalOpen, setIsHiringModalOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { user, logout } = useAuth();
@@ -50,6 +51,14 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
 
   useEffect(() => {
     setMounted(true);
+
+    const checkStandalone = () => {
+      if (window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone) {
+        setIsStandalone(true);
+      }
+    };
+    checkStandalone();
+    window.addEventListener('appinstalled', () => setIsStandalone(true));
 
     const checkInstallable = () => {
       if ((window as any).deferredPrompt) {
@@ -299,15 +308,17 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
                     Settings
                   </Link>
 
-                  <button
-                    onClick={handleInstallClick}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-left text-sm font-semibold text-primary hover:bg-primary/10 rounded-xl transition-colors group/item cursor-pointer"
-                  >
-                    <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover/item:bg-primary/20 transition-colors">
-                      <Download size={16} />
-                    </div>
-                    Install App
-                  </button>
+                  {!isStandalone && (
+                    <button
+                      onClick={handleInstallClick}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-left text-sm font-semibold text-primary hover:bg-primary/10 rounded-xl transition-colors group/item cursor-pointer"
+                    >
+                      <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover/item:bg-primary/20 transition-colors">
+                        <Download size={16} />
+                      </div>
+                      Install App
+                    </button>
+                  )}
                 </div>
 
                 <div className="mt-2 pt-2 border-t border-outline-variant/10 px-2">

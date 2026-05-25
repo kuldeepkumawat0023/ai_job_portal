@@ -454,10 +454,16 @@ const ResumeAnalysisView = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-20">
-      {/* Stepper Card */}
-      <div className="glass-card rounded-3xl p-6 sm:p-8 max-w-4xl mx-auto shadow-2xl relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none" />
+    <main className="max-w-7xl mx-auto space-y-12 pb-20">
+      {/* SEO Hidden Content */}
+      <h1 className="sr-only">AIJobFit AI Resume Analysis</h1>
+      <p className="sr-only">
+        Upload your resume and get an instant AI-powered ATS score, skill gap analysis, coaching tips, and auto-generated interview preparation scripts — all in seconds.
+      </p>
+
+      {/* Progress Stepper */}
+      <nav aria-label="Resume Analysis Progress Steps" className="glass-card rounded-3xl p-6 sm:p-8 max-w-4xl mx-auto shadow-2xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none" aria-hidden="true" />
         <div className="flex items-start justify-between relative px-2 sm:px-4 max-w-3xl mx-auto">
           {/* Connecting Lines */}
           <div className="absolute left-8 sm:left-14 right-8 sm:right-14 top-4 -translate-y-1/2 h-0.5 bg-surface-container-highest -z-10"></div>
@@ -477,7 +483,7 @@ const ResumeAnalysisView = () => {
                 "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300",
                 currentStep >= s.step ? "bg-primary text-white shadow-lg shadow-primary/30" : "bg-surface-container text-on-surface-variant border-2 border-outline-variant"
               )}>
-                {currentStep > s.step ? <CheckCircle2 className="w-5 h-5" /> : s.step}
+                {currentStep > s.step ? <CheckCircle2 className="w-5 h-5" aria-hidden="true" /> : s.step}
               </div>
               <span className={cn(
                 "text-[10px] font-black uppercase tracking-widest text-center",
@@ -486,7 +492,7 @@ const ResumeAnalysisView = () => {
             </div>
           ))}
         </div>
-      </div>
+      </nav>
 
       <AnimatePresence mode="wait">
         {/* STEP 1: UPLOAD */}
@@ -499,9 +505,9 @@ const ResumeAnalysisView = () => {
             onClick={() => fileInputRef.current?.click()}
           >
             <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} accept=".pdf,.docx" />
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner">
-              <UploadCloud className="w-12 h-12 text-primary" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true"></div>
+            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner" aria-hidden="true">
+              <UploadCloud className="w-12 h-12 text-primary" aria-hidden="true" />
             </div>
             <h2 className="text-3xl font-black text-on-surface mb-2 tracking-tight">
               {file ? file.name : "Analyze your resume with AI"}
@@ -517,7 +523,7 @@ const ResumeAnalysisView = () => {
                 disabled={uploading}
               >
                 {uploading ? "Uploading..." : file ? "Analyze Now" : "Select File"}
-                <ArrowRight className="ml-2 w-5 h-5" />
+                <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
               </Button>
             </div>
             <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/40">Supported: PDF, DOCX (Max 5MB)</p>
@@ -711,19 +717,19 @@ const ResumeAnalysisView = () => {
       </AnimatePresence>
 
       {/* History Section */}
-      <section className="pt-12">
-        <div className="flex justify-between items-end mb-8">
+      <section className="pt-12" aria-label="Resume Analysis History">
+        <header className="flex justify-between items-end mb-8">
           <div>
             <h2 className="text-3xl font-black text-on-surface tracking-tight">Analysis History</h2>
             <p className="text-on-surface-variant mt-1">Revisit your previously optimized documents.</p>
           </div>
-          <button className="text-primary font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:opacity-80">
+          <button className="text-primary font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:opacity-80" aria-label="View all archived resume analyses">
             View Archive
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </button>
-        </div>
+        </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="Past resume analysis records">
           {history.length === 0 ? (
             <div className="col-span-full h-40 glass-card rounded-3xl flex flex-col items-center justify-center opacity-40 border-dashed border-2">
               <FileSearch className="w-10 h-10 mb-2" />
@@ -731,24 +737,27 @@ const ResumeAnalysisView = () => {
             </div>
           ) : (
             history.map((item) => (
-              <motion.div
+              <motion.article
                 key={item._id}
+                role="listitem"
                 whileHover={{ y: -5 }}
                 className="glass-card rounded-3xl p-6 flex flex-col group relative overflow-hidden"
+                aria-label={`Resume analysis: ${item.fileUrl?.split('/').pop()?.substring(0, 20) || 'Resume'} — ATS Score ${item.score}%`}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-transparent pointer-events-none" aria-hidden="true" />
                 <div className="flex justify-between items-start mb-6">
-                  <div className="p-3 bg-primary/10 text-primary rounded-2xl">
-                    <FileText className="w-6 h-6" />
+                  <div className="p-3 bg-primary/10 text-primary rounded-2xl" aria-hidden="true">
+                    <FileText className="w-6 h-6" aria-hidden="true" />
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <span className="bg-primary/10 text-primary text-[10px] font-black px-3 py-1 rounded-full flex items-center gap-1.5 border border-primary/10">
-                      <Sparkles className="w-3 h-3" />
+                    <span className="bg-primary/10 text-primary text-[10px] font-black px-3 py-1 rounded-full flex items-center gap-1.5 border border-primary/10" aria-label={`ATS Score: ${item.score}%`}>
+                      <Sparkles className="w-3 h-3" aria-hidden="true" />
                       {item.score}% ATS
                     </span>
                     <button
                       onClick={() => handleDeleteClick(item._id)}
                       className="p-1.5 text-on-surface-variant hover:text-red-500 transition-colors"
+                      aria-label="Delete this resume analysis"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -756,7 +765,7 @@ const ResumeAnalysisView = () => {
                 </div>
                 <h4 className="text-base font-bold text-on-surface mb-1 truncate">{item.fileUrl.split('/').pop()?.substring(0, 20) || 'Resume_v1.pdf'}</h4>
                 <p className="text-on-surface-variant text-xs mb-8 flex items-center gap-1.5 font-bold">
-                  <Calendar className="w-3.5 h-3.5" />
+                  <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
                   {new Date(item.updatedAt).toLocaleDateString()}
                 </p>
                 <div className="mt-auto flex items-center gap-2">
@@ -773,12 +782,13 @@ const ResumeAnalysisView = () => {
                   <button
                     onClick={() => generatePDFReport(item)}
                     title="Download AI Analysis Report"
+                    aria-label="Download AI Analysis Report as PDF"
                     className="p-2.5 bg-surface-container-high border border-outline-variant text-primary rounded-xl hover:bg-primary/10 transition-colors shrink-0"
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
-              </motion.div>
+              </motion.article>
             ))
           )}
         </div>
@@ -797,7 +807,7 @@ const ResumeAnalysisView = () => {
         cancelText="No, Keep it"
         isLoading={isDeleting}
       />
-    </div>
+    </main>
   );
 };
 
