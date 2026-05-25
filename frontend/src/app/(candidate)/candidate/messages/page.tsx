@@ -10,6 +10,7 @@ export default function MessagesPage() {
           description: "Communicate directly with recruiters and employers on the AIJobFit platform.",
           keywords: "messages, recruiter chat, AIJobFit messages",
           url: "/candidate/messages",
+          noIndex: true,
         }}
       />
       <main className="w-full min-h-screen bg-surface">

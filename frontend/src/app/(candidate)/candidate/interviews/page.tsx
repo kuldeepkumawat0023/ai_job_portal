@@ -10,6 +10,7 @@ export default function InterviewsPage() {
           description: "Manage your upcoming interviews and track your interview pipeline with top employers.",
           keywords: "interviews, job interviews, AIJobFit, interview pipeline",
           url: "/candidate/interviews",
+          noIndex: true,
         }}
       />
       <main className="w-full min-h-screen bg-surface">

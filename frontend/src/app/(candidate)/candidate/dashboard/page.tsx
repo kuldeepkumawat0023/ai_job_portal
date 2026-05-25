@@ -15,6 +15,7 @@ export default function DashboardPage() {
             "AI job dashboard, candidate dashboard, AI job matching, resume score, job application tracking, interview pipeline, AIJobFit dashboard",
 
           url: "/candidate/dashboard",
+          noIndex: true,
         }}
       />
 
