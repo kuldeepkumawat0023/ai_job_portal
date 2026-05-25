@@ -382,23 +382,24 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
   const competitiveness = getCompetitiveness();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in duration-700">
+    <main className="max-w-5xl mx-auto space-y-10 animate-in fade-in duration-700">
       
       {/* Navigation Header */}
-      <div className="flex items-center justify-between">
+      <header className="flex items-center justify-between">
         <button 
           onClick={() => router.back()}
           className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group"
+          aria-label="Back to Job Board"
         >
-          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" aria-hidden="true" />
           <span className="text-[10px] font-black uppercase tracking-widest">Back to Board</span>
         </button>
-      </div>
+      </header>
 
       {/* Main Title */}
       <div className="text-center space-y-4 max-w-2xl mx-auto">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary rounded-full border border-primary/20">
-          <Sparkles size={14} className="animate-pulse" />
+          <Sparkles size={14} className="animate-pulse" aria-hidden="true" />
           <span className="text-[10px] font-black uppercase tracking-widest">AI Assisted Posting</span>
         </div>
         <h1 className="text-4xl md:text-5xl font-black text-on-surface tracking-tighter">
@@ -417,7 +418,7 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                 step === s.id ? "bg-primary text-white shadow-lg shadow-primary/20 ring-4 ring-primary/10" : 
                 step > s.id ? "bg-emerald-500 text-white" : "bg-surface-container text-on-surface-variant"
               )}>
-                {step > s.id ? <CheckCircle2 size={20} /> : s.id}
+                {step > s.id ? <CheckCircle2 size={20} aria-hidden="true" /> : s.id}
               </div>
               <span className={cn(
                 "text-[9px] font-black uppercase tracking-widest",
@@ -438,7 +439,7 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         
         {/* Left: Input Section */}
-        <div className="lg:col-span-7 space-y-8">
+        <article className="lg:col-span-7 space-y-8" aria-label="Job Posting Form">
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.div
@@ -451,12 +452,13 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Title</label>
+                      <label htmlFor="job-title-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Title</label>
                       {errors.title && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.title}</span>}
                     </div>
                     <div className="relative">
-                      <Briefcase className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.title ? "text-red-500" : "text-on-surface-variant")} size={18} />
+                      <Briefcase className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.title ? "text-red-500" : "text-on-surface-variant")} size={18} aria-hidden="true" />
                       <input 
+                        id="job-title-input"
                         name="title"
                         value={formData.title}
                         onChange={handleChange}
@@ -473,10 +475,11 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Department</label>
+                        <label htmlFor="job-dept-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Department</label>
                         {errors.dept && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.dept}</span>}
                       </div>
                       <input 
+                        id="job-dept-input"
                         name="dept"
                         value={formData.dept}
                         onChange={handleChange}
@@ -490,12 +493,13 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Location</label>
+                        <label htmlFor="job-location-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Location</label>
                         {errors.location && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.location}</span>}
                       </div>
                       <div className="relative">
-                        <MapPin className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.location ? "text-red-500" : "text-on-surface-variant")} size={18} />
+                        <MapPin className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.location ? "text-red-500" : "text-on-surface-variant")} size={18} aria-hidden="true" />
                         <input 
+                          id="job-location-input"
                           name="location"
                           value={formData.location}
                           onChange={handleChange}
@@ -512,7 +516,7 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
 
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Types</label>
+                      <label htmlFor="custom-jobtype-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Types</label>
                       {errors.jobType && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.jobType}</span>}
                     </div>
                     
@@ -526,7 +530,7 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                             onClick={() => handleRemoveJobType(type)} 
                             className="hover:text-error transition-colors"
                           >
-                            <X size={12} />
+                            <X size={12} aria-hidden="true" />
                           </button>
                         </span>
                       ))}
@@ -557,6 +561,7 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                     {/* Custom Input */}
                     <div className="flex gap-2">
                       <input 
+                        id="custom-jobtype-input"
                         value={newJobType}
                         onChange={(e) => setNewJobType(e.target.value)}
                         onKeyDown={handleKeyDownJobType}
@@ -573,7 +578,7 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                         size="sm" 
                         className="rounded-xl flex items-center gap-2"
                       >
-                        <Plus size={14} /> Add
+                        <Plus size={14} aria-hidden="true" /> Add
                       </Button>
                     </div>
                   </div>
@@ -581,7 +586,7 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                   <div className="space-y-2">
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-2">
-                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Description</label>
+                        <label htmlFor="job-description-textarea" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Description</label>
                         {errors.description && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.description}</span>}
                       </div>
                       <button 
@@ -589,11 +594,12 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                         disabled={isGenerating}
                         className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all disabled:opacity-50"
                       >
-                        {isGenerating ? <Clock size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                        {isGenerating ? <Clock size={12} className="animate-spin" aria-hidden="true" /> : <Sparkles size={12} aria-hidden="true" />}
                         {isGenerating ? 'Generating...' : 'AI Refine'}
                       </button>
                     </div>
                     <textarea 
+                      id="job-description-textarea"
                       name="description"
                       value={formData.description}
                       onChange={handleChange}
@@ -619,19 +625,20 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                 <div className="space-y-8">
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Required Skills</label>
+                      <label htmlFor="required-skills-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Required Skills</label>
                       {errors.skills && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.skills}</span>}
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {formData.skills.map(skill => (
                         <span key={skill} className="px-4 py-2 bg-primary/5 text-primary rounded-xl text-xs font-bold border border-primary/10 flex items-center gap-2 group">
                           {skill}
-                          <button onClick={() => handleRemoveSkill(skill)} className="hover:text-error transition-colors"><X size={14} /></button>
+                          <button onClick={() => handleRemoveSkill(skill)} className="hover:text-error transition-colors"><X size={14} aria-hidden="true" /></button>
                         </span>
                       ))}
                     </div>
                     <div className="flex gap-2 mt-4">
                       <input 
+                        id="required-skills-input"
                         value={newSkill}
                         onChange={(e) => setNewSkill(e.target.value)}
                         onKeyDown={handleKeyDownSkill}
@@ -642,7 +649,7 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                         )}
                       />
                       <Button onClick={handleAddSkill} variant="outline" size="sm" className="rounded-xl flex items-center gap-2">
-                        <Plus size={14} /> Add Skill
+                        <Plus size={14} aria-hidden="true" /> Add Skill
                       </Button>
                     </div>
                   </div>
@@ -695,13 +702,14 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Annual Salary Range</label>
+                        <label htmlFor="salary-min-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Annual Salary Range</label>
                         {(errors.salaryMin || errors.salaryMax) && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">Required</span>}
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="relative flex-1">
-                          <DollarSign className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.salaryMin ? "text-red-500" : "text-on-surface-variant")} size={16} />
+                          <DollarSign className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.salaryMin ? "text-red-500" : "text-on-surface-variant")} size={16} aria-hidden="true" />
                           <input 
+                            id="salary-min-input"
                             name="salaryMin"
                             value={formData.salaryMin}
                             onChange={handleChange}
@@ -714,7 +722,7 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                         </div>
                         <span className="text-on-surface-variant font-black">to</span>
                         <div className="relative flex-1">
-                          <DollarSign className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.salaryMax ? "text-red-500" : "text-on-surface-variant")} size={16} />
+                          <DollarSign className={cn("absolute left-0 top-1/2 -translate-y-1/2", errors.salaryMax ? "text-red-500" : "text-on-surface-variant")} size={16} aria-hidden="true" />
                           <input 
                             name="salaryMax"
                             value={formData.salaryMax}
@@ -729,8 +737,9 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Currency</label>
+                      <label htmlFor="currency-select" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Currency</label>
                       <select 
+                        id="currency-select"
                         name="currency"
                         value={formData.currency}
                         onChange={handleChange}
@@ -805,20 +814,20 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
                 className="px-10 py-4 font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-xl shadow-primary/30"
               >
                 {jobId ? 'Update Posting' : 'Publish Posting'}
-                <Sparkles size={16} />
+                <Sparkles size={16} aria-hidden="true" />
               </Button>
             )}
           </div>
-        </div>
+        </article>
 
         {/* Right: AI Analysis Sidebar */}
-        <div className="lg:col-span-5 space-y-6">
+        <aside className="lg:col-span-5 space-y-6" aria-label="Posting Health & AI Insights">
           <div className="glass-card rounded-[2rem] p-8 border border-white/10 relative overflow-hidden transition-all duration-500">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16" />
             
             <div className="flex items-center gap-3 mb-8 relative z-10">
               <div className="p-3 bg-primary/10 text-primary rounded-2xl">
-                <BrainCircuit size={20} />
+                <BrainCircuit size={20} aria-hidden="true" />
               </div>
               <div>
                 <h2 className="text-sm font-black text-on-surface uppercase tracking-widest">Posting Health</h2>
@@ -865,9 +874,9 @@ const PostJobView = ({ jobId: propJobId }: PostJobViewProps) => {
               </div>
             </div>
           </div>
-        </div>
+        </aside>
       </div>
-    </div>
+    </main>
   );
 };
 

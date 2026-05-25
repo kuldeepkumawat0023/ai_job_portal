@@ -432,10 +432,11 @@ const CompanyProfileView = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 {/* Company Name */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Company Name</label>
+                  <label htmlFor="company-name-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Company Name</label>
                   <div className="relative">
-                    <Building2 className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant/70" size={18} />
+                    <Building2 className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant/70" size={18} aria-hidden="true" />
                     <input 
+                      id="company-name-input"
                       className={cn(
                         "w-full bg-transparent border-b pl-7 py-3 font-medium transition-all focus:outline-none",
                         isEditing 
@@ -454,10 +455,11 @@ const CompanyProfileView = () => {
 
                 {/* Website URL */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Website URL</label>
+                  <label htmlFor="company-website-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Website URL</label>
                   <div className="relative">
-                    <Globe className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant/70" size={18} />
+                    <Globe className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant/70" size={18} aria-hidden="true" />
                     <input 
+                      id="company-website-input"
                       className={cn(
                         "w-full bg-transparent border-b pl-7 py-3 font-medium transition-all focus:outline-none",
                         isEditing 
@@ -475,10 +477,11 @@ const CompanyProfileView = () => {
 
                 {/* Headquarters */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Headquarters</label>
+                  <label htmlFor="company-location-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Headquarters</label>
                   <div className="relative">
-                    <MapPin className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant/70" size={18} />
+                    <MapPin className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant/70" size={18} aria-hidden="true" />
                     <input 
+                      id="company-location-input"
                       className={cn(
                         "w-full bg-transparent border-b pl-7 py-3 font-medium transition-all focus:outline-none",
                         isEditing 
@@ -497,8 +500,9 @@ const CompanyProfileView = () => {
 
                 {/* Industry Dropdown */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Industry</label>
+                  <label htmlFor="company-industry-select" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Industry</label>
                   <select 
+                    id="company-industry-select"
                     value={industry}
                     onChange={(e) => setIndustry(e.target.value)}
                     disabled={!isEditing}
@@ -522,8 +526,9 @@ const CompanyProfileView = () => {
 
               {/* Description */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Company Description</label>
+                <label htmlFor="company-description-textarea" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Company Description</label>
                 <textarea 
+                  id="company-description-textarea"
                   className={cn(
                     "w-full bg-transparent border rounded-2xl p-4 font-medium transition-all resize-none min-h-[120px] focus:outline-none",
                     isEditing 
