@@ -6,6 +6,7 @@ import TopNavbar from "@/components/candidate/layout/TopNavbar";
 import AuthGuard from "@/components/auth/AuthGuard";
 import RoleGuard from "@/components/auth/RoleGuard";
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
 // import { ChatProvider } from "@/provider/ChatProvider";
 
@@ -15,6 +16,7 @@ export default function CandidateRootLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <AuthGuard>
@@ -35,9 +37,10 @@ export default function CandidateRootLayout({
               <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10">
                 <AnimatePresence mode="wait">
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    key={pathname}
+                    initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
+                    exit={{ opacity: 0, y: 20 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                   >
                     {children}
