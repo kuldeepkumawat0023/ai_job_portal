@@ -1,0 +1,557 @@
+
+
+Software Requirements Specification (SRS) 
+Project Title 
+AI-Powered Job Portal with Resume Builder, Mock Interview & Hiring Dashboard 
+Document Version 
+1.0 
+Date 
+May 11, 2026 
+Technology Stack 
+ Frontend: Next.js with TypeScript 
+ Backend: Node.js with Express.js in JavaScript 
+ Database: MongoDB 
+ 
+1. Introduction 
+This document defines the complete end-to-end requirements for an AI-powered job portal where 
+job seekers and companies interact on a single platform. The system supports resume building, 
+AI-based resume analysis, mock interviews, job recommendations, hiring workflows, interview 
+scheduling, feedback management, billing, and admin control. 
+The platform is designed to help: 
+ Candidates create strong resumes and improve interview performance. 
+ Companies find better candidates faster. 
+ Admins manage jobs, users, reports, and platform settings. 
+ Super Admins track revenue and overall platform activity. 
+ 
+2. User Types 
+2.1 Job Seeker / Candidate 
+The candidate is the person searching for jobs and applying for roles. The candidate can: 
+ Register and login. 
+ Complete resume details. 
+ Edit resume at any time. 
+ Run AI-based resume analysis. 
+ Practice mock interviews. 
+ Take official mock interviews. 
+ View recommended jobs. 
+
+ Apply for jobs. 
+ Attend interviews. 
+ View offer, rejection, or feedback. 
+2.2 Employer / Company / Hiring Manager 
+The company user manages recruitment activities. The company can: 
+ Register as a company. 
+ Activate Hiring Mode. 
+ Create company profile. 
+ Post jobs. 
+ Review applications. 
+ Shortlist candidates. 
+ Schedule interviews. 
+ Send interview feedback. 
+ Update interview status. 
+2.3 Admin 
+The admin manages platform operations. The admin can: 
+ Manage users. 
+ Manage jobs. 
+ Add jobs manually. 
+ Import jobs in bulk using CSV. 
+ View analytics and reports. 
+ Manage platform settings. 
+2.4 Super Admin 
+The Super Admin has full platform-level access. The Super Admin can: 
+ View all users, companies, jobs, and payments. 
+ Track revenue. 
+ Monitor premium subscriptions. 
+ View detailed analytics. 
+ Control advanced system settings. 
+ 
+3. Login and Registration 
+3.1 Registration 
+
+A new user can register using: 
+ Email 
+ Mobile number 
+ Password 
+ Role selection such as Candidate, Company, or Admin 
+After registration: 
+ OTP verification is sent to email. 
+ The account is created after verification. 
+ The user is redirected to the proper dashboard based on role. 
+3.2 Login 
+A registered user can login using: 
+ Email and password 
+ Continue with Google 
+3.3 First Login Redirect 
+After successful login, the system redirects the user to: 
+ Candidate Dashboard 
+ Company Dashboard 
+ Admin Dashboard 
+ Super Admin Dashboard 
+3.4 Security 
+ Passwords are encrypted before storage. 
+ OTP is required for verification and password recovery. 
+ Login sessions are protected. 
+ Failed login attempts are limited. 
+ 
+4. Candidate Dashboard and Resume Flow 
+4.1 Candidate Dashboard 
+When a candidate logs in, the dashboard displays: 
+ Resume completion status 
+ AI analysis score 
+ Mock interview section 
+ Recommended jobs 
+
+ Application status 
+ Notifications 
+If the resume is incomplete, the dashboard shows a Complete Resume card. 
+4.2 Resume Builder 
+The resume builder works in 7 steps. 
+Step 1: Personal Information 
+The candidate enters: 
+ Full name 
+ Email 
+ Mobile number 
+ Location 
+Step 2: Education 
+The candidate enters: 
+ Degree 
+ College or university 
+ Passing year 
+ Marks or CGPA 
+Step 3: Work Experience 
+The candidate enters: 
+ Company name 
+ Role 
+ Duration 
+ Short bullet points about work 
+Step 4: Skills 
+The candidate enters: 
+ Technical skills 
+ Soft skills 
+ Languages 
+Step 5: Projects 
+The candidate enters: 
+ Project name 
+ Duration 
+
+ Tech stack 
+ Short description 
+Step 6: Template Style 
+The candidate selects: 
+ ATS-friendly style 
+ Modern style 
+ Simple style 
+Step 7: Preview and Download 
+The candidate can: 
+ Preview the resume 
+ Edit the content 
+ Download the resume as PDF 
+4.3 AI Resume Analysis 
+After the resume is completed or uploaded, the system performs AI-based analysis. 
+The analysis includes: 
+ ATS compatibility score from 0 to 100 
+ Keyword match analysis 
+ Gap analysis 
+ Formatting check 
+ Weak bullet point suggestions 
+ Stronger content recommendations 
+The system highlights: 
+ Missing keywords 
+ Missing sections 
+ Weak experience descriptions 
+ Better wording for bullets 
+4.4 Resume Re-Analysis 
+If the candidate edits the resume: 
+ The system allows re-analysis. 
+ The ATS score is updated. 
+ Keyword matching is updated. 
+ New suggestions are generated. 
+
+4.5 Resume Limits 
+ Free users can analyze the resume 3 times per month. 
+ Premium users can analyze the resume unlimited times. 
+ 
+5. AI Mock Interview 
+5.1 Access Condition 
+The AI Mock Interview section appears only after the resume is complete. 
+5.2 Practice Mode 
+Practice mode is for learning and preparation. 
+Features: 
+ Unlimited practice 
+ No final score saved 
+ Resume-based questions 
+ Technical questions 
+ Behavioral questions 
+ Instant feedback 
+5.3 Official Mode 
+Official mode is the scored version. 
+Features: 
+ Final score is saved 
+ Confidence level is shown 
+ Used for recommendations 
+ Used for candidate progress tracking 
+5.4 Question Categories 
+The AI can ask: 
+ Resume questions 
+ Project questions 
+ Technical questions 
+ Behavioral questions 
+ Experience questions 
+ 
+6. Job Recommendations 
+
+6.1 Recommendation Logic 
+After the candidate completes the official mock interview, the system shows recommended jobs. 
+The recommendation is based on: 
+ Resume match score 
+ Mock interview score 
+ Skill match 
+ Company rating 
+ Company response speed 
+6.2 Job Card Details 
+Each job card shows: 
+ Company name 
+ Company rating 
+ Job title 
+ Salary 
+ Location 
+ Job type 
+ Match percentage 
+6.3 Apply to Job 
+The candidate can click Apply to send the application. 
+When the candidate applies: 
+ Resume is attached automatically. 
+ Application is saved. 
+ Company receives notification. 
+ Candidate sees applied status. 
+ 
+7. Company Dashboard and Hiring Mode 
+7.1 Company Dashboard 
+The company dashboard displays: 
+ Company profile 
+ Job listings 
+ Applications 
+ Interview schedule 
+
+ Feedback section 
+ Rating information 
+7.2 Hiring Mode 
+The company activates Hiring Mode by entering: 
+ Company name 
+ Industry 
+ Location 
+ Logo 
+ Description 
+ Website 
+ Contact details 
+After saving: 
+ The company becomes active for hiring. 
+ Jobs can be posted. 
+ The company becomes visible in the hiring system. 
+7.3 Post Job 
+The company can post jobs by entering: 
+ Job title 
+ Description 
+ Required skills 
+ Experience level 
+ Salary range 
+ Location 
+ Job type 
+7.4 AI Job Description Support 
+If the company provides only the job title: 
+ The system can generate the job description automatically. 
+ The AI can suggest required skills and experience. 
+7.5 Applications Tab 
+The applications tab shows: 
+ Candidate name 
+ Resume 
+
+ ATS score 
+ Mock interview score 
+ Application status 
+ Interview progress 
+Applications can be filtered by: 
+ Status 
+ Score 
+ Experience 
+ Match percentage 
+ 
+8. Application Flow and Notifications 
+8.1 Application Process 
+When a candidate applies: 
+ The application is stored in the database. 
+ The company receives a notification. 
+ The candidate gets confirmation. 
+8.2 Notification Methods 
+The system sends notifications through: 
+ Dashboard notification 
+ Email notification 
+ Push notification if enabled 
+8.3 Notification Content 
+The notification includes: 
+ Candidate name 
+ Job title 
+ Resume link 
+ ATS score 
+ Confidence level 
+ Date and time of application 
+ 
+9. Interview Scheduling 
+9.1 Schedule Interview 
+
+When a company shortlists a candidate: 
+ The company can schedule an interview. 
+ The company selects date and time. 
+ The company selects interview mode. 
+9.2 Interview Modes 
+The interview can be: 
+ In-person 
+ Google Meet 
+ Zoom 
+9.3 Meeting Link 
+If the interview is online: 
+ The system auto-generates a meeting link. 
+ The candidate receives the meeting link. 
+ The candidate receives interview details. 
+9.4 Candidate View 
+The candidate can see: 
+ Interview date 
+ Interview time 
+ Interview mode 
+ Company name 
+ Job title 
+ Meeting link 
+ Preparation tips 
+ 
+10. Interview Decision and Feedback 
+10.1 Interview Status 
+After the interview, the employer selects one of these statuses: 
+ Approved 
+ Rejected 
+ In Progress 
+10.2 Approved 
+If approved: 
+
+ Offer details are shown. 
+ Salary 
+ Joining date 
+ Documents required 
+ Candidate can accept or reject the offer 
+10.3 Rejected 
+If rejected: 
+ The company fills rejection reasons. 
+ Optional comments can be added. 
+ AI converts the feedback into professional wording. 
+ Candidate receives the feedback. 
+10.4 In Progress 
+If more rounds are needed: 
+ The status becomes In Progress. 
+ Next round details are shown. 
+ Candidate gets preparation tips. 
+ 
+11. Company Rating and Response Incentive 
+11.1 Rating System 
+Each company has a public rating based on: 
+ Response speed 
+ Interview scheduling consistency 
+ Candidate feedback 
+11.2 Purpose 
+ High-rated companies are shown more prominently. 
+ Low-rated companies are shown lower. 
+ This encourages companies to respond quickly. 
+11.3 Badge System 
+The platform may show: 
+ Star rating 
+ Active hiring badge 
+ Slow response warning 
+
+ High response badge 
+ 
+12. Admin Dashboard and Job Management 
+12.1 Admin Functions 
+The admin can: 
+ Manage users 
+ Manage companies 
+ Manage jobs 
+ Handle platform settings 
+ View reports 
+ Control visibility of data 
+12.2 Admin Dashboard Modules 
+ User Management 
+ Job Management 
+ Reports and Analytics 
+ Settings 
+ Notifications 
+12.3 Analytics 
+The admin can view: 
+ Total users 
+ Total companies 
+ Total jobs 
+ Total applications 
+ Active users 
+ Growth reports 
+ 
+13. Manual Job Posting by Admin 
+13.1 Add Job 
+The admin can manually add jobs with: 
+ Job title 
+ Description 
+ Skills 
+
+ Experience level 
+ Salary 
+ Location 
+ Job type 
+13.2 Job Association 
+The job can be linked to: 
+ A specific company 
+ A platform-managed job 
+13.3 Job Visibility 
+After saving: 
+ The job appears in candidate recommendations. 
+ The job appears in the all jobs list. 
+ If linked, it also appears in the company dashboard. 
+ 
+14. Bulk Job Posting Using CSV 
+14.1 CSV Upload Flow 
+The admin can upload many jobs at once using CSV. 
+14.2 Steps 
+1. Download sample CSV template. 
+2. Fill job data. 
+3. Upload the file. 
+4. System validates each row. 
+5. System shows valid and invalid rows. 
+6. Admin confirms import. 
+7. Valid jobs are inserted into the system. 
+14.3 Use Case 
+This feature is useful for: 
+ Campus placements 
+ Internships 
+ Government jobs 
+ Bulk hiring campaigns 
+ 
+
+15. Billing and Subscription System 
+15.1 Free Plan 
+The Free plan has limited access: 
+ Resume analysis: 3 per month 
+ Job search: 5 per month 
+ Mock interview: Demo only 
+ AI suggestions: Basic 
+ Job alerts: Not available 
+ Portfolio analyzer: Not available 
+15.2 Premium Plan 
+The Premium plan includes: 
+ Unlimited resume analysis 
+ Unlimited job search 
+ Full mock interview access 
+ Advanced AI suggestions 
+ Daily job alerts 
+ Daily email reports 
+ Portfolio analyzer 
+15.3 Premium Plan Table 
+Feature Free Plan Premium Plan 
+Resume Analysis 3 times per month Unlimited 
+Resume Re-analysis Limited Unlimited 
+Job Search 5 searches per month Unlimited 
+AI Mock Interview Demo only Full coaching 
+Practice Mode Available Available 
+Official Mode Limited Unlimited 
+
+ 
+15.4 Payment Flow 
+1. User clicks Upgrade. 
+2. Payment page opens. 
+3. User pays by UPI, card, or other supported methods. 
+4. Payment is verified. 
+5. Premium access is activated. 
+15.5 Usage Tracking 
+The system tracks: 
+ Resume analysis count 
+ Job search count 
+ Interview usage 
+ Premium subscription status 
+ 
+16. Use Cases 
+16.1 Candidate Use Case 
+ Candidate registers. 
+ Candidate completes resume. 
+ Candidate runs AI analysis. 
+ Candidate practices mock interview. 
+ Candidate takes official interview. 
+ Candidate gets job recommendations. 
+AI Suggestions Basic Advanced and detailed 
+Recommended Jobs Limited 30 or more curated jobs daily 
+Email Reports Included Daily 
+Portfolio Analyzer Not available Included 
+Job Alerts Not available 30 daily alerts 
+Priority Support Not available Available 
+
+ Candidate applies to jobs. 
+ Candidate receives interview feedback. 
+16.2 Company Use Case 
+ Company registers. 
+ Company activates Hiring Mode. 
+ Company posts jobs. 
+ Company reviews applications. 
+ Company schedules interviews. 
+ Company gives feedback. 
+16.3 Admin Use Case 
+ Admin manages users. 
+ Admin manages jobs. 
+ Admin uploads bulk jobs. 
+ Admin checks reports. 
+16.4 Super Admin Use Case 
+ Super Admin tracks revenue. 
+ Super Admin manages premium data. 
+ Super Admin views global reports. 
+ 
+17. Non-Functional Requirements 
+17.1 Security 
+ Passwords must be encrypted. 
+ OTP must be used for verification. 
+ Role-based access must be enforced. 
+ Login sessions must be secure. 
+17.2 Performance 
+ The system should handle many users at the same time. 
+ Pages should load fast. 
+ AI analysis should respond quickly. 
+17.3 Usability 
+ The platform should be responsive. 
+ Buttons and labels should be clear. 
+
+ The user flow should be simple. 
+17.4 Data Privacy 
+ Users should be able to view their personal data. 
+ Users should be able to delete their personal data. 
+ Sensitive data should be stored safely. 
+ 
+18. System Workflow 
+18.1 Candidate Workflow 
+1. Register and login. 
+2. Complete resume. 
+3. Run AI resume analysis. 
+4. Practice interview. 
+5. Take official interview. 
+6. View recommended jobs. 
+7. Apply to jobs. 
+8. Attend interview. 
+9. Receive feedback. 
+18.2 Company Workflow 
+1. Register and login. 
+2. Activate Hiring Mode. 
+3. Fill company profile. 
+4. Post jobs. 
+5. Review applications. 
+6. Shortlist candidates. 
+7. Schedule interview. 
+8. Mark result. 
+9. Send feedback. 
+18.3 Admin Workflow 
+1. Login to admin panel. 
+2. Manage users. 
+3. Manage jobs. 
+4. Upload CSV jobs. 
+
+5. View analytics. 
+6. Track reports. 
+ 

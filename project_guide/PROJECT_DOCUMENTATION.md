@@ -750,10 +750,11 @@ Socket.io ka connection user ke **`userId`** par based hoga, na ki uske mode par
 3.  **Backend Logic:** Backend database update karta hai aur Candidate ko ek detailed feedback card bhejta hai.
 4.  **Frontend Response (Candidate):** Candidate ko notification milti hai. Wo apne dashboard mein jaa kar company ka exact feedback aur apna final result (Hired/Rejected) dekh sakta hai. Ye transparency trust build karti hai.
 
-### 11.3 Data Fetching & State Synchronization (React Query)
-Pura frontend project data fetching ke liye **TanStack Query (React Query)** ka use karega. Axios ko React Query ke mutations aur queries ke sath wrap kiya jayega.
-*   **Why React Query?** Isse API requests efficient hongi, caching automatic manage hogi, aur "Loading..." states manual handle nahi karni padengi.
-*   **Flow:** Frontend se sari API requests React Query ke `useQuery` aur `useMutation` hooks ke through jayengi backend me. Jab bhi database me kuch update hoga (e.g. status change), React Query cache ko invalidate karke automatically UI ko sync kar dega bina page refresh kiye.
+### 11.3 Data Fetching & State Synchronization (Manual Axios Services)
+Pura frontend project data fetching ke liye modular **Axios Services** ka use karega. Har feature (Job, Auth, User) ki apni ek dedicated `.services.ts` file hogi.
+*   **Pattern:** Har service file ek object export karegi jisme `async/await` methods honge jo directly `apiClient` call karenge.
+*   **Why Manual Fetching?** Isse data flow par full control rehta hai, implementation simple rehti hai, aur overhead kam hota hai.
+*   **Flow:** Component mein `useEffect` ka use karke service call ki jayegi. Result ko `useState` ya global `Zustand` store mein save kiya jayega. Loading states aur error handling ko manual `try/catch` aur `react-hot-toast` se manage kiya jayega.
 
 ---
 
@@ -910,80 +911,28 @@ Phase 5 — Testing & Deployment
 | Challenge                  | Solution Applied                          |
 |----------------------------|-------------------------------------------|
 | Resume text parsing        | NLP libraries + regex-based extraction   |
-| Matching accuracy          | Multi-factor scoring algorithm            |
-| Large data handling        | MongoDB indexing + pagination             |
-| File storage               | Cloudinary cloud storage                 |
-| Secure user data           | JWT + bcrypt encryption                  |
-
----
-
-## 16. 📊 User Workflow Summary
-
-```
-[1] Register / Login (Email or Google OAuth)
-       ↓
-[2] Guided AI Onboarding (Step-by-Step Tutorial)
-       ↓
-[3] Create / Update Profile & Upload Resume
-       ↓
-[4] AI Analyzes Resume (OpenAI GPT-4o)
-       ↓
-[5] Smart Job Matching & Score Generation
-       ↓
-[6] Apply for Jobs & **Instant AI Acceptance** (Direct Shortlist)
-```
-
----
-
-## 17. 🏁 Conclusion
-
-This project is a **next-generation intelligent job portal** that outperforms traditional platforms like LinkedIn and Naukri.com because:
-
-| Feature              | Traditional Portal | This Platform       |
-|----------------------|--------------------|---------------------|
-| Job Matching         | Keyword-based      | AI/NLP-based ✅     |
-| Resume Analysis      | Manual             | Automatic ✅        |
-| Match Score          | ❌ Not available   | ✅ % Score shown    |
-| Recommendations      | Generic            | Personalized ✅     |
-| Multi-Category       | Limited            | Full support ✅     |
-
-> **This platform works like a smart career assistant.**
-> ✔ Helps you find the right job
-> ✔ Saves time and effort
-> ✔ Enables better decisions through AI
-
----
-
-## 📁 16. Full Backend Folder Structure & Data Flow Plan
-
-This project uses a highly modular `src/` based backend architecture for clean separation of concerns.
-
-```
-backend/
-├── server.js                        # Root entry point
-└── src/
-    ├── app.js                       # Express app setup (CORS, helmet, morgan, routes)
-    ├── config/
-    │   ├── db.js                    # MongoDB Atlas connection via Mongoose
-    │   ├── email.js                 # Nodemailer + otp-generator setup
-    │   └── cloudinary.js            # Cloudinary config for image/PDF uploads
-    ├── models/
-    │   ├── User.js                  # Unified User (Candidate + Recruiter)
-    │   ├── Company.js               # Recruiter's Hiring Mode profile
-    │   ├── Job.js                   # Job postings by recruiters
-    │   ├── Application.js           # Candidate job applications + AI score + ATS status
-    │   ├── Resume.js                # Resume upload history + AI analysis scores
-    │   ├── Message.js               # Real-time chat messages (Socket.io)
-    │   ├── MockInterview.js         # AI Mock Interview results (Confidence/Technical score)
-    │   ├── Transaction.js           # Platform payment transactions (Admin view)
-    │   ├── Subscription.js          # User plan details (Enterprise Pro, Monthly Basic)
-    │   └── Billing.js               # Company billing & invoice records
-    ├── controllers/
-    │   ├── authController.js        # Register, Login, Google OAuth, OTP Reset
-    │   ├── userController.js        # Profile read & update
-    │   ├── companyController.js     # Company profile (Hiring Mode onboarding)
-    │   ├── jobController.js         # Post, fetch, filter jobs
-    │   ├── applicationController.js # Apply, Kanban pipeline, ATS status updates
+| Matching accuracy          | Multi-factor scoring algfrontend/
+├── public/                          # PWA Icons & Static Assets
+├── src/
+│   ├── app/                         # App Router (Next.js 15+)
+│   │   ├── (auth)/                  # Login, Register, Forgot-Pass, Reset-Pass, Verify-OTP
+│   │   ├── (candidate)/             # Candidate Dashboard (Resume, Job Matches, etc.)
+│   │   ├── (recruiter)/             # Recruiter Dashboard (Jobs, Interviews, Analytics)
+│   │   ├── globals.css              # Centralized Design System (Tailwind 4 + Variables)
+│   │   └── layout.tsx               # Root Layout with Providers
+│   ├── components/
+│   │   ├── auth/                    # Auth Form Components (LoginForm, etc.)
+│   │   ├── candidate/               # Candidate UI Views (DashboardView, etc.)
+│   │   ├── recruiter/               # Recruiter UI Views (RecruiterDashboardView, etc.)
+│   │   ├── common/                  # Shared UI Components (Button, Card, Input, etc.)
+│   │   └── ui/                      # Shadcn/Primitives
+│   ├── provider/                    # Theme, Auth, and Query Providers
+│   ├── store/                       # Zustand State (Auth, Theme)
+│   ├── services/                    # API Service Layer (Axios Instances)
+│   ├── types/                       # TypeScript Interfaces
+│   └── utils/                       # SEO Config & Helper Functions
+└── next.config.js                   # PWA & Image Optimization Config
+│   ├── applicationController.js # Apply, Kanban pipeline, ATS status updates
     │   ├── dashboardController.js   # Candidate & Recruiter dashboard stat aggregations
     │   ├── resumeController.js      # Upload PDF, extract text, call AI for score
     │   ├── aiController.js          # OpenAI GPT-4o integration, coaching tips
@@ -1062,7 +1011,7 @@ backend/
 
 ### 🔄 Data Flow Example: Registration with Profile Picture
 
-1. **Request:** Frontend (React Query) sends `POST /api/v1/user/register` with `multipart/form-data`.
+1. **Request:** Frontend (Axios Services) sends `POST /api/v1/user/register` with `multipart/form-data`.
 2. **Routing:** `server.js` → `app.js` → `routes/index.js` → `routes/authRoutes.js`.
 3. **Middleware (Upload):** `upload.js` grabs the image, saves to Cloudinary, attaches URL to request.
 4. **Logic (Controller):** `authController.js` uses user details + image URL to create the user.
@@ -1072,7 +1021,357 @@ backend/
 
 ---
 
-*📅 Documentation Created: 2026 | 🔧 Version: 1.0 | 🏷️ Status: Active Development*
+*📅 Documentation Created: 2026 | 🔧 Version: 2.0 | 🏷️ Status: Active Development*
+
+---
+
+## 🏗️ 17. Detailed Frontend Architecture & UI Ecosystem
+
+This project follows a highly modular **Next.js 15+ App Router** architecture, optimized for SEO, performance, and cross-mode (Candidate/Recruiter) switching.
+
+### 17.1 Full Frontend Folder Structure
+
+```
+frontend/
+├── public/                          # Static Assets & PWA
+│   ├── icons/                       # PWA Icons
+│   ├── manifest.json                # PWA Config
+│   └── sw.js                        # Service Worker
+├── src/
+│   ├── app/                         # App Router (Routes & Layouts)
+│   │   ├── (auth)/                  # Login, Register, OTP, etc.
+│   │   ├── (candidate)/             # Candidate Dashboard Routes
+│   │   ├── (recruiter)/             # Recruiter Dashboard Routes
+│   │   ├── globals.css              # Tailwind 4 & Global Styles
+│   │   └── layout.tsx               # Root Layout with Providers
+│   ├── components/                  # UI Components
+│   │   ├── auth/                    # Auth Forms
+│   │   ├── candidate/               # Candidate Views
+│   │   ├── recruiter/               # Recruiter Views
+│   │   ├── common/                  # Atomic UI (Button, Card, etc.)
+│   │   └── ui/                      # Shadcn Primitives
+│   ├── lib/                         # Core Logic Hub
+│   │   ├── apiClient.ts             # Centralized Axios Instance
+│   │   └── services/                # Feature-specific API services
+│   ├── provider/                    # Context Providers (Theme, Auth)
+│   ├── store/                       # State Management (Zustand)
+│   ├── hooks/                       # Custom React Hooks
+│   ├── types/                       # TypeScript Definitions
+│   └── utils/                       # Helper Functions & SEO Config
+```
+
+### 17.2 Granular Component Blueprint
+
+The UI is divided into logical feature modules. Each module has a "Shell" View component and supporting sub-components.
+
+#### A. Authentication Module (`src/components/auth/`)
+- **`RegisterForm.tsx`**: Multi-step registration logic (Email, Password, Role selection).
+- **`LoginForm.tsx`**: Secure login with redirection based on role (Candidate/Recruiter).
+- **`ForgotPasswordForm.tsx`**: OTP trigger logic.
+- **`VerifyOtpForm.tsx`**: 6-digit OTP validation.
+- **`ResetPasswordForm.tsx`**: Final password update form.
+
+#### B. Candidate Module (`src/components/candidate/`)
+- **`dashboard/DashboardView.tsx`**: Main overview with summary cards.
+- **`resume-analysis/ResumeAnalysisView.tsx`**: AI Resume scoring and feedback dashboard.
+- **`job-matches/JobMatchesView.tsx`**: Personalized AI-matched job listings.
+- **`applications/ApplicationsView.tsx`**: Track status of applied jobs.
+- **`messages/MessagesView.tsx`**: Candidate-side chat interface.
+- **`mock-interview/MockInterviewView.tsx`**: AI Mock interview simulator.
+- **`portfolio-builder/PortfolioBuilderView.tsx`**: Automated portfolio/README generator.
+- **`ai-suggestions/AISuggestionsView.tsx`**: Dynamic tips for profile optimization.
+- **`settings/SettingsView.tsx`**: Personal account and theme settings.
+
+#### C. Recruiter Module (`src/components/recruiter/`)
+- **`dashboard/DashboardView.tsx`**: Recruiter overview with hiring stats.
+- **`job-board/JobBoardView.tsx`**: Manage posted jobs and their status.
+- **`post-job/PostJobView.tsx`**: AI-powered job posting form.
+- **`applications/ApplicationsView.tsx`**: Review and filter job applicants.
+- **`analytics/AnalyticsView.tsx`**: Hiring performance and funnel charts.
+- **`interviews/InterviewsView.tsx`**: Manage scheduled candidate interviews.
+- **`messages/MessagesView.tsx`**: Recruiter-side chat interface.
+- **`feedback/FeedbackView.tsx`**: Submit and manage candidate reviews.
+- **`settings/SettingsView.tsx`**: Company profile and hiring settings.
+
+### 17.2 Dynamic Route Mapping (App Router)
+
+| Group | Route | View Component |
+|---|---|---|
+| Candidate | `/job-matches/[id]` | `JobDetailsView.tsx` |
+| Candidate | `/applications/[id]` | `ApplicationStatusView.tsx` |
+| Recruiter | `/job-board/[id]` | `JobStatsView.tsx` |
+| Recruiter | `/applications/[id]` | `ApplicantProfileView.tsx` |
+
+#### D. Common UI Library (`src/components/common/`)
+- **`Button.tsx`**: Reusable button with Tailwind 4 variants (`primary`, `secondary`, `destructive`, `ghost`).
+- **`Input.tsx`**: Standardized text/password input with label support.
+- **`Card.tsx`**: Layout wrapper with `Header`, `Title`, `Content`, and `Footer` sub-components.
+- **`Pagination.tsx`**: Client-side/Server-side pagination controls.
+
+### 17.2 Advanced Service Layer Architecture
+
+We use a centralized **`src/lib/`** layer for all API interactions.
+
+| Service File | Functionality | Reusable in |
+|---|---|---|
+| `src/lib/apiClient.ts` | Base Axios setup + Interceptors (JWT/Errors) | **All Components** |
+| `src/lib/services/auth.services.ts` | Login, Register, OTP, Password Reset | Auth Forms |
+| `src/lib/services/job.services.ts` | Fetch Jobs, Post Job, Job Filters | Candidate/Recruiter Dashboards |
+| `src/lib/services/application.services.ts` | Apply, Track Status, Application Pipeline | Dashboard Views |
+| `src/lib/services/ai.services.ts` | Resume Score, Mock Interview, AI JDs | AI-specific Views |
+
+**Integration Pattern (Manual Fetching):**
+```tsx
+// Inside a component
+import { jobService } from '@/lib/services/job.services';
+
+const Jobs = () => {
+  const [jobs, setJobs] = useState([]);
+  
+  const loadJobs = async () => {
+    const res = await jobService.getJobs();
+    if (res.success) setJobs(res.data.jobs);
+  };
+
+  useEffect(() => {
+    loadJobs();
+  }, []);
+  
+  // Render...
+}
+```
+
+### 17.3 Design Token Catalog (Tailwind 4)
+
+| Property | Token / Class | Mode Logic |
+|---|---|---|
+| **Primary Color** | `--primary` | Blue for Candidates, Purple for Recruiters. |
+| **Secondary Color** | `--secondary` | Complementary contrast for UI highlights. |
+| **Radius** | `--radius` | Set to `0.625rem` for a soft, premium feel. |
+| **Dark Mode** | `.dark` | Deep Slate (`oklch(0.145 0 0)`) background for high contrast. |
+
+---
+
+### 17.4 Technical Implementation Details
+
+#### A. Environment Variables (`.env.local`)
+To ensure the frontend communicates correctly with the backend, the following variables must be set:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_id
+```
+
+#### B. PWA Configuration (`next.config.js`)
+We use `next-pwa` to enable offline support and "Add to Home Screen" functionality.
+```javascript
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development'
+});
+
+module.exports = withPWA({
+  // Other Next.js config...
+});
+```
+
+#### C. Theme Switching Logic (`src/provider/ThemeProvider.tsx`)
+The `next-themes` library is used with a custom provider to handle three states:
+1. **System Theme**: Default light/dark.
+2. **User Mode**: Candidate (Blue) or Recruiter (Purple).
+3. **Manual Toggle**: User-forced dark mode.
+
+#### D. Centralized API Response Types (`src/lib/apiClient.ts`)
+Standard interfaces for all backend interactions to ensure type safety:
+
+```typescript
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data: T;
+  statusCode: number;
+}
+
+export interface AuthUser {
+  _id: string;
+  fullname: string;
+  email: string;
+  countryCode: string;
+  phoneNumber: string;
+  profilePhoto?: string;
+  role: 'candidate' | 'recruiter' | 'admin';
+  hasCompanyProfile: boolean;
+}
+```
+
+#### E. Service Implementation Pattern
+Every service (Auth, Job, AI) must follow the **Object Pattern** using `async/await`:
+
+```typescript
+import apiClient, { ApiResponse } from '../apiClient';
+
+export const featureService = {
+  getData: async (params?: any): Promise<ApiResponse<DataType>> => {
+    const response = await apiClient.get('/endpoint', { params });
+    return response.data;
+  },
+  postData: async (data: any): Promise<ApiResponse<ResultType>> => {
+    const response = await apiClient.post('/endpoint', data);
+    return response.data;
+  },
+};
+```
+
+---
+
+### 17.5 Session Logic & State
+- **Zustand (`store/`)**: Manages the `user` object and `isLoggedIn` status globally.
+- **Cookies (`cookies-next`)**: Used to persist the `token` and `userRole` so they are available on server-side redirects.
+
+---
+
+### 17.6 Detailed Page & Route Breakdown
+
+#### Candidate Dashboard Routes (`(candidate)/*`)
+| Route | Feature | Key UI Elements |
+|---|---|---|
+| `/dashboard` | Main Overview | Stats cards, Recent applications, Job recommendations. |
+| `/resume-analysis` | AI Scorer | File upload, Score meter, Improvement tips list. |
+| `/job-matches` | AI Recommendations| Filterable list, Match % badge, "Apply" button. |
+| `/mock-interview` | AI Practice | Chat interface, Microphone toggle, Real-time feedback. |
+| `/portfolio-builder`| Profile Gen | README preview, One-click "Copy for GitHub". |
+| `/settings` | Account | Profile edit, Password change, Theme preferences. |
+
+#### Recruiter Dashboard Routes (`(recruiter)/*`)
+| Route | Feature | Key UI Elements |
+|---|---|---|
+| `/dashboard` | Hiring Overview | Active jobs count, Total applicants, Interview schedule. |
+| `/job-board` | Job Management | CRUD table for jobs, Status toggles (Active/Draft). |
+| `/post-job` | AI Job Creation | AI JD generator button, Multi-step form. |
+| `/analytics` | Hiring Funnel | Recharts Bar/Pie charts for candidate pipeline. |
+| `/interviews` | Scheduling | Calendar widget, Meeting links, Candidate list. |
+| `/settings` | Company | Profile edit, Hiring settings, Theme preferences. |
+
+### 17.7 Common Component API (Props)
+
+#### `Button.tsx`
+| Prop | Type | Description | Default |
+|---|---|---|---|
+| `variant` | String | `primary / secondary / outline / ghost / destructive` | `primary` |
+| `size` | String | `sm / md / lg / icon` | `md` |
+| `loading` | Boolean | If true, shows spinner and disables button | `false` |
+
+#### `Input.tsx`
+| Prop | Type | Description | Default |
+|---|---|---|---|
+| `label` | String | Title above the input field | — |
+| `error` | String | Error message shown below field in red | — |
+| `icon` | ReactNode| Lucide icon shown on the left side | — |
+
+### 17.8 Advanced UI/UX Logic
+
+#### 1. Skeleton Loading Strategy
+Every page must implement "Skeleton Screens" for manual fetching states:
+- **`JobCardSkeleton`**: Pulsing grey cards for job listings.
+- **`StatsSkeleton`**: Pulsing blocks for dashboard widgets.
+
+#### 2. Applicant Tracking (Kanban Logic)
+- **Logic**: Recruiter drags a candidate card from 'Applied' to 'Shortlisted'.
+- **Action**: Triggers `applicationService.updateStatus()` API call.
+
+#### 3. Real-time Notifications (Socket.io)
+| Event | Trigger | Payload |
+|---|---|---|
+| `new_application` | Candidate applies | `{ jobId, candidateName }` |
+| `status_updated` | Status change | `{ appId, newStatus }` |
+
+### 17.9 AI Prompt Strategy (Reference)
+- **Resume Score**: "Analyze this resume against this JD. Return JSON with score 0-100 and skill gaps."
+- **Mock Interview**: "Act as an interviewer. Ask 1 technical question based on [Job]."
+
+---
+| `/job-board` | Job Management | CRUD table for jobs, Status toggles (Active/Draft). |
+| `/post-job` | AI Job Creation | AI JD generator button, Multi-step form. |
+| `/analytics` | Hiring Funnel | Recharts Bar/Pie charts for candidate pipeline. |
+| `/interviews` | Scheduling | Calendar widget, Meeting links, Candidate list. |
+
+### 17.7 Common Component API (Props)
+
+#### `Button.tsx`
+| Prop | Type | Description | Default |
+|---|---|---|---|
+| `variant` | String | `primary / secondary / outline / ghost / destructive` | `primary` |
+| `size` | String | `sm / md / lg / icon` | `md` |
+| `loading` | Boolean | If true, shows spinner and disables button | `false` |
+| `className`| String | Custom CSS overrides | — |
+
+#### `Input.tsx`
+| Prop | Type | Description | Default |
+|---|---|---|---|
+| `label` | String | Title above the input field | — |
+| `error` | String | Error message shown below field in red | — |
+| `icon` | ReactNode| Lucide icon shown on the left side | — |
+| `type` | String | `text / password / email / number` | `text` |
+
+### 17.8 UI to Backend API Mapping
+
+| UI Action | Service Method | Backend Endpoint |
+|---|---|---|
+| Click "Login" | `authServices.login()` | `POST /user/login` |
+| Click "Apply Now" | `jobServices.apply()` | `POST /application/apply` |
+| Upload Resume | `aiServices.analyze()` | `POST /resume/analyze` |
+| Generate JD | `aiServices.generateJD()` | `POST /ai/generate-job` |
+| Schedule Interview| `interviewServices.create()` | `POST /interview/schedule` |
+│   ├── store/                       # Global State (Zustand)
+│   ├── services/                    # API Services (Axios & Feature Services)
+│   │   ├── apiClient.ts             # Centralized Axios Instance
+│   │   ├── auth.services.ts         # Auth API Calls
+│   │   ├── job.services.ts          # Job API Calls
+│   │   └── ai.services.ts           # AI & Resume API Calls
+│   └── utils/                       # SEO & Helpers
+```
+
+### 17.2 Specialized Library Integration
+
+| Library | Function | Implementation |
+|---|---|---|
+| `next-pwa` | Mobile UX | `next.config.js` configures icons and caching for a native feel. |
+| `next-themes` | Appearance | `ThemeProvider` wraps the app to toggle between Candidate Blue & Recruiter Purple. |
+| `react-hot-toast` | Feedback | Triggered on API response (Success/Error) for instant user feedback. |
+| `react-phone-input-2` | Data Entry | Used in Register & Profile forms for valid international numbers. |
+| `recharts` | Visuals | Used in Dashboards to show Application Trends and Match Scores. |
+| `cookies-next` | Token Management| Stores JWT securely and allows access in both Client & Server components. |
+
+### 17.3 Centralized Design System & Colors
+
+We use **CSS Variables** in `globals.css` to manage themes dynamically.
+
+| Token | Candidate Mode (Light) | Recruiter Mode (Light) | Dark Mode |
+|---|---|---|---|
+| `--primary` | Blue (oklch 0.588) | Purple (oklch 0.55) | Optimized Brightness |
+| `--background`| White (oklch 1) | White (oklch 1) | Deep Black (oklch 0.145) |
+| `--card` | Soft Bordered | Soft Bordered | Slate Gray |
+
+*   **Logic:** The `body` tag gets a class `.candidate-theme` or `.recruiter-theme` based on the user's current mode, which overrides the `--primary` variable.
+
+### 17.4 Dashboard View Component Pattern
+
+To keep the `app/` folder clean, we use the **View Pattern**:
+- **Route File**: `src/app/(candidate)/dashboard/page.tsx` only imports and renders the view.
+- **View File**: `src/components/candidate/dashboard/DashboardView.tsx` contains the actual UI layout, widgets, and charts.
+
+### 17.5 Shared UI Components (`common/`)
+
+- **`Button.tsx`**: Standardized variants (`primary`, `outline`, `ghost`).
+- **`Card.tsx`**: Consistent container with `Header`, `Content`, and `Footer`.
+- **`Input.tsx`**: Controlled input with built-in Label and Error state.
+- **`Pagination.tsx`**: Universal pagination for tables and job feeds.
+
+---
+
+---
 
 ---
 
@@ -1532,19 +1831,23 @@ npm run dev
 
 ### Frontend Packages
 
-| Package              | Purpose                          |
-|----------------------|----------------------------------|
-| `next`               | React framework (SSR & Routing)  |
-| `react` / `react-dom`| UI library                       |
-| `typescript`         | Static typing                    |
-| `tailwindcss`        | Utility-first CSS framework (v4) |
-| `zustand`            | Lightweight state management     |
-| `socket.io-client`   | Real-time events & notifications |
-| `@react-oauth/google`| Google Login button & OAuth flow |
-| `axios`              | HTTP requests                    |
-| `@tanstack/react-query`| Data fetching, caching & state sync|
-| `lucide-react`       | Icon library                     |
-| `sonner`             | Toast notifications              |
+| Package              | Purpose                                |
+|----------------------|----------------------------------------|
+| `next`               | React framework (SSR & Routing)         |
+| `react` / `react-dom`| UI library                              |
+| `typescript`         | Static typing                           |
+| `tailwindcss`        | Utility-first CSS framework (v4)        |
+| `next-pwa`           | **PWA Support** (Offline/Mobile Install)|
+| `next-themes`        | **Dark Mode** & Theme Management        |
+| `react-hot-toast`    | **Toast Notifications** (Success/Error) |
+| `react-phone-input-2`| **Phone Input** with Country Codes      |
+| `recharts`           | **Analytics Charts** (Recruiter/Admin)  |
+| `cookies-next`       | **Cookie Management** (Auth/Theming)    |
+| `zustand`            | Lightweight state management            |
+| `socket.io-client`   | Real-time events & notifications        |
+| `@react-oauth/google`| Google Login button & OAuth flow        |
+| `axios`              | HTTP requests                           |
+| `lucide-react`       | Icon library                            |
 
 
 ---
@@ -1744,4 +2047,90 @@ Every API in this project returns a **consistent JSON structure** to make fronte
 
 ---
 
-*📅 Documentation Version: 2.0 (SEO Optimized) | Last Updated: 2026 | Status: Complete ✅*
+## 🚀 29. Phase-wise Implementation Roadmap
+
+This roadmap outlines the exact steps for building the frontend.
+
+### Phase 1: Environment & Core Setup (Current)
+- [ ] **Library Installation**: Install `next-pwa`, `next-themes`, `react-hot-toast`, `react-phone-input-2`, `recharts`, `cookies-next`.
+- [ ] **Global CSS Finalization**: Setup centralized colors in `globals.css` with Candidate/Recruiter themes.
+- [ ] **Theme Provider**: Configure `next-themes` to support Light, Dark, and Role-based (Blue/Purple) themes.
+- [ ] **PWA Config**: Setup `manifest.json` and `next.config.js` for mobile support.
+
+### Phase 2: Auth & Common Components
+- [ ] **Auth Forms**: Implement Login, Register, and OTP verification using `react-hot-toast` for feedback.
+- [ ] **Common UI**: Finalize `Button`, `Input`, `Card`, and `Pagination` components.
+- [ ] **SEO Components**: Create a reusable `SEO` component for dynamic metadata.
+
+### Phase 3: Candidate Dashboard
+- [ ] **Dashboard Layout**: Implement the sidebar and main grid for Candidate views.
+- [ ] **AI Resume Scorer**: Integration with the AI scoring backend.
+- [ ] **Job Matching UI**: Displaying jobs with "Match Score" badges.
+
+### Phase 4: Recruiter Dashboard
+- [ ] **Job Board**: Interface for posting and managing jobs.
+- [ ] **Applicant Analytics**: Using `recharts` to show hiring funnels.
+- [ ] **AI Post-Job**: Tool to generate job descriptions using AI.
+
+---
+
+## 📁 30. Main Project Path Reference
+All project files are located at:
+`d:\Artifact Geeks\githubworkspace\ai_job_portal\`
+
+---
+
+*📅 Documentation Version: 2.1 (SRS Synced) | Last Updated: 2026 | Status: Complete ✅*
+
+---
+
+## 31. 📜 SRS Supplemental Specifications (PDF Sync)
+
+### 31.1 7-Step AI Resume Builder Flow
+Every candidate must complete this 7-step process to unlock AI features:
+1. **Personal Info**: Standard contact details.
+2. **Education**: Academic history + CGPA.
+3. **Experience**: Roles with AI-enhanced bullet points.
+4. **Skills**: Technical & Soft skills tagging.
+5. **Projects**: Tech stack & AI-generated summaries.
+6. **Template Style**: Choice between ATS-friendly, Modern, or Simple.
+7. **Export**: Final PDF generation and Cloudinary sync.
+
+### 31.2 AI Mock Interview Modes
+| Mode | Timing | Purpose | Outcome |
+|---|---|---|---|
+| **Practice** | Unlimited | Warm-up & Practice | Instant feedback (No score saved) |
+| **Official** | 10-15 Min | Scored grading based on 5 categories: **Resume, Projects, Technical, Behavioral, & Experience**. | Final score + **10-20 Top Company Matches**. (Limit: Max 3 applications per session). |
+
+### 31.3 Freemium Model & Usage Limits
+| Feature | Free Plan ($0) | Premium Plan ($97 Lifetime) |
+|---|---|---|
+| Resume Analysis | 3 / Month | Unlimited |
+| Job Searches | 5 / Month | Unlimited |
+| AI Mock Interview| Demo only | Full coaching + Scored sessions |
+| AI Suggestions | Basic | Advanced + Detailed Gap analysis |
+| Job Alerts | — | 30 Daily Curated Alerts |
+| Portfolio Analyzer| — | Included |
+
+### 31.4 Advanced Recruitment Flows
+- **AI Ranking**: Applicants in the Recruiter dashboard are automatically sorted by their **Match Score (top 95% first)**.
+- **1-Click Resume Popup**: Recruiters can view a candidate's PDF and an AI-generated summary instantly without leaving the page.
+- **Interview Scheduling**: Recruiter triggers a "Schedule Interview" button which auto-generates a **Google Meet link**.
+- **Automated Feedback**:
+    *   **Approved**: Auto-generates offer details (salary, joining date).
+    *   **Rejected**: AI converts recruiter's raw notes into professional feedback text for the candidate.
+
+### 31.5 Company Badge & Rating System
+To incentivize fast responses, the platform uses a dynamic Badge System:
+- **Star Rating**: Based on candidate feedback and interview consistency.
+- **Active Hiring Badge**: For companies with more than 3 recent job posts.
+- **High/Slow Response Badge**: Based on the average time taken to shortlist/reject applicants.
+
+### 31.6 Job Association & Platform Control
+- **Job Ownership**: Jobs can be linked to a specific **Company Profile** OR be **Platform-Managed** (posted directly by Admin for bulk hiring like Campus placements).
+- **Usage Tracking**: The system tracks:
+    *   `resumeAnalysisCount` (Resets monthly)
+    *   `jobSearchCount` (Resets monthly)
+    *   `mockInterviewUsage` (Tracking for Premium unlocks)
+
+---

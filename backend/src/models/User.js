@@ -1,1 +1,195 @@
-// User Model Schema
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const ROLES = require('../utils/roles');
+
+const userSchema = new mongoose.Schema({
+  fullname: {
+    type: String,
+    required: [true, 'Please add a full name'],
+  },
+  email: {
+    type: String,
+    required: [true, 'Please add an email'],
+    unique: true,
+    lowercase: true,
+    match: [
+      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+      'Please add a valid email',
+    ],
+  },
+  countryCode: {
+    type: String,
+    required: [true, 'Please add a country code'],
+    default: '+91'
+  },
+  phoneNumber: {
+    type: String,
+    required: [true, 'Please add a phone number'],
+  },
+  location: {
+    type: String,
+    default: 'Remote'
+  },
+  password: {
+    type: String,
+    required: [true, 'Please add a password'],
+    minlength: 6,
+    select: false, // Don't return password by default
+  },
+  profilePhoto: {
+    type: String,
+  },
+  bio: {
+    type: String,
+  },
+  skills: {
+    type: [String],
+    default: []
+  },
+  categorizedSkills: [
+    {
+      title: { type: String, default: '' },
+      skills: { type: [String], default: [] }
+    }
+  ],
+  education: [
+    {
+      degree: String,
+      university: String,
+      board: String,
+      cgpa: String,
+      year: String
+    }
+  ],
+  certificates: [
+    {
+      name: String,
+      issuer: String,
+      year: String
+    }
+  ],
+  personalDetail: {
+    dob: { type: String, default: '' },
+    gender: { type: String, default: '' },
+    languages: { type: String, default: '' },
+    hobbies: { type: String, default: '' }
+  },
+  workExperience: [
+    {
+      role: String,
+      company: String,
+      duration: String,
+      description: String
+    }
+  ],
+  projects: [
+    {
+      title: String,
+      stack: [String],
+      description: String,
+      link: String
+    }
+  ],
+  experience: {
+    type: Number,
+    default: 0
+  },
+  hasCompanyProfile: {
+    type: Boolean,
+    default: false
+  },
+  otp: {
+    type: String,
+  },
+  otpExpiry: {
+    type: Date,
+  },
+  isOtpVerified: {
+    type: Boolean,
+    default: false
+  },
+  hiringOtp: {
+    type: String,
+  },
+  hiringOtpExpiry: {
+    type: Date,
+  },
+  isHiringOtpVerified: {
+    type: Boolean,
+    default: false
+  },
+  isPremium: {
+    type: Boolean,
+    default: false
+  },
+  paymentId: {
+    type: String,
+  },
+  role: {
+    type: String,
+    enum: Object.values(ROLES),
+    default: ROLES.CANDIDATE
+  },
+  resume: {
+    type: String, // Cloudinary URL
+  },
+  resumeRetries: {
+    type: Number,
+    default: 0
+  },
+  jobSearches: {
+    type: Number,
+    default: 0
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  isFresher: {
+    type: Boolean,
+    default: false
+  },
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company'
+  },
+  jobRole: {
+    type: String,
+    default: 'Lead Recruiter'
+  },
+  department: {
+    type: String,
+    default: 'Talent Acquisition'
+  },
+  twoFactorEnabled: {
+    type: Boolean,
+    default: false
+  },
+  notificationPreferences: {
+    newApplications: { type: Boolean, default: true },
+    aiMatchAlerts: { type: Boolean, default: true },
+    marketTrends: { type: Boolean, default: false },
+    interviewReminders: { type: Boolean, default: true },
+    teamMentions: { type: Boolean, default: true },
+    candidateActivity: { type: Boolean, default: true }
+  }
+}, {
+  timestamps: true
+});
+
+// Encrypt password using bcrypt before saving
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    next();
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+// Match user entered password to hashed password in database
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+module.exports = mongoose.model('User', userSchema);
