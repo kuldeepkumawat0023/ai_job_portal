@@ -3,9 +3,8 @@
 import React from 'react';
 import CandidateDetailsView from '@/components/recruiter/applications/CandidateDetailsView';
 
-const Page = ({ params }: { params: Promise<{ id: string }> | { id: string } }) => {
-  // Safely unwrap params if it is a Promise (Next 15+) or standard object
-  const unwrappedParams = params instanceof Promise ? React.use(params) : params;
+const Page = ({ params }: { params: Promise<{ id: string }> }) => {
+  const unwrappedParams = React.use(params);
   
   return <CandidateDetailsView id={unwrappedParams.id} />;
 };

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { use } from 'react';
 
-const Page = ({ params }: { params: { id: string } }) => {
-  return <div>Job Details for ID: {params.id}</div>;
+const Page = ({ params }: { params: Promise<{ id: string }> }) => {
+  const resolvedParams = use(params);
+  return <div>Job Details for ID: {resolvedParams.id}</div>;
 };
 
 export default Page;

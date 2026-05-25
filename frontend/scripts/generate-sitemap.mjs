@@ -1,61 +1,32 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ AIJobFit DOMAIN FIXED
-const BASE_URL = "https://aijobfit.com";
-
-const APP_DIR = path.join(__dirname, "../src/app");
-const PUBLIC_DIR = path.join(__dirname, "../public");
-const SITEMAP_PATH = path.join(PUBLIC_DIR, "sitemap-0.xml");
+const BASE_URL = 'https://aijobfit.com';
+const APP_DIR = path.join(__dirname, '../src/app');
+const PUBLIC_DIR = path.join(__dirname, '../public');
+const SITEMAP_PATH = path.join(PUBLIC_DIR, 'sitemap-0.xml');
 
 // 🚫 BLOCKED ROUTES (ONLY PRIVATE PAGES)
 const EXCLUDED_ROUTES = [
-  "/auth",
-  "/login",
-  "/register",
-  "/forgot-password",
-  "/reset-password",
-  "/verify-otp",
+  '/auth',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-otp',
+  '/recruiter/settings',
+  '/candidate/settings'
 ];
 
-// 🎯 PRIORITY SYSTEM (AI JOB FIT OPTIMIZED)
-function getPriority(route) {
-  if (route === "/") return 1.0;
-
-  // 🔥 JOB PLATFORM CORE
-  if (route.startsWith("/jobs")) return 0.95;
-  if (route.startsWith("/candidate")) return 0.9;
-  if (route.startsWith("/recruiter")) return 0.9;
-
-  if (route.startsWith("/news")) return 0.85;
-
-  if (route.startsWith("/about") || route.startsWith("/contact"))
-    return 0.6;
-
-  return 0.5;
-}
-
-// ⏱️ CHANGE FREQUENCY
-function getFreq(route) {
-  if (route === "/") return "daily";
-
-  if (route.startsWith("/jobs")) return "daily"; // 🔥 IMPORTANT
-  if (route.startsWith("/news")) return "daily";
-
-  return "monthly";
-}
-
-// 🚫 FILTER FUNCTION
 function isExcluded(route) {
   return EXCLUDED_ROUTES.some((ex) => route.startsWith(ex));
 }
 
-// 📁 SCAN NEXT.JS APP ROUTES
-function getPaths(dir, currentRoute = "") {
+function getPaths(dir, currentRoute = '') {
   let paths = [];
   const files = fs.readdirSync(dir);
 
@@ -64,57 +35,45 @@ function getPaths(dir, currentRoute = "") {
     const stat = fs.statSync(fullPath);
 
     if (stat.isDirectory()) {
-      // Handle Next.js route groups (VERY IMPORTANT)
-      if (file.startsWith("(") && file.endsWith(")")) {
+      // Handle group folders (e.g., (public), (auth))
+      if (file.startsWith('(') && file.endsWith(')')) {
         paths = paths.concat(getPaths(fullPath, currentRoute));
-      } else if (!file.startsWith("_") && !file.startsWith("[")) {
-        paths = paths.concat(
-          getPaths(fullPath, `${currentRoute}/${file}`)
-        );
+      } else if (!file.startsWith('_') && !file.startsWith('[')) {
+        paths = paths.concat(getPaths(fullPath, `${currentRoute}/${file}`));
       }
-    } else if (file === "page.tsx") {
-      const route = currentRoute || "/";
-      paths.push(route);
+    } else if (file === 'page.tsx') {
+      paths.push(currentRoute || '/');
     }
   }
-
   return paths;
 }
 
-// 🚀 GENERATE SITEMAP
 function generateSitemap() {
-  console.log("🚀 Generating AIJobFit sitemap...");
+  console.log('🚀 Generating AI JobFit sitemap...');
 
   const routes = getPaths(APP_DIR);
+  const uniqueRoutes = [...new Set(routes)].filter((route) => !isExcluded(route)).sort();
 
-  const uniqueRoutes = [...new Set(routes)]
-    .filter((route) => !isExcluded(route))
-    .sort();
+  const urlsetOpening = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">`;
 
-  const urls = uniqueRoutes
-    .map((route) => {
-      const priority = getPriority(route);
-      const freq = getFreq(route);
+  const urlTags = uniqueRoutes.map(route => {
+    let priority = 0.5;
+    let freq = 'monthly';
 
-      return `
-  <url>
-    <loc>${BASE_URL}${route}</loc>
-    <lastmod>${new Date().toISOString().split("T")[0]}</lastmod>
-    <changefreq>${freq}</changefreq>
-    <priority>${priority}</priority>
-  </url>`;
-    })
-    .join("");
+    if (route === '/') { priority = 1.0; freq = 'daily'; }
+    else if (route.startsWith('/jobs')) { priority = 0.95; freq = 'daily'; }
+    else if (route.startsWith('/candidate') || route.startsWith('/recruiter')) { priority = 0.9; freq = 'daily'; }
+    else if (route.startsWith('/news')) { priority = 0.85; freq = 'daily'; }
+    else if (route.startsWith('/about') || route.startsWith('/contact')) { priority = 0.6; freq = 'monthly'; }
 
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls}
-</urlset>`;
+    return `  <url><loc>${BASE_URL}${route}</loc><lastmod>${new Date().toISOString().split('T')[0]}</lastmod><changefreq>${freq}</changefreq><priority>${priority}</priority></url>`;
+  }).join('\n');
 
-  fs.writeFileSync(SITEMAP_PATH, sitemap.trim());
+  const sitemapContent = `${urlsetOpening}\n${urlTags}\n</urlset>`;
 
-  console.log("✅ Sitemap updated successfully!");
-  console.log("📍 Path:", SITEMAP_PATH);
+  fs.writeFileSync(SITEMAP_PATH, sitemapContent);
+  console.log(`✅ Sitemap updated successfully at ${SITEMAP_PATH}`);
 }
 
 generateSitemap();
