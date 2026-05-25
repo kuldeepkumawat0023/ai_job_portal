@@ -24,13 +24,13 @@ export const defaultSEO = {
     email: "support@aijobfit.com",
 
     // ================= IMAGES =================
-    image: "https://aijobfit.com/images/logo/logo.webp",
+    image: "https://aijobfit.com/images/logo/logo.png",
     imageAlt: "AIJobFit",
-    imageType: "image/webp",
+    imageType: "image/png",
 
-    ogImage: "https://aijobfit.com/images/ogtag-images/logo.jpg",
+    ogImage: "https://aijobfit.com/images/logo/logo.png",
     ogImageAlt: "AIJobFit",
-    ogImageType: "image/jpeg",
+    ogImageType: "image/png",
 
     // ================= SOCIAL =================
     ogType: "website",
@@ -66,7 +66,7 @@ export const defaultSEO = {
     prefetch: [],
     preload: [
         {
-            href: "/images/ogtag-images/logo.jpg",
+            href: "/images/logo/logo.png",
             as: "image",
         },
     ],
@@ -81,7 +81,7 @@ export const defaultSEO = {
     organization: {
         name: "AIJobFit",
         url: "https://aijobfit.com",
-        logo: "https://aijobfit.com/images/logo/logo.webp",
+        logo: "https://aijobfit.com/images/logo/logo.png",
 
         sameAs: [
             "https://twitter.com/aijobfit",

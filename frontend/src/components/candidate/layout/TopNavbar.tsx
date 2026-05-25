@@ -13,7 +13,8 @@ import {
   LogOut,
   Globe,
   Settings,
-  Briefcase
+  Briefcase,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { cn } from '@/utils/cn';
@@ -41,6 +42,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
   const [mounted, setMounted] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isHiringModalOpen, setIsHiringModalOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { user, logout } = useAuth();
@@ -49,14 +51,36 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
   useEffect(() => {
     setMounted(true);
 
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+
+    if (outcome === 'accepted') {
+      console.log('User accepted the PWA install prompt');
+      setDeferredPrompt(null);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -273,6 +297,18 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
                     </div>
                     Settings
                   </Link>
+
+                  {deferredPrompt && (
+                    <button
+                      onClick={handleInstallClick}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-left text-sm font-semibold text-primary hover:bg-primary/10 rounded-xl transition-colors group/item cursor-pointer"
+                    >
+                      <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover/item:bg-primary/20 transition-colors">
+                        <Download size={16} />
+                      </div>
+                      Install App
+                    </button>
+                  )}
                 </div>
 
                 <div className="mt-2 pt-2 border-t border-outline-variant/10 px-2">

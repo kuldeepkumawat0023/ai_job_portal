@@ -17,9 +17,7 @@ import {
   Calendar as CalendarIcon,
   Star,
   BrainCircuit,
-  CheckCircle2,
-  Plus,
-  Building2
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { cn } from '@/utils/cn';
@@ -78,17 +76,23 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
   const [companyName, setCompanyName] = useState<string>('TechNova Solutions');
   const [companies, setCompanies] = useState<any[]>([]);
   const [activeCompany, setActiveCompany] = useState<any>(null);
-  const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
-  const [isSwitchingWorkspace, setIsSwitchingWorkspace] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
-  const workspaceRef = useRef<HTMLDivElement>(null);
 
   const { user, logout, updateUser } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
+
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
@@ -96,13 +100,25 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
         setShowNotifications(false);
       }
-      if (workspaceRef.current && !workspaceRef.current.contains(event.target as Node)) {
-        setIsWorkspaceDropdownOpen(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+
+    if (outcome === 'accepted') {
+      console.log('User accepted the PWA install prompt');
+      setDeferredPrompt(null);
+    }
+  };
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -126,30 +142,6 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
       fetchCompanies();
     }
   }, [user, user?.companyId]);
-
-  const handleSwitchCompany = async (company: any) => {
-    if (company._id === activeCompany?._id) {
-      setIsWorkspaceDropdownOpen(false);
-      return;
-    }
-    try {
-      setIsSwitchingWorkspace(true);
-      const response = await companyService.switchCompany(company._id);
-      if (response.success && response.data) {
-        toast.success(`Switched to ${company.name}`);
-        setActiveCompany(company);
-        updateUser({ companyId: company._id });
-        setIsWorkspaceDropdownOpen(false);
-        window.location.href = '/recruiter/dashboard';
-      } else {
-        toast.error('Failed to switch workspace');
-      }
-    } catch {
-      toast.error('Failed to switch workspace');
-    } finally {
-      setIsSwitchingWorkspace(false);
-    }
-  };
 
   const renderCompanyName = (name: string) => {
     const parts = name.split(' ');
@@ -207,13 +199,9 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
           </div>
         </Link>
 
-        <div className="flex items-center gap-1 md:gap-4 ml-1 md:ml-2 relative" ref={workspaceRef}>
+        <div className="flex items-center gap-1 md:gap-4 ml-1 md:ml-2 relative">
           <div className="h-6 w-[1px] bg-outline-variant/20 mx-1 md:mx-2" />
-          <button
-            onClick={() => setIsWorkspaceDropdownOpen(!isWorkspaceDropdownOpen)}
-            disabled={isSwitchingWorkspace}
-            className="flex items-center gap-1.5 md:gap-2.5 px-2 py-1 md:px-4 md:py-1.5 bg-surface-container/50 hover:bg-surface-container hover:shadow-sm rounded-xl md:rounded-2xl border border-outline-variant/10 text-left transition-all group cursor-pointer disabled:opacity-50"
-          >
+          <div className="flex items-center gap-1.5 md:gap-2.5 px-2 py-1 md:px-4 md:py-1.5 bg-surface-container/30 rounded-xl md:rounded-2xl border border-outline-variant/5 text-left select-none">
             {/* Company logo or initials icon */}
             <div className="flex items-center justify-center shrink-0">
               {activeCompany?.logo ? (
@@ -229,65 +217,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
             <span className="hidden md:inline text-xs font-black text-on-surface uppercase tracking-widest italic select-none">
               {renderCompanyName(companyName)}
             </span>
-
-            <ChevronDown className={cn(
-              "w-3 h-3 md:w-3.5 md:h-3.5 text-on-surface-variant group-hover:text-primary transition-all duration-300",
-              isWorkspaceDropdownOpen ? "rotate-180" : ""
-            )} />
-          </button>
-
-          <AnimatePresence>
-            {isWorkspaceDropdownOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute left-0 top-full mt-2 w-64 bg-white dark:bg-zinc-950 backdrop-blur-xl border border-outline-variant/30 rounded-2xl shadow-2xl py-2 overflow-hidden z-50 shadow-primary/10"
-              >
-                <div className="px-4 py-2 border-b border-outline-variant/10">
-                  <p className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">Switch Workspace</p>
-                </div>
-                <div className="px-2 max-h-48 overflow-y-auto space-y-0.5">
-                  {companies.map((company: any) => (
-                    <button
-                      key={company._id}
-                      onClick={() => handleSwitchCompany(company)}
-                      className={cn(
-                        "w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors cursor-pointer",
-                        company._id === activeCompany?._id
-                          ? "text-primary bg-primary/5"
-                          : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low"
-                      )}
-                    >
-                      <div className="w-6 h-6 rounded-md bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center shrink-0 overflow-hidden">
-                        {company.logo ? (
-                          <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-[10px] font-black text-primary">{company.name.charAt(0).toUpperCase()}</span>
-                        )}
-                      </div>
-                      <span className="text-sm font-medium truncate flex-1">{company.name}</span>
-                      {company._id === activeCompany?._id && (
-                        <CheckCircle2 size={14} className="text-primary shrink-0" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <div className="px-2 pt-1.5 mt-1 border-t border-outline-variant/10">
-                  <Link
-                    href="/recruiter/settings/profile"
-                    onClick={() => setIsWorkspaceDropdownOpen(false)}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-left text-primary hover:bg-primary/5 transition-colors rounded-lg group cursor-pointer"
-                  >
-                    <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-all">
-                      <Plus size={14} />
-                    </div>
-                    <span className="text-[11px] font-black uppercase tracking-widest truncate">Add Company</span>
-                  </Link>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          </div>
         </div>
       </div>
 
@@ -413,6 +343,18 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuClick }) => {
                     </div>
                     Settings
                   </Link>
+
+                  {deferredPrompt && (
+                    <button
+                      onClick={handleInstallClick}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-left text-sm font-semibold text-primary hover:bg-primary/10 rounded-xl transition-colors group/item cursor-pointer"
+                    >
+                      <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover/item:bg-primary/20 transition-colors">
+                        <Download size={16} />
+                      </div>
+                      Install App
+                    </button>
+                  )}
                 </div>
 
                 <div className="mt-2 pt-2 border-t border-outline-variant/10 px-2">

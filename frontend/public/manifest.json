@@ -1,6 +1,6 @@
 {
-  "name": "AIJobFit - Smart Career Platform",
-  "short_name": "AIJobFit",
+  "name": "AI JobFit",
+  "short_name": "AI JobFit",
   "description": "AI-powered job matching, resume analysis, and smart career growth platform.",
   "start_url": "/",
   "scope": "/",
@@ -11,13 +11,13 @@
   "lang": "en-IN",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
