@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Calendar, 
-  Clock, 
-  Video, 
-  Star, 
+import {
+  Calendar,
+  Clock,
+  Video,
+  Star,
   Check,
-  Building2, 
-  Loader2, 
+  Building2,
+  Loader2,
   CheckCircle,
   ExternalLink,
   User,
@@ -30,7 +30,7 @@ const InterviewsView = () => {
   const [interviews, setInterviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed' | 'cancelled'>('upcoming');
-  
+
   // Feedback Modal States
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedInterview, setSelectedInterview] = useState<any | null>(null);
@@ -171,7 +171,7 @@ const InterviewsView = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20">
       {/* Dynamic Radial Background */}
-      <div 
+      <div
         className="fixed inset-0 pointer-events-none -z-20 opacity-40"
         style={{
           backgroundImage: `radial-gradient(circle at 10% 30%, rgba(70, 72, 212, 0.05), transparent 45%),
@@ -203,8 +203,8 @@ const InterviewsView = () => {
               onClick={() => { setActiveTab(tab); setOpenTipsId(null); }}
               className={cn(
                 "px-6 py-3 rounded-xl md:rounded-full flex items-center justify-center gap-2 transition-all relative group overflow-hidden flex-1",
-                isActive 
-                  ? "bg-primary text-white shadow-lg shadow-primary/20 z-10 scale-[1.02]" 
+                isActive
+                  ? "bg-primary text-white shadow-lg shadow-primary/20 z-10 scale-[1.02]"
                   : "text-on-surface-variant hover:bg-primary/5 hover:text-primary"
               )}
             >
@@ -233,13 +233,13 @@ const InterviewsView = () => {
           const isCompleted = activeTab === 'completed';
 
           return (
-            <div 
+            <div
               key={item._id}
               className="bg-surface-container-lowest/80 backdrop-blur-md border border-outline-variant/30 rounded-[40px] p-8 hover:shadow-[0_20px_50px_-12px_rgba(70,72,212,0.12)] transition-all flex flex-col justify-between group relative overflow-hidden"
             >
               {/* Dynamic decorative backdrop highlight */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-all duration-700 pointer-events-none"></div>
-              
+
               <div>
                 {/* Upper row: Company details */}
                 <div className="flex justify-between items-start mb-6">
@@ -264,8 +264,8 @@ const InterviewsView = () => {
                     <div className={cn(
                       "px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm",
                       isUpcoming ? "bg-primary/10 text-primary border border-primary/20" :
-                      isCompleted ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" :
-                      "bg-red-500/10 text-red-500 border border-red-500/20"
+                        isCompleted ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" :
+                          "bg-red-500/10 text-red-500 border border-red-500/20"
                     )}>
                       {item.status}
                     </div>
@@ -296,7 +296,7 @@ const InterviewsView = () => {
                   <div className="flex items-center gap-3 text-sm font-semibold text-on-surface-variant">
                     <Video className="w-5 h-5 text-emerald-500" />
                     <span className="flex items-center gap-2">
-                      {item.mode} 
+                      {item.mode}
                       {isUpcoming && isGoogleMeet && (
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
                       )}
@@ -317,7 +317,7 @@ const InterviewsView = () => {
                   <div className="flex flex-col gap-3">
                     <div className="flex gap-3">
                       {item.candidateConfirmed ? (
-                        <a 
+                        <a
                           href={meetingLink}
                           target="_blank"
                           rel="noreferrer"
@@ -327,7 +327,7 @@ const InterviewsView = () => {
                           Join Google Meet
                         </a>
                       ) : (
-                        <button 
+                        <button
                           onClick={() => fetchConfirmInterview(item._id)}
                           className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-black text-xs py-4 rounded-[20px] shadow-lg shadow-amber-500/20 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2"
                         >
@@ -335,8 +335,8 @@ const InterviewsView = () => {
                           Confirm Interest (I'm Interested)
                         </button>
                       )}
-                      
-                      <button 
+
+                      <button
                         onClick={() => setOpenTipsId(openTipsId === item._id ? null : item._id)}
                         className="px-6 py-4 rounded-[20px] text-xs font-black uppercase tracking-widest text-on-surface border-2 border-outline-variant/30 hover:bg-surface-container transition-all"
                       >
@@ -385,12 +385,12 @@ const InterviewsView = () => {
                           <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Your Rating:</span>
                           <div className="flex items-center gap-1">
                             {[1, 2, 3, 4, 5].map((star) => (
-                              <Star 
-                                key={star} 
+                              <Star
+                                key={star}
                                 className={cn(
-                                  "w-4 h-4 shrink-0", 
+                                  "w-4 h-4 shrink-0",
                                   star <= item.rating ? "text-amber-500 fill-amber-500" : "text-outline-variant/40"
-                                )} 
+                                )}
                               />
                             ))}
                           </div>
@@ -402,7 +402,7 @@ const InterviewsView = () => {
                         )}
                       </div>
                     ) : (
-                      <button 
+                      <button
                         onClick={() => { setSelectedInterview(item); setShowFeedbackModal(true); }}
                         className="w-full bg-on-surface text-surface-container-lowest font-black text-xs py-4 rounded-[20px] hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-md"
                       >
@@ -431,8 +431,8 @@ const InterviewsView = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-surface-container-lowest w-full max-w-2xl rounded-[40px] p-8 md:p-12 shadow-2xl relative overflow-hidden border border-white/10 max-h-[90vh] overflow-y-auto">
             <div className="absolute top-0 right-0 p-8">
-              <button 
-                onClick={() => { setShowFeedbackModal(false); setRating(0); setFeedback(''); }} 
+              <button
+                onClick={() => { setShowFeedbackModal(false); setRating(0); setFeedback(''); }}
                 className="text-on-surface-variant hover:text-on-surface transition-colors"
               >
                 <span className="text-3xl">&times;</span>
@@ -463,13 +463,13 @@ const InterviewsView = () => {
                       onMouseLeave={() => setHoverRating(0)}
                       className="p-1 hover:scale-125 transition-transform"
                     >
-                      <Star 
+                      <Star
                         className={cn(
                           "w-10 h-10 transition-colors shrink-0",
-                          star <= (hoverRating || rating) 
-                            ? "text-amber-500 fill-amber-500" 
+                          star <= (hoverRating || rating)
+                            ? "text-amber-500 fill-amber-500"
                             : "text-outline-variant/30"
-                        )} 
+                        )}
                       />
                     </button>
                   ))}
@@ -481,7 +481,7 @@ const InterviewsView = () => {
                 <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant px-2 block">
                   Provide Detailed Feedback (Optional)
                 </label>
-                <textarea 
+                <textarea
                   placeholder="Share details about the interview questions, atmosphere, communication speed, consistency, etc..."
                   className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-3xl p-6 text-on-surface placeholder:text-on-surface-variant/40 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none min-h-[140px] font-semibold"
                   value={feedback}
@@ -490,7 +490,7 @@ const InterviewsView = () => {
               </div>
 
               {/* Submit Button */}
-              <button 
+              <button
                 onClick={handleFeedbackSubmit}
                 disabled={submittingFeedback}
                 className="w-full gradient-button text-white font-black text-sm py-5 rounded-[24px] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-primary/20"

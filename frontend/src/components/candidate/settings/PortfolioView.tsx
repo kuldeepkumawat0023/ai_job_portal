@@ -659,26 +659,34 @@ const PortfolioView = () => {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 pb-10 px-4 md:px-0">
+    <main className="w-full max-w-7xl mx-auto space-y-6 pb-10 px-4 md:px-0">
+
+      {/* SEO Friendly Hidden Content */}
+      <h1 className="sr-only">AIJobFit Professional Portfolio</h1>
+      <p className="sr-only">
+        Showcase your professional portfolio generated dynamically from your AI resume analysis. Highlight your skills, experiences, and projects to top recruiters effortlessly.
+      </p>
 
       {/* Action Bar */}
-      <div className="flex justify-between items-center gap-3 mb-6">
+      <section role="region" aria-label="Portfolio Actions" className="flex justify-between items-center gap-3 mb-6">
         <h2 className="text-2xl font-black text-on-surface uppercase tracking-widest hidden md:block">Professional Portfolio</h2>
         <div className="flex gap-3 w-full md:w-auto">
           <button
             onClick={() => setIsEditing(true)}
             className="flex-1 md:flex-none glass-card px-5 py-2.5 rounded-2xl text-sm font-bold text-primary flex items-center justify-center gap-2 hover:bg-primary/5 transition-all border-primary/20"
+            aria-label="Edit Profile"
           >
-            <Edit3 className="w-4 h-4" /> Edit Profile
+            <Edit3 className="w-4 h-4" aria-hidden="true" /> Edit Profile
           </button>
           <button
             onClick={exportToPDF}
             className="flex-1 md:flex-none gradient-button text-white px-6 py-2.5 rounded-2xl text-sm font-black shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+            aria-label="Download Resume PDF"
           >
-            <Download className="w-4 h-4" /> Download Resume
+            <Download className="w-4 h-4" aria-hidden="true" /> Download Resume
           </button>
         </div>
-      </div>
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -686,7 +694,7 @@ const PortfolioView = () => {
         <div className="lg:col-span-8 space-y-6">
 
           {/* Main Profile Header */}
-          <div className="bg-surface-container/30 border border-outline-variant/30 rounded-[40px] p-8 md:p-12 relative overflow-hidden shadow-2xl">
+          <header className="bg-surface-container/30 border border-outline-variant/30 rounded-[40px] p-8 md:p-12 relative overflow-hidden shadow-2xl">
             <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-[100px] pointer-events-none"></div>
             <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-secondary/10 rounded-full blur-[100px] pointer-events-none"></div>
 
@@ -749,17 +757,17 @@ const PortfolioView = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </header>
 
           {/* Work Experience */}
-          <div className="bg-surface-container/30 border border-outline-variant/30 rounded-[32px] p-8 md:p-10 shadow-xl">
+          <section className="bg-surface-container/30 border border-outline-variant/30 rounded-[32px] p-8 md:p-10 shadow-xl">
             <h3 className="text-2xl font-black text-on-surface flex items-center gap-4 mb-10 uppercase tracking-tight">
               <Briefcase className="w-7 h-7 text-primary" /> Work History
             </h3>
 
             <div className="space-y-12 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-1 before:bg-gradient-to-b before:from-primary/40 before:to-transparent">
               {profile.workExperience?.length > 0 ? profile.workExperience.map((exp: any, i: number) => (
-                <div key={i} className="relative pl-12 group">
+                <article key={i} className="relative pl-12 group">
                   <div className="absolute left-0 top-1 w-10 h-10 rounded-2xl bg-surface border-4 border-primary/20 flex items-center justify-center z-10 transition-transform group-hover:scale-110">
                     <div className="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
                   </div>
@@ -773,22 +781,22 @@ const PortfolioView = () => {
                       {exp.description}
                     </p>
                   </div>
-                </div>
+                </article>
               )) : (
                 <div className="pl-12 py-10 text-on-surface-variant/50 font-bold italic">No work history added yet.</div>
               )}
             </div>
-          </div>
+          </section>
 
           {/* Projects */}
-          <div className="bg-surface-container/30 border border-outline-variant/30 rounded-[32px] p-8 md:p-10 shadow-xl">
+          <section className="bg-surface-container/30 border border-outline-variant/30 rounded-[32px] p-8 md:p-10 shadow-xl">
             <h3 className="text-2xl font-black text-on-surface flex items-center gap-4 mb-10 uppercase tracking-tight">
               <AppWindow className="w-7 h-7 text-primary" /> Key Projects
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {profile.projects?.length > 0 ? profile.projects.map((proj: any, i: number) => (
-                <div
+                <article
                   key={i}
                   className="bg-surface-container-lowest dark:bg-background border border-outline-variant/30 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 relative"
                 >
@@ -830,12 +838,12 @@ const PortfolioView = () => {
                       </div>
                     )}
                   </div>
-                </div>
+                </article>
               )) : (
                 <div className="col-span-full py-10 text-center text-on-surface-variant/50 font-bold italic">No projects added yet.</div>
               )}
             </div>
-          </div>
+          </section>
 
         </div>
 
@@ -983,7 +991,7 @@ const PortfolioView = () => {
         </div>
       </div>
 
-    </div>
+    </main>
   );
 };
 

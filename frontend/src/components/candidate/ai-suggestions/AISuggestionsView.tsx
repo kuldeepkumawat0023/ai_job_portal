@@ -65,11 +65,11 @@ const AISuggestionsView = () => {
 
   if (error) {
     const isNoResume = error.toLowerCase().includes('resume');
-    
+
     return (
       <div className="w-full max-w-2xl mx-auto mt-20 p-12 glass-card border-outline-variant/30 rounded-[48px] text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 pointer-events-none"></div>
-        
+
         {isNoResume ? (
           <>
             <div className="w-24 h-24 bg-primary/10 rounded-[32px] flex items-center justify-center mx-auto mb-8 shadow-inner">
@@ -91,7 +91,7 @@ const AISuggestionsView = () => {
             <AlertCircle className="w-16 h-16 text-error mx-auto mb-6" />
             <h3 className="text-2xl font-bold text-on-surface mb-2 tracking-tight">Oops! Connection Issue</h3>
             <p className="text-on-surface-variant mb-8 font-medium">{error}</p>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="bg-on-surface text-surface-container-lowest px-10 py-4 rounded-2xl font-black text-sm hover:bg-primary hover:text-white transition-all"
             >
@@ -123,7 +123,7 @@ const AISuggestionsView = () => {
           </h2>
 
           {data?.priorityActions?.map((action: any, index: number) => (
-            <div 
+            <div
               key={index}
               className="glass-card rounded-[32px] p-6 md:p-10 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border border-outline-variant/30 hover:border-primary/30"
             >
@@ -172,7 +172,7 @@ const AISuggestionsView = () => {
           {coachingTips && coachingTips.length > 0 && (
             <div className="glass-card rounded-[32px] p-6 md:p-10 border border-outline-variant/30 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 mt-6 md:mt-8">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-primary via-secondary to-tertiary"></div>
-              
+
               <h3 className="text-xl md:text-2xl font-black text-on-surface mb-6 flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
                   <Lightbulb className="w-5 h-5 md:w-6 md:h-6" />
@@ -182,7 +182,7 @@ const AISuggestionsView = () => {
 
               <div className="space-y-4">
                 {coachingTips.map((tip, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="flex gap-4 items-start p-4 md:p-6 rounded-2xl bg-surface-container/20 border border-outline-variant/10 hover:border-amber-500/30 hover:bg-amber-500/[0.02] transition-all"
                   >
@@ -221,7 +221,7 @@ const AISuggestionsView = () => {
             <div className="mb-6">
               <div className="relative w-full aspect-square rounded-[32px] border border-outline-variant/20 mb-8 overflow-hidden bg-surface-container/20 flex items-center justify-center">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent"></div>
-                
+
                 {/* Visual Radar Mock */}
                 <div className="relative w-32 h-32 md:w-48 md:h-48 flex items-center justify-center">
                   <div className="absolute inset-0 border-2 border-primary/20 rounded-full animate-[ping_3s_linear_infinite]"></div>
@@ -239,8 +239,8 @@ const AISuggestionsView = () => {
                     <span className="text-sm font-bold text-on-surface-variant group-hover:text-on-surface">{skill.skill}</span>
                     <span className={cn(
                       "text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 rounded-full border shadow-sm",
-                      skill.status === 'Strong' 
-                        ? "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" 
+                      skill.status === 'Strong'
+                        ? "text-emerald-500 bg-emerald-500/10 border-emerald-500/20"
                         : "text-amber-500 bg-amber-500/10 border-amber-500/20"
                     )}>
                       {skill.status}

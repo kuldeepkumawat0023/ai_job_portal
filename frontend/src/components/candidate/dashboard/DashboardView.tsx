@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Send, 
-  MessageSquare, 
-  GraduationCap, 
-  CheckCircle2, 
+  Send,
+  MessageSquare,
+  GraduationCap,
+  CheckCircle2,
   BarChart3,
   Rocket,
   LayoutDashboard,
@@ -74,7 +74,7 @@ const DashboardView = () => {
   const getMatchScore = (job: Job) => {
     const candSkills = user?.skills || [];
     const jobReqs = job.requirements || [];
-    
+
     if (jobReqs.length === 0) return 75;
     if (candSkills.length === 0) return 65;
 
@@ -102,47 +102,47 @@ const DashboardView = () => {
 
   // Pipeline Logic
   const pipeline = [
-    { 
-      status: 'Applied', 
-      key: 'pending', 
-      count: appliedJobs.filter(a => !a.status || a.status === 'pending').length, 
-      jobs: appliedJobs.filter(a => !a.status || a.status === 'pending').map(a => ({ 
-        title: a.jobId?.title || 'Unknown Role', 
-        company: a.jobId?.companyId?.name || 'Company', 
-        time: a.createdAt ? new Date(a.createdAt).toLocaleDateString() : 'Recently' 
-      })) 
+    {
+      status: 'Applied',
+      key: 'pending',
+      count: appliedJobs.filter(a => !a.status || a.status === 'pending').length,
+      jobs: appliedJobs.filter(a => !a.status || a.status === 'pending').map(a => ({
+        title: a.jobId?.title || 'Unknown Role',
+        company: a.jobId?.companyId?.name || 'Company',
+        time: a.createdAt ? new Date(a.createdAt).toLocaleDateString() : 'Recently'
+      }))
     },
-    { 
-      status: 'Shortlisted', 
-      key: 'shortlisted', 
-      count: appliedJobs.filter(a => a.status === 'shortlisted').length, 
-      jobs: appliedJobs.filter(a => a.status === 'shortlisted').map(a => ({ 
-        title: a.jobId?.title || 'Unknown Role', 
+    {
+      status: 'Shortlisted',
+      key: 'shortlisted',
+      count: appliedJobs.filter(a => a.status === 'shortlisted').length,
+      jobs: appliedJobs.filter(a => a.status === 'shortlisted').map(a => ({
+        title: a.jobId?.title || 'Unknown Role',
         company: a.jobId?.companyId?.name || 'Company',
         time: a.updatedAt ? new Date(a.updatedAt).toLocaleDateString() : 'Recently'
-      })) 
+      }))
     },
-    { 
-      status: 'Interview', 
-      key: 'interview', 
-      count: appliedJobs.filter(a => a.status === 'interview').length, 
-      jobs: appliedJobs.filter(a => a.status === 'interview').map(a => ({ 
-        title: a.jobId?.title || 'Unknown Role', 
-        company: a.jobId?.companyId?.name || 'Company', 
+    {
+      status: 'Interview',
+      key: 'interview',
+      count: appliedJobs.filter(a => a.status === 'interview').length,
+      jobs: appliedJobs.filter(a => a.status === 'interview').map(a => ({
+        title: a.jobId?.title || 'Unknown Role',
+        company: a.jobId?.companyId?.name || 'Company',
         tag: 'Scheduled',
         time: a.updatedAt ? new Date(a.updatedAt).toLocaleDateString() : 'Recently'
-      })) 
+      }))
     },
-    { 
-      status: 'Offer', 
-      key: 'hired', 
-      count: appliedJobs.filter(a => a.status === 'hired').length, 
-      jobs: appliedJobs.filter(a => a.status === 'hired').map(a => ({ 
-        title: a.jobId?.title || 'Unknown Role', 
-        company: a.jobId?.companyId?.name || 'Company', 
+    {
+      status: 'Offer',
+      key: 'hired',
+      count: appliedJobs.filter(a => a.status === 'hired').length,
+      jobs: appliedJobs.filter(a => a.status === 'hired').map(a => ({
+        title: a.jobId?.title || 'Unknown Role',
+        company: a.jobId?.companyId?.name || 'Company',
         highlight: true,
         time: a.updatedAt ? new Date(a.updatedAt).toLocaleDateString() : 'Recently'
-      })) 
+      }))
     },
   ];
 
@@ -158,17 +158,21 @@ const DashboardView = () => {
   }
 
   return (
-    <div className="space-y-8 pb-10">
+    <main className="space-y-8 pb-10">
       {/* Welcome Banner */}
-      <section className="glass-card p-6 md:p-8 lg:p-10 relative overflow-hidden bg-gradient-to-r from-surface-container-high/50 to-surface-container/30 border-none shadow-xl">
-        <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-primary/10 to-transparent pointer-events-none" />
+      <section 
+        className="glass-card p-6 md:p-8 lg:p-10 relative overflow-hidden bg-gradient-to-r from-surface-container-high/50 to-surface-container/30 border-none shadow-xl"
+        role="region"
+        aria-label="Welcome and Profile Status"
+      >
+        <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-primary/10 to-transparent pointer-events-none" aria-hidden="true" />
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 relative z-10">
           <div>
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-on-surface mb-2">
               Welcome back, {user?.fullname?.split(' ')[0] || 'User'} 👋
             </h1>
             <p className="text-sm md:text-base text-on-surface-variant max-w-md">
-              {isProfileIncomplete 
+              {isProfileIncomplete
                 ? "Your profile is almost there! Complete it to unlock personalized AI matches."
                 : "Your AI readiness score is looking strong today. We found new matches for your profile."}
             </p>
@@ -212,16 +216,16 @@ const DashboardView = () => {
                     }
                   }}
                 />
-                
-                <Button 
-                  variant="gradient" 
-                  size="sm" 
+
+                <Button
+                  variant="gradient"
+                  size="sm"
                   className="shadow-2xl shadow-primary/50 hover:shadow-secondary/50 cursor-pointer relative overflow-hidden flex items-center gap-2 font-black tracking-wide border border-white/10"
                   style={{ position: 'relative', zIndex: 1 }}
                   onClick={() => setIsProfileWizardOpen(true)}
-                  whileHover={{ 
-                    scale: 1.06, 
-                    boxShadow: "0 20px 25px -5px rgba(59, 130, 246, 0.4), 0 10px 10px -5px rgba(59, 130, 246, 0.3)" 
+                  whileHover={{
+                    scale: 1.06,
+                    boxShadow: "0 20px 25px -5px rgba(59, 130, 246, 0.4), 0 10px 10px -5px rgba(59, 130, 246, 0.3)"
                   }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -255,17 +259,17 @@ const DashboardView = () => {
               </motion.div>
             )}
           </div>
-          
+
           <div className="flex items-center gap-6 bg-white/40 dark:bg-black/20 p-6 rounded-3xl backdrop-blur-md border border-white/20">
             <div className="relative w-20 h-20 flex items-center justify-center">
               <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="16" fill="none" className="stroke-primary/10" strokeWidth="3" />
-                <circle 
-                  cx="18" cy="18" r="16" fill="none" 
-                  className="stroke-primary" 
-                  strokeWidth="3" 
-                  strokeDasharray={`${stats?.resumeAnalysis?.score || 0}, 100`} 
-                  strokeLinecap="round" 
+                <circle
+                  cx="18" cy="18" r="16" fill="none"
+                  className="stroke-primary"
+                  strokeWidth="3"
+                  strokeDasharray={`${stats?.resumeAnalysis?.score || 0}, 100`}
+                  strokeLinecap="round"
                 />
               </svg>
               <span className="text-xl font-bold text-primary">{stats?.resumeAnalysis?.score || 0}%</span>
@@ -289,7 +293,7 @@ const DashboardView = () => {
           { name: 'Resume Score', value: stats?.resumeAnalysis?.score || 0, icon: GraduationCap, color: 'text-tertiary', bg: 'bg-tertiary/10' },
           { name: 'Profile Completion', value: `${completionRate}%`, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
         ].map((stat, i) => (
-          <motion.div 
+          <motion.div
             key={stat.name}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -308,9 +312,9 @@ const DashboardView = () => {
       </div>
 
       {/* Profile Wizard Modal */}
-      <ProfileWizardModal 
-        isOpen={isProfileWizardOpen} 
-        onClose={() => setIsProfileWizardOpen(false)} 
+      <ProfileWizardModal
+        isOpen={isProfileWizardOpen}
+        onClose={() => setIsProfileWizardOpen(false)}
       />
 
       {/* Bento Grid: Analysis & Matches */}
@@ -326,17 +330,17 @@ const DashboardView = () => {
               Live Scan
             </div>
           </div>
-          
+
           <div className="flex items-center gap-8 mb-8">
             <div className="relative w-28 h-28 flex items-center justify-center rounded-full bg-surface-container border-4 border-surface-container-highest shrink-0 shadow-[0_0_40px_rgba(70,72,212,0.1)]">
               <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="16" fill="none" className="stroke-surface-container-highest" strokeWidth="2.5" />
-                <circle 
-                  cx="18" cy="18" r="16" fill="none" 
-                  className="stroke-primary" 
-                  strokeWidth="2.5" 
-                  strokeDasharray={`${stats?.resumeAnalysis?.score || 0}, 100`} 
-                  strokeLinecap="round" 
+                <circle
+                  cx="18" cy="18" r="16" fill="none"
+                  className="stroke-primary"
+                  strokeWidth="2.5"
+                  strokeDasharray={`${stats?.resumeAnalysis?.score || 0}, 100`}
+                  strokeLinecap="round"
                 />
               </svg>
               <span className="text-3xl font-black text-primary tracking-tighter">{stats?.resumeAnalysis?.score || 0}</span>
@@ -358,7 +362,7 @@ const DashboardView = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="mt-auto grid grid-cols-2 gap-4 pt-6 border-t border-outline-variant/10">
             <Link href="/candidate/resume-analysis">
               <Button size="sm" className="w-full">Improve Score</Button>
@@ -378,7 +382,7 @@ const DashboardView = () => {
               <button className="text-primary text-xs font-bold hover:underline">View All</button>
             </Link>
           </div>
-          
+
           <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
             {recommendedJobs.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full opacity-40">
@@ -387,8 +391,8 @@ const DashboardView = () => {
               </div>
             ) : (
               recommendedJobs.map((job) => (
-                <div 
-                  key={job._id} 
+                <div
+                  key={job._id}
                   onClick={() => router.push('/candidate/job-matches')}
                   className="bg-surface-container-low/50 rounded-2xl p-4 border border-outline-variant/5 flex items-center gap-5 hover:bg-surface-container-high transition-colors group cursor-pointer"
                 >
@@ -401,7 +405,7 @@ const DashboardView = () => {
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
                     <span className="bg-gradient-to-r from-primary/10 to-secondary/10 text-primary text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-primary/20">{getMatchScore(job)}% AI Match</span>
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/candidate/applications/${job._id}`);
@@ -426,7 +430,7 @@ const DashboardView = () => {
             Application Pipeline
           </h2>
         </div>
-        
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {pipeline.map((col, idx) => (
             <div key={col.status} className="flex flex-col gap-3">
@@ -435,7 +439,7 @@ const DashboardView = () => {
                   {col.status} ({col.count})
                 </div>
               </div>
-              
+
               <div className="space-y-3 p-4 bg-surface-container-low/40 rounded-3xl border border-outline-variant/10 h-full min-h-[140px] shadow-sm">
                 {col.jobs.length === 0 ? (
                   <div className="h-20 border border-dashed border-outline-variant/20 rounded-2xl flex flex-col items-center justify-center text-[9px] font-bold text-on-surface-variant/30 uppercase tracking-widest gap-1.5">
@@ -443,8 +447,8 @@ const DashboardView = () => {
                   </div>
                 ) : (
                   col.jobs.map((job, jidx) => (
-                    <motion.div 
-                      key={jidx} 
+                    <motion.div
+                      key={jidx}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className={cn(
@@ -459,8 +463,8 @@ const DashboardView = () => {
                         {(job as any).tag ? (
                           <div className={cn(
                             "text-[8px] font-bold px-1.5 py-0.5 rounded border",
-                            (job as any).urgent ? "bg-secondary/10 text-secondary border-secondary/20" : 
-                            (job as any).highlight ? "bg-primary/10 text-primary border-primary/20" : "bg-surface-container text-on-surface-variant border-outline-variant/20"
+                            (job as any).urgent ? "bg-secondary/10 text-secondary border-secondary/20" :
+                              (job as any).highlight ? "bg-primary/10 text-primary border-primary/20" : "bg-surface-container text-on-surface-variant border-outline-variant/20"
                           )}>
                             {(job as any).tag}
                           </div>
@@ -489,7 +493,7 @@ const DashboardView = () => {
             </h3>
             <div className="flex gap-1 items-end h-12">
               {(stats?.activity || [0.4, 0.6, 0.3, 0.8, 1, 0.7, 0.9]).map((h: any, i) => (
-                <motion.div 
+                <motion.div
                   key={i}
                   initial={{ height: 0 }}
                   animate={{ height: typeof h === 'object' ? `${Math.min(100, (h.count || 0) * 20)}%` : `${(h || 0) * 100}%` }}
@@ -531,7 +535,7 @@ const DashboardView = () => {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

@@ -262,41 +262,47 @@ const ApplicationsView = () => {
   const filteredApps = getAppsByStatus(currentColumn.statuses);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-20">
+    <main className="max-w-7xl mx-auto space-y-8 pb-20">
+      {/* SEO Friendly Hidden Content */}
+      <h1 className="sr-only">AIJobFit Application Tracking</h1>
+      <p className="sr-only">
+        Track your job applications in real-time. View statuses for applied, shortlisted, interviewed, and hired roles across top tech companies using our AI-driven platform.
+      </p>
+
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+      <section role="region" aria-label="Applications Tracking Header" className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-4xl font-black text-on-surface mb-2 tracking-tight">My Applications</h1>
+          <h2 className="text-4xl font-black text-on-surface mb-2 tracking-tight">My Applications</h2>
           <p className="text-lg text-on-surface-variant font-medium">Track and manage your active job opportunities.</p>
         </div>
         <div className="flex gap-4">
-          <Link href="/candidate/job-matches" className="bg-primary text-white px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-xl transition-all hover:scale-[1.02] flex items-center gap-2">
-            <Plus className="w-4 h-4" />
+          <Link href="/candidate/job-matches" className="bg-primary text-white px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-xl transition-all hover:scale-[1.02] flex items-center gap-2" aria-label="Find More Jobs">
+            <Plus className="w-4 h-4" aria-hidden="true" />
             Find More Jobs
           </Link>
         </div>
-      </div>
+      </section>
 
       {/* Dynamic Tabs */}
-      <div className="flex items-center gap-2 p-1.5 bg-surface-container/20 rounded-2xl md:rounded-full border border-outline-variant/10 overflow-x-auto scrollbar-hide md:overflow-x-visible">
+      <nav aria-label="Application Status Tabs" className="flex items-center gap-2 p-1.5 bg-surface-container/20 rounded-2xl md:rounded-full border border-outline-variant/10 overflow-x-auto scrollbar-hide md:overflow-x-visible">
         {statusColumns.map((col) => {
           const count = getAppsByStatus(col.statuses).length;
           const isActive = activeTab === col.title;
-          
+
           return (
             <button
               key={col.title}
               onClick={() => { setActiveTab(col.title); setFeedbackResult(null); }}
               className={cn(
                 "px-5 py-3 rounded-xl md:rounded-full flex items-center justify-center gap-2 transition-all relative group overflow-hidden flex-shrink-0 md:flex-1",
-                isActive 
-                  ? "bg-primary text-white shadow-lg shadow-primary/20 z-10 scale-[1.02] md:scale-105" 
+                isActive
+                  ? "bg-primary text-white shadow-lg shadow-primary/20 z-10 scale-[1.02] md:scale-105"
                   : "text-on-surface-variant hover:bg-primary/5 hover:text-primary"
               )}
             >
               <span className={cn(
-                "w-1.5 h-1.5 rounded-full transition-all duration-500 shrink-0", 
-                isActive ? "bg-white" : col.iconColor, 
+                "w-1.5 h-1.5 rounded-full transition-all duration-500 shrink-0",
+                isActive ? "bg-white" : col.iconColor,
                 col.pulse && "animate-pulse"
               )}></span>
               <span className="text-[11px] md:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
@@ -311,17 +317,17 @@ const ApplicationsView = () => {
             </button>
           );
         })}
-      </div>
+      </nav>
 
       {/* Applications Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {filteredApps.map((app) => {
           const job = app.jobId as any;
           const isInterviewStage = app.status === 'interview';
           const styles = getStatusCardStyles(app.status);
 
           return (
-            <div 
+            <article
               key={app._id}
               className={cn(
                 "border border-outline-variant/30 rounded-[48px] p-8 transition-all group relative border-b-8 flex flex-col justify-between",
@@ -362,12 +368,12 @@ const ApplicationsView = () => {
                   </span>
                 )}
               </div>
-              
+
               <h4 className="text-2xl font-black text-on-surface mb-2 group-hover:text-primary transition-colors leading-tight">
                 {job?.title || 'Unknown Role'}
               </h4>
               <p className="text-base font-bold text-on-surface-variant mb-6 flex items-center gap-2 group-hover:text-on-surface transition-colors">
-                {job?.companyId?.name || 'Unknown Company'} 
+                {job?.companyId?.name || 'Unknown Company'}
                 <span className="w-1.5 h-1.5 rounded-full bg-outline-variant/30 group-hover:bg-primary/30 transition-colors"></span>
                 {job?.location || 'Remote'}
               </p>
@@ -404,10 +410,10 @@ const ApplicationsView = () => {
                         {matchingInterview.time}
                       </div>
                     </div>
-                    <a 
-                      href={matchingInterview.meetingLink || '#'} 
-                      target="_blank" 
-                      rel="noreferrer" 
+                    <a
+                      href={matchingInterview.meetingLink || '#'}
+                      target="_blank"
+                      rel="noreferrer"
                       className="w-full text-center bg-primary text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-primary-dark transition-all flex items-center justify-center gap-1.5 shadow-md shadow-primary/10"
                     >
                       <ExternalLink className="w-3.5 h-3.5" /> Join Meet
@@ -423,14 +429,14 @@ const ApplicationsView = () => {
                   )}
                   <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-on-surface-variant/50 group-hover:text-primary/70 transition-colors">
                     <Clock className="w-4 h-4" />
-                    {app.createdAt && isValid(new Date(app.createdAt)) 
-                      ? `${formatDistanceToNow(new Date(app.createdAt))} ago` 
+                    {app.createdAt && isValid(new Date(app.createdAt))
+                      ? `${formatDistanceToNow(new Date(app.createdAt))} ago`
                       : 'Recent'}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   {isInterviewStage && (
-                    <button 
+                    <button
                       onClick={() => { setSelectedApp(app); setShowFeedbackModal(true); setFeedbackResult(null); }}
                       className="px-5 py-3 rounded-2xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20 shadow-sm hover:bg-primary hover:text-white transition-all flex items-center gap-1.5"
                     >
@@ -438,7 +444,7 @@ const ApplicationsView = () => {
                       Feedback
                     </button>
                   )}
-                  <button 
+                  <button
                     onClick={() => { setDetailsApp(app); setShowDetailsModal(true); }}
                     className="w-12 h-12 rounded-[20px] bg-surface-container flex items-center justify-center group-hover:bg-primary group-hover:text-white group-hover:rotate-[-45deg] transition-all border-none outline-none cursor-pointer"
                   >
@@ -446,7 +452,7 @@ const ApplicationsView = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </article>
           );
         })}
 
@@ -457,7 +463,7 @@ const ApplicationsView = () => {
             <p className="text-sm font-bold text-on-surface-variant mt-2">You haven't reached this stage for any job yet.</p>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Feedback Modal */}
       <AnimatePresence>
@@ -496,11 +502,11 @@ const ApplicationsView = () => {
                       <Sparkles className="w-4 h-4 text-primary" />
                       Questions Asked
                     </label>
-                    <textarea 
+                    <textarea
                       placeholder="E.g. Tell me about a time you solved a complex bug..."
                       className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-3xl p-6 text-on-surface placeholder:text-on-surface-variant/40 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none min-h-[120px]"
                       value={feedbackData.questions}
-                      onChange={(e) => setFeedbackData({...feedbackData, questions: e.target.value})}
+                      onChange={(e) => setFeedbackData({ ...feedbackData, questions: e.target.value })}
                     />
                   </div>
 
@@ -509,15 +515,15 @@ const ApplicationsView = () => {
                       <BrainCircuit className="w-4 h-4 text-secondary" />
                       Your Response/Experience
                     </label>
-                    <textarea 
+                    <textarea
                       placeholder="Describe how you answered and how the interviewer reacted..."
                       className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-3xl p-6 text-on-surface placeholder:text-on-surface-variant/40 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none min-h-[150px]"
                       value={feedbackData.experience}
-                      onChange={(e) => setFeedbackData({...feedbackData, experience: e.target.value})}
+                      onChange={(e) => setFeedbackData({ ...feedbackData, experience: e.target.value })}
                     />
                   </div>
 
-                  <button 
+                  <button
                     onClick={handleFeedbackSubmit}
                     disabled={submittingFeedback}
                     className="w-full gradient-button text-white font-black text-sm py-5 rounded-[24px] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-primary/20"
@@ -574,7 +580,7 @@ const ApplicationsView = () => {
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={() => { setFeedbackResult(null); setFeedbackData({ questions: '', experience: '' }); }}
                     className="w-full bg-on-surface text-surface-container-lowest font-black text-sm py-5 rounded-[24px] hover:bg-primary hover:text-white transition-all shadow-xl"
                   >
@@ -654,7 +660,7 @@ const ApplicationsView = () => {
                       const currentIdx = getStepIndex(detailsApp.status);
                       const isCompleted = idx < currentIdx;
                       const isActive = idx === currentIdx;
-                      
+
                       return (
                         <div key={step.label} className="flex md:flex-col items-center gap-3 md:gap-2 flex-1 w-full relative">
                           {/* Line connector */}
@@ -664,12 +670,12 @@ const ApplicationsView = () => {
                               isCompleted || isActive ? "bg-primary" : "bg-outline-variant/20"
                             )} />
                           )}
-                          
+
                           <div className={cn(
                             "w-8 h-8 rounded-full flex items-center justify-center font-black text-xs transition-all",
                             isCompleted ? "bg-primary text-white" :
-                            isActive ? "bg-primary/20 text-primary border-2 border-primary animate-pulse" :
-                            "bg-surface-container border border-outline-variant/30 text-on-surface-variant/40"
+                              isActive ? "bg-primary/20 text-primary border-2 border-primary animate-pulse" :
+                                "bg-surface-container border border-outline-variant/30 text-on-surface-variant/40"
                           )}>
                             {isCompleted ? <Check className="w-4 h-4" /> : idx + 1}
                           </div>
@@ -728,7 +734,7 @@ const ApplicationsView = () => {
                 </div>
               )}
 
-              <button 
+              <button
                 onClick={() => setShowDetailsModal(false)}
                 className="w-full bg-on-surface text-surface-container-lowest font-black text-sm py-5 rounded-[24px] hover:bg-primary hover:text-white transition-all shadow-xl"
               >
@@ -738,7 +744,7 @@ const ApplicationsView = () => {
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </main>
   );
 };
 
