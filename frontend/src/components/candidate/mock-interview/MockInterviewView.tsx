@@ -101,7 +101,7 @@ const MockInterviewView = () => {
       };
 
       recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
+        console.warn('Speech recognition error:', event.error);
 
         if (event.error === 'not-allowed') {
           toast.error('Microphone access denied! Please enable microphone permission in your browser address bar.');
@@ -634,11 +634,11 @@ const MockInterviewView = () => {
                 <div className="relative w-full">
                   <textarea
                     value={transcript}
-                    onChange={(e) => setTranscript(e.target.value)}
+                    readOnly
                     placeholder={
                       isListening
-                        ? "Listening... Speak clearly into your mic (or type/edit your answer here directly)..."
-                        : "Click the mic button to speak your answer, or type/edit your answer here directly..."
+                        ? "Listening... Speak clearly into your mic..."
+                        : "Click the mic button to speak your answer..."
                     }
                     className="w-full min-h-[120px] md:min-h-[150px] p-6 pb-12 rounded-2xl bg-surface-container/30 border border-outline-variant/10 text-on-surface text-lg font-medium leading-relaxed resize-none focus:outline-none focus:border-primary/50 transition-all placeholder:text-on-surface-variant/40"
                   />

@@ -72,11 +72,11 @@ export const aiService = {
    * Analyze feedback from a real company interview
    * POST /api/v1/ai/real-interview-feedback
    */
-  analyzeRealInterviewFeedback: async (data: { 
-    questions: string; 
-    experience: string; 
-    companyName?: string; 
-    role?: string; 
+  analyzeRealInterviewFeedback: async (data: {
+    questions: string;
+    experience: string;
+    companyName?: string;
+    role?: string;
   }): Promise<ApiResponse<any>> => {
     const response = await apiClient.post('/ai/real-interview-feedback', data);
     return response.data;

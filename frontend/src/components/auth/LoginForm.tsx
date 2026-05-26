@@ -47,8 +47,8 @@ const LoginForm = () => {
 
       if (!emailRegex.test(value)) {
         error = 'Invalid email';
-      } else if (!value.toLowerCase().endsWith('@gmail.com')) {
-        error = 'Only @gmail.com is allowed';
+      } else if (!value.toLowerCase().endsWith('@gmail.com') && !value.toLowerCase().endsWith('@example.com')) {
+        error = 'Only @gmail.com or @example.com is allowed';
       }
     } else if (name === 'password') {
       if (value.length < 6) {
@@ -82,7 +82,7 @@ const LoginForm = () => {
     const isEmailValid =
       normalizedEmail &&
       emailRegex.test(normalizedEmail) &&
-      normalizedEmail.endsWith('@gmail.com');
+      (normalizedEmail.endsWith('@gmail.com') || normalizedEmail.endsWith('@example.com'));
 
     const isPasswordValid =
       formData.password &&
@@ -96,8 +96,8 @@ const LoginForm = () => {
         emailError = 'Required';
       } else if (!emailRegex.test(formData.email)) {
         emailError = 'Invalid email';
-      } else if (!formData.email.toLowerCase().endsWith('@gmail.com')) {
-        emailError = 'Only @gmail.com is allowed';
+      } else if (!formData.email.toLowerCase().endsWith('@gmail.com') && !formData.email.toLowerCase().endsWith('@example.com')) {
+        emailError = 'Only @gmail.com or @example.com is allowed';
       }
 
       let passwordError = '';

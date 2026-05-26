@@ -106,18 +106,27 @@ const JobMatchesView = () => {
     if (profile?.skills) {
       profile.skills.forEach((s: string) => skillsSet.add(s.toLowerCase()));
     }
+    // Also check categorizedSkills from profile
+    if (profile?.categorizedSkills) {
+      profile.categorizedSkills.forEach((cat: any) => {
+        if (cat.skills) {
+          cat.skills.forEach((s: string) => skillsSet.add(s.toLowerCase()));
+        }
+      });
+    }
     if (defaultResume?.skills) {
       defaultResume.skills.forEach((s: string) => skillsSet.add(s.toLowerCase()));
     }
     return Array.from(skillsSet);
   };
 
-  const getMatchScore = (job: Job) => {
+  const getMatchScore = (job: Job): number | null => {
     const candSkills = getCandidateSkills();
     const jobReqs = job.requirements || [];
 
+    // If user has no skills at all (profile not completed, no resume), return null
+    if (candSkills.length === 0) return null;
     if (jobReqs.length === 0) return 75;
-    if (candSkills.length === 0) return 65;
 
     let matchesCount = 0;
     jobReqs.forEach(req => {
@@ -128,7 +137,7 @@ const JobMatchesView = () => {
     });
 
     const percent = Math.round((matchesCount / jobReqs.length) * 100);
-    return Math.min(Math.max(percent, 60), 98);
+    return Math.min(percent, 98);
   };
 
   const fetchJobs = async () => {
@@ -267,8 +276,17 @@ const JobMatchesView = () => {
                           <p className="text-on-surface-variant font-bold text-sm mt-1">{job.companyId?.name || 'Company'} • {job.location}</p>
                         </div>
                         <div className="flex flex-col items-end">
-                          <div className="text-2xl font-black text-primary">{getMatchScore(job)}%</div>
-                          <span className="text-[9px] font-black uppercase tracking-tighter text-on-surface-variant/40">AI Match</span>
+                          {getMatchScore(job) !== null ? (
+                            <>
+                              <div className="text-2xl font-black text-primary">{getMatchScore(job)}%</div>
+                              <span className="text-[9px] font-black uppercase tracking-tighter text-on-surface-variant/40">AI Match</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-xs font-black text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl">Complete Profile</div>
+                              <span className="text-[9px] font-black uppercase tracking-tighter text-on-surface-variant/40 mt-1">To See Match</span>
+                            </>
+                          )}
                         </div>
                       </div>
 

@@ -138,18 +138,27 @@ const JobDetailView = ({ jobId: propJobId }: JobDetailViewProps) => {
     if (profile?.skills) {
       profile.skills.forEach((s: string) => skillsSet.add(s.toLowerCase()));
     }
+    // Also check categorizedSkills from profile
+    if (profile?.categorizedSkills) {
+      profile.categorizedSkills.forEach((cat: any) => {
+        if (cat.skills) {
+          cat.skills.forEach((s: string) => skillsSet.add(s.toLowerCase()));
+        }
+      });
+    }
     if (defaultResume?.skills) {
       defaultResume.skills.forEach((s: string) => skillsSet.add(s.toLowerCase()));
     }
     return Array.from(skillsSet);
   };
 
-  const getMatchScore = (targetJob: Job) => {
+  const getMatchScore = (targetJob: Job): number | null => {
     const candSkills = getCandidateSkills();
     const jobReqs = targetJob.requirements || [];
 
+    // If user has no skills at all (profile not completed, no resume), return null
+    if (candSkills.length === 0) return null;
     if (jobReqs.length === 0) return 75;
-    if (candSkills.length === 0) return 65;
 
     let matchesCount = 0;
     jobReqs.forEach(req => {
@@ -160,7 +169,7 @@ const JobDetailView = ({ jobId: propJobId }: JobDetailViewProps) => {
     });
 
     const percent = Math.round((matchesCount / jobReqs.length) * 100);
-    return Math.min(Math.max(percent, 60), 98);
+    return Math.min(percent, 98);
   };
 
   const handleApply = () => {
@@ -273,13 +282,26 @@ const JobDetailView = ({ jobId: propJobId }: JobDetailViewProps) => {
               </div>
             ) : aiMatchData?.error ? (
               <div className="space-y-4">
-                <div className="flex items-end gap-3">
-                  <span className="text-5xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{score}%</span>
-                  <span className="text-xs font-black text-on-surface-variant/60 mb-2 uppercase tracking-widest">Compatibility</span>
-                </div>
-                <p className="text-base text-on-surface-variant leading-relaxed font-medium">
-                  Based on your profile, you have a {score}% compatibility match for this position. To generate a fully customized AI analysis, upload your resume PDF.
-                </p>
+                {score !== null ? (
+                  <>
+                    <div className="flex items-end gap-3">
+                      <span className="text-5xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{score}%</span>
+                      <span className="text-xs font-black text-on-surface-variant/60 mb-2 uppercase tracking-widest">Compatibility</span>
+                    </div>
+                    <p className="text-base text-on-surface-variant leading-relaxed font-medium">
+                      Based on your profile, you have a {score}% compatibility match for this position. To generate a fully customized AI analysis, upload your resume PDF.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-black text-amber-500 bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-xl">Complete Your Profile</div>
+                    </div>
+                    <p className="text-base text-on-surface-variant leading-relaxed font-medium">
+                      Add your skills or upload your resume to see how well you match this position.
+                    </p>
+                  </>
+                )}
                 <div className="pt-2">
                   <Button
                     onClick={() => router.push('/candidate/resume-analysis')}
