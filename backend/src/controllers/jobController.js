@@ -226,7 +226,7 @@ exports.approveJob = async (req, res, next) => {
     if (!job) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'Job not found', data: null });
     }
-    // Check ownership: only recruiter who posted or admin can approve
+    // Ensure only the recruiter who posted the job or an admin can approve it
     if (job.postedBy.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized to approve this job', data: null });
     }
