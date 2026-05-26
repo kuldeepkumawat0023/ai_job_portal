@@ -198,22 +198,44 @@ exports.getAdminJobs = async (req, res, next) => {
 exports.updateJob = async (req, res, next) => {
   try {
     let job = await Job.findOne({ _id: req.params.id, isDeleted: { $ne: true } });
-    
     if (!job) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'Job not found', data: null });
     }
-
     // Check ownership
     if (job.postedBy.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized to update this job', data: null });
     }
-
     job = await Job.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-
     res.status(200).json({
       success: true,
       statusCode: 200,
       message: 'Job updated successfully',
+      data: job
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Approve job (set status to APPROVED)
+// @route   PUT /api/v1/job/approve/:id
+// @access  Private/Recruiter
+exports.approveJob = async (req, res, next) => {
+  try {
+    let job = await Job.findOne({ _id: req.params.id, isDeleted: { $ne: true } });
+    if (!job) {
+      return res.status(404).json({ success: false, statusCode: 404, message: 'Job not found', data: null });
+    }
+    // Check ownership: only recruiter who posted or admin can approve
+    if (job.postedBy.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized to approve this job', data: null });
+    }
+    job.status = 'APPROVED';
+    await job.save();
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: 'Job approved successfully',
       data: job
     });
   } catch (error) {

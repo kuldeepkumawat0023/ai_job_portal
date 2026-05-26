@@ -1,5 +1,5 @@
 const express = require('express');
-const { postJob, getAllJobs, getJobById, getAdminJobs, updateJob, deleteJob, getRecommendedJobs } = require('../controllers/jobController');
+const { postJob, getAllJobs, getJobById, getAdminJobs, updateJob, deleteJob, approveJob, getRecommendedJobs } = require('../controllers/jobController');
 const { protect, authorize } = require('../middleware/auth');
 const { checkUsageLimit } = require('../controllers/paymentController');
 
@@ -18,4 +18,5 @@ router.get('/admin/jobs', authorize('recruiter', 'admin'), getAdminJobs);
 router.put('/update/:id', authorize('recruiter', 'admin'), updateJob);
 router.delete('/delete/:id', authorize('recruiter', 'admin'), deleteJob);
 
+router.put('/approve/:id', authorize('recruiter', 'admin'), approveJob);
 module.exports = router;
