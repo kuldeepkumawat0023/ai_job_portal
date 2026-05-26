@@ -15,6 +15,7 @@ router.post('/resume-questions/:resumeId', protect, aiController.generateResumeQ
 router.post('/analyze-answer', protect, aiController.analyzeInterviewAnswer);
 router.post('/real-interview-feedback', protect, aiController.analyzeRealInterviewFeedback);
 router.post('/optimize-portfolio', protect, aiController.optimizePortfolioContent);
+router.post('/enhance-resume', protect, aiController.enhanceResumeData);
 
 // Recruiter & Admin
 router.post('/generate-job-desc', authorize('recruiter', 'admin'), aiController.generateJobDescription);

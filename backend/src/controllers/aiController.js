@@ -895,3 +895,71 @@ exports.refineFeedback = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Enhance Resume Data (Bio, Experience, Projects) using AI
+// @route   POST /api/v1/ai/enhance-resume
+// @access  Private
+exports.enhanceResumeData = async (req, res, next) => {
+  try {
+    const { profile } = req.body;
+    if (!profile) {
+      return res.status(400).json({ success: false, message: 'Profile data is required' });
+    }
+
+    let enhancedProfile;
+    try {
+      const prompt = `
+        You are an elite Executive ATS Resume Writer and Career Strategist.
+        Your task is to comprehensively analyze and rewrite the following resume profile data. 
+        If the content is poorly written, grammatically incorrect, or too basic, completely transform it into a highly advanced, professional, and impact-driven format.
+        
+        Guidelines:
+        1. Professional Bio: Rewrite to be a powerful executive summary. Highlight core expertise, leadership qualities, and career objectives. IF the original bio is gibberish, random letters, or very short (like "dsvsxfvb"), completely GENERATE a brand new, highly professional Full Stack Developer summary.
+        2. Work Experience: Transform basic descriptions into strong, action-oriented bullet points focusing on quantifiable achievements and impact. Fix any grammar issues. IF the description is gibberish or random letters, GENERATE professional bullet points matching the role.
+        3. Projects: Enhance the project descriptions to highlight the problem solved, technical complexity, and the final outcome/impact. IF the description is gibberish or random letters, GENERATE a realistic, professional project description.
+        
+        Do not change the factual data (names, titles, dates, skills) UNLESS they are clearly gibberish, in which case generate realistic professional placeholders. Drastically improve the phrasing, vocabulary, and professional tone of the descriptive text.
+
+        Original Profile Data:
+        ${JSON.stringify({
+          bio: profile.bio,
+          workExperience: profile.workExperience,
+          projects: profile.projects
+        }, null, 2)}
+
+        Return the beautifully enhanced data strictly in JSON format matching the original structure:
+        {
+          "bio": "...",
+          "workExperience": [...],
+          "projects": [...]
+        }
+      `;
+
+      const completion = await openai.chat.completions.create({
+        messages: [{ role: "user", content: prompt }],
+        model: "gpt-3.5-turbo",
+        response_format: { type: "json_object" },
+      });
+
+      const aiData = JSON.parse(completion.choices[0].message.content);
+      
+      // Merge enhanced data with original profile
+      enhancedProfile = { ...profile, ...aiData };
+    } catch (openaiErr) {
+      console.warn('⚠️ OpenAI API enhanceResumeData Failed. Returning original profile:', openaiErr.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'AI Service Error: ' + openaiErr.message, 
+        data: profile 
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Resume data enhanced successfully',
+      data: enhancedProfile
+    });
+  } catch (error) {
+    next(error);
+  }
+};

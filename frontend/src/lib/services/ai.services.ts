@@ -99,4 +99,12 @@ export const aiService = {
     const response = await apiClient.post('/ai/refine-feedback', { rawNotes, scores });
     return response.data;
   },
+  /**
+   * Enhance full resume profile data using AI
+   * POST /api/v1/ai/enhance-resume
+   */
+  enhanceResume: async (profile: any): Promise<ApiResponse<any>> => {
+    const response = await apiClient.post('/ai/enhance-resume', { profile });
+    return response.data;
+  },
 };
