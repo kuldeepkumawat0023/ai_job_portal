@@ -46,7 +46,7 @@ const JobMatchesView = () => {
   
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
-  const JOBS_PER_PAGE = Number(process.env.NEXT_PUBLIC_JOBS_PER_PAGE) || 10;
+  const JOBS_PER_PAGE = 10;
 
   // Profile & Resume States
   const [profile, setProfile] = useState<any>(null);
@@ -167,10 +167,34 @@ const JobMatchesView = () => {
     router.push(`/candidate/applications/${jobId}`);
   };
 
+  // Filter and sort jobs based on profile completion
+  const getDisplayJobs = () => {
+    const candSkills = getCandidateSkills();
+    
+    // If profile is incomplete, show all jobs
+    if (candSkills.length === 0) {
+      return jobs;
+    }
+
+    // If profile is complete, only show matched jobs
+    const matched = jobs.filter(job => {
+      const score = getMatchScore(job);
+      return score !== null && score > 0;
+    });
+
+    return matched.sort((a, b) => {
+      const scoreA = getMatchScore(a) || 0;
+      const scoreB = getMatchScore(b) || 0;
+      return scoreB - scoreA;
+    });
+  };
+
+  const displayJobs = getDisplayJobs();
+
   const indexOfLastJob = currentPage * JOBS_PER_PAGE;
   const indexOfFirstJob = indexOfLastJob - JOBS_PER_PAGE;
-  const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
-  const totalPages = Math.ceil(jobs.length / JOBS_PER_PAGE);
+  const currentJobs = displayJobs.slice(indexOfFirstJob, indexOfLastJob);
+  const totalPages = Math.ceil(displayJobs.length / JOBS_PER_PAGE);
 
   return (
     <main className="max-w-7xl mx-auto space-y-8 relative">
