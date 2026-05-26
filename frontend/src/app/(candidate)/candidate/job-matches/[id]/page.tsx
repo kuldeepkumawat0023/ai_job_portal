@@ -1,5 +1,6 @@
 import React, { use } from 'react';
 import SEO from '@/components/SEO';
+import JobDetailView from '@/components/candidate/job-matches/JobDetailView';
 
 const Page = ({ params }: { params: Promise<{ id: string }> }) => {
   const resolvedParams = use(params);
@@ -13,7 +14,7 @@ const Page = ({ params }: { params: Promise<{ id: string }> }) => {
           noIndex: true,
         }}
       />
-      <div>Job Details for ID: {resolvedParams.id}</div>
+      <JobDetailView jobId={resolvedParams.id} />
     </>
   );
 };
