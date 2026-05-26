@@ -272,12 +272,12 @@ const JobBoardView = () => {
 
       {/* Directory Archive Section */}
       <section aria-label="Job Postings Directory">
-        <div className="bg-zinc-950/80 backdrop-blur-md rounded-[2.5rem] border border-white/10 p-6 md:p-10 shadow-2xl space-y-8">
+        <div className="bg-surface-container-low/80 backdrop-blur-md rounded-[2.5rem] border border-outline-variant/10 p-6 md:p-10 shadow-2xl space-y-8">
           {/* Header / Filter Toolbar inside directory */}
           <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
             <div>
               <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-black text-white tracking-tight">Directory Archive</h2>
+                <h2 className="text-2xl font-black text-on-surface tracking-tight">Directory Archive</h2>
                 <span className="h-4 w-1 bg-gradient-to-b from-primary to-secondary rounded-full" />
               </div>
               <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mt-1 flex items-center gap-1.5">
@@ -312,7 +312,7 @@ const JobBoardView = () => {
                   {tab.badge !== null && tab.badge > 0 && (
                     <span className={cn(
                       "px-2 py-0.5 rounded-full text-[9px] font-black shrink-0",
-                      activeTab === tab.id ? "bg-white text-primary" : "bg-orange-500/20 text-orange-500"
+                      activeTab === tab.id ? "bg-black text-primary" : "bg-orange-500/20 text-orange-500"
                     )}>
                       {tab.badge}
                     </span>
@@ -365,10 +365,10 @@ const JobBoardView = () => {
                       {/* Company / Role */}
                       <td className="py-5">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-white/10 shrink-0" />
+                          <div className="w-12 h-12 rounded-full bg-muted/10 shrink-0" />
                           <div className="space-y-2 min-w-0 flex-1">
-                            <div className="h-4 bg-white/10 rounded-md w-32" />
-                            <div className="h-3 bg-white/5 rounded-md w-24" />
+                            <div className="h-4 bg-muted/10 rounded-md w-32" />
+                            <div className="h-3 bg-muted/5 rounded-md w-24" />
                           </div>
                         </div>
                       </td>
@@ -383,10 +383,10 @@ const JobBoardView = () => {
                       {/* Location */}
                       <td className="py-5">
                         <div className="flex items-start gap-2">
-                          <div className="w-4 h-4 bg-white/10 rounded-full shrink-0 mt-0.5" />
+                          <div className="w-4 h-4 bg-muted/10 rounded-full shrink-0 mt-0.5" />
                           <div className="space-y-2 min-w-0 flex-1">
-                            <div className="h-4 bg-white/10 rounded-md w-24" />
-                            <div className="h-3 bg-white/5 rounded-md w-20" />
+                            <div className="h-4 bg-muted/10 rounded-md w-24" />
+                            <div className="h-3 bg-muted/5 rounded-md w-20" />
                           </div>
                         </div>
                       </td>
@@ -404,8 +404,8 @@ const JobBoardView = () => {
                       {/* Actions */}
                       <td className="py-5 text-right pr-4">
                         <div className="flex justify-end items-center gap-3">
-                          <div className="w-7 h-7 bg-white/10 rounded-lg" />
-                          <div className="w-7 h-7 bg-white/10 rounded-lg" />
+                          <div className="w-7 h-7 bg-muted/10 rounded-lg" />
+                          <div className="w-7 h-7 bg-muted/10 rounded-lg" />
                           <div className="w-7 h-7 bg-white/10 rounded-lg" />
                         </div>
                       </td>
