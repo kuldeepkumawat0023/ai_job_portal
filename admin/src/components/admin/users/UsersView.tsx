@@ -9,7 +9,6 @@ import {
   Download,
   Trash2,
   Eye,
-  Edit3,
   ShieldCheck,
   Crown,
   User,
@@ -25,6 +24,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/utils/cn';
+import { jsPDF } from 'jspdf';
 
 // Services
 import { adminService } from '@/lib/services/admin.services';
@@ -80,7 +80,9 @@ export default function UsersView() {
   const [users, setUsers] = useState<AuthUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
-  const [updating, setUpdating] = useState(false);
+
+  // Track broken profile photos for graceful fallback
+  const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
 
   // Filters & Tabs
   const [activeTab, setActiveTab] = useState('ALL USERS');
@@ -92,18 +94,22 @@ export default function UsersView() {
   // Modal States
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewingUser, setViewingUser] = useState<AuthUser | null>(null);
-  const [editingUser, setEditingUser] = useState<AuthUser | null>(null);
-
-  // Edit Form Fields
-  const [editRole, setEditRole] = useState<'candidate' | 'recruiter' | 'admin'>('candidate');
-  const [editPremium, setEditPremium] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   // ─── Fetch Users ─────────────────────────────────────────────────────────
 
   const fetchUsers = async () => {
     setLoading(true);
+    const startTime = Date.now();
     try {
       const res = await adminService.getAllUsers();
+      
+      const elapsedTime = Date.now() - startTime;
+      const minDelay = 2000;
+      if (elapsedTime < minDelay) {
+        await new Promise((resolve) => setTimeout(resolve, minDelay - elapsedTime));
+      }
+
       if (res.success) {
         setUsers(res.data || []);
       }
@@ -136,7 +142,6 @@ export default function UsersView() {
       // 1. Status Tab Filter
       if (activeTab === 'ACTIVE' && user.isActive === false) return false;
       if (activeTab === 'SUSPENDED' && user.isActive !== false) return false;
-      if (activeTab === 'DEACTIVATED' && user.isActive !== false) return false; // In this setup, deactivated shares same inactive state
 
       // 2. Role Filter Dropdown
       if (roleFilter !== 'all' && user.role !== roleFilter) return false;
@@ -220,26 +225,103 @@ export default function UsersView() {
     }
   };
 
-  const handleUpdateUser = async () => {
-    if (!editingUser) return;
-    setUpdating(true);
+  const handleExportCSV = () => {
+    if (users.length === 0) return toast.error('No data to export');
+    
+    const headers = ['Full Name', 'Email', 'Mobile Number', 'Role', 'Status', 'Premium', 'Joined Date'];
+    const rows = users.map(user => [
+      `"${user.fullname || ''}"`,
+      `"${user.email || ''}"`,
+      `"${user.countryCode ? user.countryCode + ' ' : ''}${user.phoneNumber || ''}"`,
+      `"${user.role || ''}"`,
+      `"${user.isActive !== false ? 'Active' : 'Suspended'}"`,
+      `"${user.isPremium ? 'Premium' : 'Free'}"`,
+      `"${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : ''}"`
+    ]);
+    
+    const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `users_export_${Date.now()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('CSV downloaded successfully');
+  };
+
+  const handleExportPDF = () => {
+    if (users.length === 0) return toast.error('No data to export');
+    
+    const toastId = toast.loading('Generating PDF...');
     try {
-      const payload = {
-        role: editRole,
-        isPremium: editPremium,
-      };
-      const res = await adminService.updateUser(editingUser._id, payload);
-      if (res.success) {
-        toast.success('User profile updated successfully');
-        setUsers((prev) =>
-          prev.map((u) => (u._id === editingUser._id ? { ...u, ...payload } : u))
-        );
-        setEditingUser(null);
-      }
-    } catch (err) {
-      toast.error('Failed to update user profile');
-    } finally {
-      setUpdating(false);
+      const doc = new jsPDF('landscape');
+      
+      doc.setFontSize(18);
+      doc.text('AI JobFit - User Directory Report', 14, 22);
+      
+      doc.setFontSize(11);
+      doc.setTextColor(100);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+      
+      let y = 45;
+      doc.setFontSize(10);
+      doc.setTextColor(50);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Name', 14, y);
+      doc.text('Email', 55, y);
+      doc.text('Mobile', 125, y);
+      doc.text('Role', 170, y);
+      doc.text('Status', 195, y);
+      doc.text('Plan', 225, y);
+      doc.text('Joined', 250, y);
+      
+      doc.line(14, y + 2, 283, y + 2);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80);
+      
+      users.forEach((user) => {
+        if (y > 180) {
+          doc.addPage();
+          y = 20;
+          doc.setFont('helvetica', 'bold');
+          doc.text('Name', 14, y);
+          doc.text('Email', 55, y);
+          doc.text('Mobile', 125, y);
+          doc.text('Role', 170, y);
+          doc.text('Status', 195, y);
+          doc.text('Plan', 225, y);
+          doc.text('Joined', 250, y);
+          doc.line(14, y + 2, 283, y + 2);
+          doc.setFont('helvetica', 'normal');
+        }
+        
+        y += 8;
+        const name = (user.fullname || '').substring(0, 20);
+        const email = (user.email || '').substring(0, 32);
+        const mobile = `${user.countryCode ? user.countryCode + ' ' : ''}${user.phoneNumber || ''}`.substring(0, 18);
+        const role = (user.role || '').toUpperCase();
+        const status = user.isActive !== false ? 'ACTIVE' : 'SUSPENDED';
+        const plan = user.isPremium ? 'PREMIUM' : 'FREE';
+        const joined = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '';
+        
+        doc.text(name, 14, y);
+        doc.text(email, 55, y);
+        doc.text(mobile, 125, y);
+        doc.text(role, 170, y);
+        doc.text(status, 195, y);
+        doc.text(plan, 225, y);
+        doc.text(joined, 250, y);
+      });
+      
+      doc.save(`users_report_${Date.now()}.pdf`);
+      toast.success('PDF downloaded successfully', { id: toastId });
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Failed to generate PDF. Make sure "jspdf" is installed: npm install jspdf', { id: toastId });
     }
   };
 
@@ -252,27 +334,49 @@ export default function UsersView() {
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-on-surface tracking-tight mb-2">Users Management</h1>
-          <p className="text-on-surface-variant font-medium">Manage candidate, recruiter and administrative portal profiles and privileges.</p>
+          <p className="text-on-surface-variant font-medium">Manage candidate, recruiter and administrative portal privileges.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={fetchUsers}
-            disabled={loading}
-            className="flex items-center gap-2 border-outline-variant/30 hover:bg-surface-container-low"
-            aria-label="Refresh users list"
-          >
-            <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
-            <span>Refresh Feed</span>
-          </Button>
-          <Button
-            variant="gradient"
-            className="shadow-lg shadow-primary/20 hover:shadow-primary/40 text-white font-bold"
-            aria-label="Export users report"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            <span>Export Data</span>
-          </Button>
+          <div className="relative">
+            <Button
+              variant="gradient"
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              className="shadow-lg shadow-primary/20 hover:shadow-primary/40 text-white font-bold"
+              aria-label="Export users report"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              <span>Export Data</span>
+            </Button>
+            
+            {showExportMenu && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowExportMenu(false)} 
+                />
+                <div className="absolute right-0 mt-2 w-48 rounded-xl bg-surface-container border border-outline-variant/30 shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  <button
+                    onClick={() => {
+                      handleExportCSV();
+                      setShowExportMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm font-semibold hover:bg-primary/10 text-on-surface hover:text-primary transition-colors flex items-center gap-2 cursor-pointer"
+                  >
+                    Export as CSV (.csv)
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleExportPDF();
+                      setShowExportMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm font-semibold hover:bg-primary/10 text-on-surface hover:text-primary transition-colors border-t border-outline-variant/10 flex items-center gap-2 cursor-pointer"
+                  >
+                    Export as PDF (.pdf)
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -321,7 +425,7 @@ export default function UsersView() {
       {/* Directory Archive Section */}
       <section aria-label="Users Profile Directory">
         <div className="bg-surface-container-low/80 backdrop-blur-md rounded-[2.5rem] border border-outline-variant/10 p-6 md:p-10 shadow-2xl space-y-8">
-          
+
           {/* Header / Filter Toolbar inside directory */}
           <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
             <div>
@@ -335,13 +439,12 @@ export default function UsersView() {
               </p>
             </div>
 
-            {/* Navigation Filter Tabs */}
-            <div className="flex flex-wrap items-center bg-surface-container-low/50 p-1.5 rounded-2xl border border-outline-variant/10">
+            {/* Navigation Filter Tabs (Responsive: Scrollable flex row without wrapping) */}
+            <div className="flex items-center overflow-x-auto flex-nowrap bg-surface-container-low/50 p-1.5 rounded-2xl border border-outline-variant/10 max-w-full no-scrollbar">
               {[
                 { id: 'ALL USERS', label: 'ALL USERS', badge: null },
                 { id: 'ACTIVE', label: 'ACTIVE', badge: null },
-                { id: 'SUSPENDED', label: 'SUSPENDED', badge: suspendedCount },
-                { id: 'DEACTIVATED', label: 'DEACTIVATED', badge: null }
+                { id: 'SUSPENDED', label: 'SUSPENDED', badge: suspendedCount }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -350,7 +453,7 @@ export default function UsersView() {
                     setActiveTab(tab.id);
                   }}
                   className={cn(
-                    "px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 cursor-pointer",
+                    "px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 cursor-pointer shrink-0",
                     activeTab === tab.id
                       ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg"
                       : "text-on-surface-variant/70 hover:text-on-surface disabled:opacity-50"
@@ -392,13 +495,23 @@ export default function UsersView() {
                 <Search className="w-4 h-4 text-on-surface-variant/60 absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
                 <input
                   type="text"
-                  placeholder="Search name or email..."
+                  placeholder="Search members..."
                   value={searchQuery}
                   disabled={loading}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full xl:w-64 pl-10 pr-4 py-3 bg-surface-container-low/50 border border-outline-variant/20 rounded-2xl text-sm focus:outline-none focus:border-primary/50 text-on-surface placeholder-on-surface-variant/40 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
+
+              {/* Refresh button */}
+              <button
+                onClick={fetchUsers}
+                disabled={loading}
+                className="p-3 rounded-2xl bg-surface-container-low/50 hover:bg-surface-container-high border border-outline-variant/20 text-on-surface-variant transition-all hover:scale-105 active:scale-95 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                title="Refresh Feed"
+              >
+                <RefreshCw className={cn("w-4.5 h-4.5", loading && "animate-spin")} />
+              </button>
 
               {/* Clear filters shortcut */}
               {(searchQuery || roleFilter !== 'all') && (
@@ -420,7 +533,7 @@ export default function UsersView() {
           <DataTable
             columns={[
               { header: 'User' },
-              { header: 'Email' },
+              { header: 'Mobile' },
               { header: 'Role' },
               { header: 'Status' },
               { header: 'Joined' },
@@ -482,7 +595,6 @@ export default function UsersView() {
                       <div className="w-7 h-7 bg-on-surface/10 rounded-lg" />
                       <div className="w-7 h-7 bg-on-surface/10 rounded-lg" />
                       <div className="w-7 h-7 bg-on-surface/10 rounded-lg" />
-                      <div className="w-7 h-7 bg-on-surface/10 rounded-lg" />
                     </div>
                   </td>
                 </tr>
@@ -497,18 +609,32 @@ export default function UsersView() {
                   {/* User Profile */}
                   <td className="py-5">
                     <div className="flex items-center gap-4">
-                      <div className={cn(
-                        "w-12 h-12 rounded-full border flex items-center justify-center font-black text-base uppercase shrink-0 transition-transform group-hover:scale-105 bg-gradient-to-br text-white",
-                        getGradient(user._id)
-                      )}>
-                        {getInitials(user.fullname)}
-                      </div>
+                      {user.profilePhoto && !brokenImages[user._id] ? (
+                        <img
+                          src={user.profilePhoto}
+                          alt={user.fullname}
+                          onError={() => {
+                            setBrokenImages(prev => ({ ...prev, [user._id]: true }));
+                          }}
+                          className="w-12 h-12 rounded-full object-cover shrink-0 border border-outline-variant/20 transition-transform group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className={cn(
+                          "w-12 h-12 rounded-full border flex items-center justify-center font-black text-base uppercase shrink-0 transition-transform group-hover:scale-105 bg-gradient-to-br text-white",
+                          getGradient(user._id)
+                        )}>
+                          {getInitials(user.fullname)}
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <p
                           onClick={() => setViewingUser(user)}
                           className="font-black text-on-surface hover:text-primary transition-colors cursor-pointer truncate text-base leading-tight mb-0.5"
                         >
                           {user.fullname || '—'}
+                        </p>
+                        <p className="text-xs text-on-surface-variant/60 font-semibold truncate mb-1 select-all">
+                          {user.email}
                         </p>
                         <div className="flex items-center gap-1">
                           {user.isPremium && (
@@ -521,10 +647,10 @@ export default function UsersView() {
                     </div>
                   </td>
 
-                  {/* Email */}
+                  {/* Mobile */}
                   <td className="py-5">
                     <span className="text-xs font-semibold text-on-surface-variant/80 tracking-tight break-all">
-                      {user.email}
+                      {user.countryCode ? `${user.countryCode} ` : ''}{user.phoneNumber || '—'}
                     </span>
                   </td>
 
@@ -535,8 +661,8 @@ export default function UsersView() {
                       user.role === 'admin'
                         ? "bg-primary/10 text-primary border-primary/20"
                         : user.role === 'recruiter'
-                        ? "bg-secondary/10 text-secondary border-secondary/20"
-                        : "bg-zinc-500/10 text-zinc-500 border-zinc-500/20 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
+                          ? "bg-secondary/10 text-secondary border-secondary/20"
+                          : "bg-sky-500/10 text-sky-500 border-sky-500/20"
                     )}>
                       {user.role === 'admin' ? (
                         <ShieldCheck className="w-3 h-3" />
@@ -583,7 +709,7 @@ export default function UsersView() {
                     )}
                   </td>
 
-                  {/* Actions Column */}
+                  {/* Actions Column (Edit Pencil removed per user request) */}
                   <td className="py-5 text-right pr-4">
                     <div className="flex justify-end items-center gap-2.5">
                       <button
@@ -592,17 +718,6 @@ export default function UsersView() {
                         title="View Profile Details"
                       >
                         <Eye className="w-4.5 h-4.5" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingUser(user);
-                          setEditRole(user.role);
-                          setEditPremium(!!user.isPremium);
-                        }}
-                        className="p-1.5 text-on-surface-variant/60 hover:text-secondary transition-all hover:scale-110 active:scale-95 cursor-pointer"
-                        title="Edit Role & Plan"
-                      >
-                        <Edit3 className="w-4.5 h-4.5" />
                       </button>
                       {user.isActive !== false ? (
                         <button
@@ -660,7 +775,7 @@ export default function UsersView() {
           {/* Container */}
           <div className="relative w-full max-w-2xl bg-card border border-outline-variant/30 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
             <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" />
-            
+
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-outline-variant/10">
               <h3 className="text-xl font-black text-on-surface flex items-center gap-2">
@@ -673,16 +788,27 @@ export default function UsersView() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             {/* Content */}
             <div className="p-6 md:p-8 max-h-[70vh] overflow-y-auto space-y-6">
               <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-outline-variant/10">
-                <div className={cn(
-                  "w-20 h-20 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-3xl font-black shadow-lg shrink-0",
-                  getGradient(viewingUser._id)
-                )}>
-                  {getInitials(viewingUser.fullname)}
-                </div>
+                {viewingUser.profilePhoto && !brokenImages[viewingUser._id] ? (
+                  <img
+                    src={viewingUser.profilePhoto}
+                    alt={viewingUser.fullname}
+                    onError={() => {
+                      setBrokenImages(prev => ({ ...prev, [viewingUser._id]: true }));
+                    }}
+                    className="w-20 h-20 rounded-full object-cover shadow-lg shrink-0 border border-outline-variant/20"
+                  />
+                ) : (
+                  <div className={cn(
+                    "w-20 h-20 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-3xl font-black shadow-lg shrink-0",
+                    getGradient(viewingUser._id)
+                  )}>
+                    {getInitials(viewingUser.fullname)}
+                  </div>
+                )}
                 <div className="text-center sm:text-left space-y-2">
                   <h4 className="text-2xl font-black text-on-surface">{viewingUser.fullname || '—'}</h4>
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
@@ -691,8 +817,8 @@ export default function UsersView() {
                       viewingUser.role === 'admin'
                         ? "bg-primary/10 text-primary border-primary/20"
                         : viewingUser.role === 'recruiter'
-                        ? "bg-secondary/10 text-secondary border-secondary/20"
-                        : "bg-zinc-500/10 text-zinc-500 border-zinc-500/20 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
+                          ? "bg-secondary/10 text-secondary border-secondary/20"
+                          : "bg-sky-500/10 text-sky-500 border-sky-500/20"
                     )}>
                       {viewingUser.role === 'admin' ? (
                         <ShieldCheck className="w-3 h-3" />
@@ -747,7 +873,7 @@ export default function UsersView() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <Calendar className="w-4.5 h-4.5 text-on-surface-variant/60 mt-0.5 shrink-0" />
@@ -833,128 +959,6 @@ export default function UsersView() {
               )}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* ── User Edit Modal ── */}
-      {editingUser && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 md:p-8">
-          {/* Backdrop */}
-          <div
-            onClick={() => setEditingUser(null)}
-            className="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm transition-opacity duration-300"
-          />
-
-          {/* Modal Form */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleUpdateUser();
-            }}
-            className="relative w-full max-w-lg bg-card border border-outline-variant/30 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200"
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" />
-
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-outline-variant/10">
-              <h3 className="text-xl font-black text-on-surface flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-secondary" /> Edit User Role & Plan
-              </h3>
-              <button
-                type="button"
-                onClick={() => setEditingUser(null)}
-                className="p-1.5 rounded-xl text-on-surface-variant/60 hover:text-on-surface hover:bg-surface-container-low dark:hover:bg-zinc-800 transition-all cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 space-y-6">
-              {/* Profile card summary (Read Only) */}
-              <div className="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low/50 border border-outline-variant/10">
-                <div className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm uppercase shrink-0",
-                  getGradient(editingUser._id)
-                )}>
-                  {getInitials(editingUser.fullname)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold text-on-surface truncate leading-tight mb-0.5">{editingUser.fullname}</p>
-                  <p className="text-xs text-on-surface-variant/75 truncate">{editingUser.email}</p>
-                </div>
-              </div>
-
-              {/* Role Selection Dropdown */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                  User Role / Privilege
-                </label>
-                <div className="relative">
-                  <select
-                    value={editRole}
-                    onChange={(e) => setEditRole(e.target.value as any)}
-                    className="w-full appearance-none pl-4 pr-10 py-3 text-sm rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary transition-colors cursor-pointer font-semibold"
-                  >
-                    <option value="candidate">CANDIDATE</option>
-                    <option value="recruiter">RECRUITER</option>
-                    <option value="admin">ADMINISTRATOR (ADMIN)</option>
-                  </select>
-                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" aria-hidden="true" />
-                </div>
-              </div>
-
-              {/* Premium membership toggle slider */}
-              <div className="flex items-center justify-between p-4 rounded-2xl border border-outline-variant/10 bg-surface-container-low/30">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                    <Crown className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-on-surface">Premium Membership</p>
-                    <p className="text-xs text-on-surface-variant/75">Grant premium access privileges</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setEditPremium(!editPremium)}
-                  className={cn(
-                    "relative inline-flex h-6.5 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-                    editPremium ? "bg-amber-500" : "bg-outline-variant/30"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "pointer-events-none inline-block h-5.5 w-5.5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-                      editPremium ? "translate-x-5.5" : "translate-x-0"
-                    )}
-                  />
-                </button>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex justify-end gap-3 p-6 border-t border-outline-variant/10 bg-surface-container-low/50">
-              <Button
-                type="button"
-                variant="outline"
-                size="md"
-                onClick={() => setEditingUser(null)}
-                disabled={updating}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="gradient"
-                size="md"
-                isLoading={updating}
-                className="text-white font-bold"
-              >
-                Save Changes
-              </Button>
-            </div>
-          </form>
         </div>
       )}
 

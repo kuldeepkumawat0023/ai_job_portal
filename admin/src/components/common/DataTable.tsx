@@ -26,7 +26,7 @@ export default function DataTable({
   children,
   className
 }: DataTableProps) {
-  const normalizedColumns = columns.map(col => 
+  const normalizedColumns = columns.map(col =>
     typeof col === 'string' ? { header: col } : col
   );
 
