@@ -329,9 +329,9 @@ const InterviewsView = () => {
                       ) : (
                         <button
                           onClick={() => fetchConfirmInterview(item._id)}
-                          className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-black text-xs py-4 rounded-[20px] shadow-lg shadow-amber-500/20 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2"
+                          className="flex-1 gradient-button text-white font-black text-xs py-4 rounded-[20px] shadow-lg shadow-primary/15 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2"
                         >
-                          <Sparkles className="w-4 h-4" />
+                          <Check className="w-4 h-4" />
                           Confirm Interest (I'm Interested)
                         </button>
                       )}
@@ -617,7 +617,7 @@ const InterviewsView = () => {
                       disabled={confirming}
                       className="w-full py-4 bg-gradient-to-r from-primary to-secondary text-white font-black text-sm rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/20 disabled:opacity-60"
                     >
-                      {confirming ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                      {confirming ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
                       I'm Interested — Confirm Attendance
                     </button>
                     <p className="text-center text-xs text-on-surface-variant">
