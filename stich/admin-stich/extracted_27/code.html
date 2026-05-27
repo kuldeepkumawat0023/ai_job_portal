@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI JobFit Super Admin Panel</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(228, 225, 237, 0.5);
+            box-shadow: 0 4px 24px rgba(7, 0, 108, 0.02);
+        }
+        .glass-card-hover:hover {
+            box-shadow: 0 12px 32px rgba(7, 0, 108, 0.06);
+            transform: translateY(-2px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body {
+            background: #f5f2fe;
+            min-height: 100vh;
+        }
+        .content-container {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+        /* Smooth Line Chart SVG Styles */
+        .chart-line-enterprise { stroke: #4648d4; stroke-width: 3; fill: none; filter: drop-shadow(0 4px 6px rgba(70, 72, 212, 0.2)); }
+        .chart-area-enterprise { fill: url(#enterprise-gradient); opacity: 0.1; }
+        .chart-line-individual { stroke: #8127cf; stroke-width: 3; fill: none; stroke-dasharray: 6 4; opacity: 0.8; }
+        .chart-grid { stroke: #e4e1ed; stroke-width: 1; stroke-dasharray: 4 4; }
+    </style>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-primary-fixed": "#07006c",
+                "secondary-container": "#9c48ea",
+                "inverse-surface": "#303038",
+                "surface-variant": "#e4e1ed",
+                "inverse-primary": "#c0c1ff",
+                "on-primary-container": "#fffbff",
+                "tertiary": "#904900",
+                "primary": "#4648d4",
+                "on-error": "#ffffff",
+                "on-secondary-fixed": "#2c0051",
+                "surface-container-highest": "#e4e1ed",
+                "surface-dim": "#dbd8e4",
+                "primary-fixed-dim": "#c0c1ff",
+                "surface-bright": "#fcf8ff",
+                "inverse-on-surface": "#f2effb",
+                "outline": "#767586",
+                "secondary": "#8127cf",
+                "error-container": "#ffdad6",
+                "surface-container-lowest": "#ffffff",
+                "secondary-fixed": "#f0dbff",
+                "on-surface": "#1b1b23",
+                "primary-container": "#6063ee",
+                "surface-container-low": "#f5f2fe",
+                "primary-fixed": "#e1e0ff",
+                "on-secondary-fixed-variant": "#6900b3",
+                "on-background": "#1b1b23",
+                "on-tertiary-fixed": "#301400",
+                "on-secondary": "#ffffff",
+                "on-error-container": "#93000a",
+                "on-surface-variant": "#464554",
+                "on-primary": "#ffffff",
+                "surface-tint": "#494bd6",
+                "surface": "#fcf8ff",
+                "secondary-fixed-dim": "#ddb7ff",
+                "on-tertiary-container": "#fffbff",
+                "tertiary-fixed": "#ffdcc5",
+                "surface-container-high": "#e9e6f3",
+                "on-secondary-container": "#fffbff",
+                "background": "#fcf8ff",
+                "outline-variant": "#c7c4d7",
+                "error": "#ba1a1a",
+                "surface-container": "#efecf8",
+                "tertiary-fixed-dim": "#ffb783",
+                "tertiary-container": "#b55d00",
+                "on-tertiary": "#ffffff",
+                "on-tertiary-fixed-variant": "#703700",
+                "on-primary-fixed-variant": "#2f2ebe"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "md": "24px",
+                "sm": "16px",
+                "max_width": "1280px",
+                "lg": "40px",
+                "gutter": "24px",
+                "base": "4px",
+                "xs": "8px",
+                "xl": "64px"
+        },
+        "fontFamily": {
+                "button": [
+                        "Inter"
+                ],
+                "label-caps": [
+                        "Inter"
+                ],
+                "h1": [
+                        "Inter"
+                ],
+                "h3": [
+                        "Inter"
+                ],
+                "h2": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ]
+        },
+        "fontSize": {
+                "button": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "500"
+                        }
+                ],
+                "label-caps": [
+                        "12px",
+                        {
+                                "lineHeight": "1",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "h1": [
+                        "48px",
+                        {
+                                "lineHeight": "1.1",
+                                "letterSpacing": "-0.04em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "h3": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "h2": [
+                        "30px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "letterSpacing": "0",
+                                "fontWeight": "400"
+                        }
+                ],
+                "body-lg": [
+                        "18px",
+                        {
+                                "lineHeight": "1.6",
+                                "letterSpacing": "0",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+</head>
+<body class="font-body-md text-on-surface flex bg-surface-container-low">
+<!-- SideNavBar Integration (Full Height) -->
+<aside class="fixed left-0 top-0 flex flex-col p-sm z-50 bg-surface border-r border-outline-variant/20 w-[280px] h-screen shadow-[4px_0_24px_rgba(7,0,108,0.02)]">
+<div class="mb-xl px-4 pt-4">
+<h1 class="font-h3 text-[28px] font-black tracking-tight text-primary">AI JobFit</h1>
+<p class="text-[10px] text-on-surface-variant font-label-caps tracking-widest mt-2 uppercase">Super Admin Panel</p>
+</div>
+<nav class="flex-1 space-y-1.5 overflow-y-auto px-2">
+<!-- Active: Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary text-on-primary rounded-xl font-medium shadow-[0_4px_12px_rgba(70,72,212,0.15)] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-xl transition-all font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Users</span>
+</a><a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-xl transition-all font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span>Team Management</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-xl transition-all font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="business_center">business_center</span>
+<span>Recruiters</span>
+</a><a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-xl transition-all font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="work">work</span>
+<span>Job Posts</span>
+</a><a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-xl transition-all font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span>Notifications</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-xl transition-all font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span>Revenue</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-xl transition-all font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span>Payments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-xl transition-all font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-xl transition-all font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 px-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-3 px-2 mb-4">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold shadow-sm">AC</div>
+<div class="flex flex-col">
+<span class="font-button text-on-surface">Alex Chen</span>
+<span class="text-[12px] text-on-surface-variant">Super Admin</span>
+</div>
+</div>
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-all font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Help Center</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-error hover:bg-error-container/20 rounded-xl transition-all font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 ml-[280px] flex flex-col min-h-screen">
+<!-- Restructured Header -->
+<header class="h-20 bg-surface/80 backdrop-blur-md border-b border-outline-variant/20 sticky top-0 z-40 flex items-center justify-between px-lg">
+<div class="flex-1 max-w-2xl">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full pl-12 pr-4 py-2.5 bg-surface-container border border-outline-variant/30 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm" placeholder="Search for metrics, users, or reports..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2.5 hover:bg-surface-container-high rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]" data-icon="dark_mode">dark_mode</span>
+</button>
+<button class="p-2.5 hover:bg-surface-container-high rounded-full transition-colors text-on-surface-variant relative">
+<span class="material-symbols-outlined text-[22px]" data-icon="notifications">notifications</span>
+<span class="absolute top-2.5 right-2.5 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant/30 mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-semibold text-on-surface leading-none">Alex Chen</p>
+<p class="text-[11px] text-on-surface-variant mt-1">Super Admin</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                        AC
+                    </div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 p-lg content-container w-full">
+<!-- Top Header Section -->
+<header class="flex justify-between items-end mb-xl mt-4">
+<div>
+<h2 class="font-h1 text-[40px] text-on-surface tracking-tight">Platform Overview</h2>
+<p class="text-on-surface-variant font-body-lg mt-2">Real-time metrics and system health for AI JobFit ecosystem.</p>
+</div>
+<div class="flex gap-md">
+<button class="flex items-center gap-2 px-md py-3 bg-surface border border-outline-variant/40 rounded-xl font-button text-on-surface hover:bg-surface-container-low transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px]" data-icon="calendar_today">calendar_today</span>
+                        Last 30 Days
+                    </button>
+<button class="flex items-center gap-2 px-md py-3 bg-primary text-on-primary rounded-xl font-button shadow-[0_4px_12px_rgba(70,72,212,0.2)] hover:bg-primary-container hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="download">download</span>
+                        Export Report
+                    </button>
+</div>
+</header>
+<!-- Bento Grid Widgets -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-md mb-xl">
+<div class="glass-card p-6 rounded-2xl glass-card-hover bg-surface">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-primary/10 rounded-xl">
+<span class="material-symbols-outlined text-primary text-[24px]" data-icon="person">person</span>
+</div>
+<span class="text-emerald-700 font-label-caps text-[11px] bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                            +12%
+                        </span>
+</div>
+<p class="text-on-surface-variant font-label-caps text-[11px] tracking-wider">TOTAL USERS</p>
+<h3 class="font-h2 text-[36px] font-bold mt-1 text-on-surface">42,892</h3>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full mt-6 overflow-hidden">
+<div class="bg-primary h-full w-[70%] rounded-full"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-2xl glass-card-hover bg-surface">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-secondary/10 rounded-xl">
+<span class="material-symbols-outlined text-secondary text-[24px]" data-icon="work">work</span>
+</div>
+<span class="text-emerald-700 font-label-caps text-[11px] bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                            +5%
+                        </span>
+</div>
+<p class="text-on-surface-variant font-label-caps text-[11px] tracking-wider">ACTIVE RECRUITERS</p>
+<h3 class="font-h2 text-[36px] font-bold mt-1 text-on-surface">1,402</h3>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full mt-6 overflow-hidden">
+<div class="bg-secondary h-full w-[45%] rounded-full"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-2xl glass-card-hover bg-surface">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-tertiary/10 rounded-xl">
+<span class="material-symbols-outlined text-tertiary text-[24px]" data-icon="monetization_on">monetization_on</span>
+</div>
+<span class="text-emerald-700 font-label-caps text-[11px] bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                            +24%
+                        </span>
+</div>
+<p class="text-on-surface-variant font-label-caps text-[11px] tracking-wider">MONTHLY REVENUE</p>
+<h3 class="font-h2 text-[36px] font-bold mt-1 text-on-surface">$142.5k</h3>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full mt-6 overflow-hidden">
+<div class="bg-tertiary h-full w-[85%] rounded-full"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-2xl glass-card-hover bg-surface">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-primary-fixed-dim/20 rounded-xl">
+<span class="material-symbols-outlined text-primary text-[24px]" data-icon="star">star</span>
+</div>
+<span class="text-error font-label-caps text-[11px] bg-error-container/30 border border-error/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_down">trending_down</span>
+                            -2%
+                        </span>
+</div>
+<p class="text-on-surface-variant font-label-caps text-[11px] tracking-wider">PREMIUM USERS</p>
+<h3 class="font-h2 text-[36px] font-bold mt-1 text-on-surface">8,211</h3>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full mt-6 overflow-hidden">
+<div class="bg-primary-fixed-dim h-full w-[60%] rounded-full"></div>
+</div>
+</div>
+</section>
+<!-- Charts & Asymmetric Layout Section -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-md mb-xl">
+<!-- Main Revenue Growth Chart (Smooth Line Chart) -->
+<div class="lg:col-span-2 glass-card p-8 rounded-2xl flex flex-col h-[460px] bg-surface">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h4 class="font-h3 text-[22px] font-bold text-on-surface">Revenue Growth</h4>
+<p class="text-on-surface-variant font-label-caps mt-1 tracking-wider text-[11px]">ANNUAL TRAJECTORY (USD)</p>
+</div>
+<div class="flex gap-6">
+<span class="flex items-center gap-2 text-sm font-medium text-on-surface-variant">
+<span class="w-3 h-3 rounded-full bg-primary shadow-[0_2px_4px_rgba(70,72,212,0.3)]"></span> Enterprise
+                            </span>
+<span class="flex items-center gap-2 text-sm font-medium text-on-surface-variant">
+<span class="w-3 h-3 rounded-full bg-secondary opacity-80"></span> Individual
+                            </span>
+</div>
+</div>
+<!-- High-Fidelity Line Chart Visual -->
+<div class="flex-1 w-full relative">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 800 250">
+<defs>
+<lineargradient id="enterprise-gradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#4648d4" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#4648d4" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid Lines -->
+<path class="chart-grid" d="M0,50 L800,50"></path>
+<path class="chart-grid" d="M0,125 L800,125"></path>
+<path class="chart-grid" d="M0,200 L800,200"></path>
+<!-- Individual Data Line (Dashed) -->
+<path class="chart-line-individual" d="M0,220 Q50,210 100,190 T200,170 T300,180 T400,150 T500,160 T600,140 T700,130 T800,110"></path>
+<!-- Enterprise Data Area -->
+<path class="chart-area-enterprise" d="M0,180 C100,170 150,120 250,110 C350,100 400,150 500,80 C600,10 700,40 800,20 L800,250 L0,250 Z"></path>
+<!-- Enterprise Data Line -->
+<path class="chart-line-enterprise" d="M0,180 C100,170 150,120 250,110 C350,100 400,150 500,80 C600,10 700,40 800,20"></path>
+<!-- Data Points / Markers -->
+<circle cx="500" cy="80" fill="#ffffff" r="5" stroke="#4648d4" stroke-width="2"></circle>
+<circle cx="800" cy="20" fill="#ffffff" r="5" stroke="#4648d4" stroke-width="2"></circle>
+</svg>
+<div class="absolute top-[60px] left-[62.5%] -translate-x-1/2 bg-on-surface text-white text-[11px] font-medium px-3 py-1.5 rounded-md shadow-xl whitespace-nowrap after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-on-surface">
+                            Peak: $158k
+                        </div>
+</div>
+<div class="flex justify-between mt-6 px-2 text-label-caps text-on-surface-variant/70 tracking-widest text-[10px]">
+<span>JAN</span><span>MAR</span><span>MAY</span><span>JUL</span><span>SEP</span><span>NOV</span>
+</div>
+</div>
+<!-- AI Insight Chips Card -->
+<div class="lg:col-span-1 glass-card p-8 rounded-2xl flex flex-col bg-surface">
+<div class="flex items-center gap-3 mb-6 pb-4 border-b border-outline-variant/20">
+<span class="material-symbols-outlined text-primary text-[28px]" data-icon="auto_awesome">auto_awesome</span>
+<h4 class="font-h3 text-[22px] font-bold text-on-surface">AI Insights</h4>
+</div>
+<div class="space-y-4 flex-1">
+<div class="p-4 rounded-xl border border-outline-variant/30 bg-surface hover:border-primary/30 hover:bg-primary/5 transition-all flex gap-4">
+<span class="material-symbols-outlined text-primary text-[22px] mt-0.5" data-icon="trending_up">trending_up</span>
+<p class="text-[14px] leading-relaxed text-on-surface-variant">
+<span class="font-semibold text-on-surface block mb-1">Revenue Forecast</span> High growth expected in Q4 due to increased recruiter onboarding in the EMEA region.
+                            </p>
+</div>
+<div class="p-4 rounded-xl border border-outline-variant/30 bg-surface hover:border-tertiary/30 hover:bg-tertiary/5 transition-all flex gap-4">
+<span class="material-symbols-outlined text-tertiary text-[22px] mt-0.5" data-icon="warning">warning</span>
+<p class="text-[14px] leading-relaxed text-on-surface-variant">
+<span class="font-semibold text-on-surface block mb-1">Churn Alert</span> Payment failure rates increased by 2.4% last week. Recommended audit on Stripe API integration.
+                            </p>
+</div>
+<div class="p-4 rounded-xl border border-outline-variant/30 bg-surface hover:border-secondary/30 hover:bg-secondary/5 transition-all flex gap-4">
+<span class="material-symbols-outlined text-secondary text-[22px] mt-0.5" data-icon="lightbulb">lightbulb</span>
+<p class="text-[14px] leading-relaxed text-on-surface-variant">
+<span class="font-semibold text-on-surface block mb-1">Growth Tip</span> 64% of premium users are asking for "AI Skill Verification". Consider tiered upsell for Q1 launch.
+                            </p>
+</div>
+</div>
+<button class="mt-6 w-full py-3.5 rounded-xl border border-outline-variant/40 text-button text-on-surface hover:bg-surface-container-high transition-colors font-medium shadow-sm">
+                        View Comprehensive Audit
+                    </button>
+</div>
+</section>
+<!-- Professional Data Table -->
+<section class="glass-card rounded-2xl overflow-hidden bg-surface mb-xl">
+<div class="px-8 py-6 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-lowest/50">
+<h4 class="font-h3 text-[22px] font-bold text-on-surface">Recent Transactions</h4>
+<div class="flex gap-md">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant/40 rounded-xl text-button hover:bg-surface-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="filter_list">filter_list</span>
+                            Filter
+                        </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low text-on-surface-variant font-label-caps text-[11px] tracking-wider border-b border-outline-variant/20">
+<tr>
+<th class="px-8 py-4 font-semibold uppercase">User / Recruiter</th>
+<th class="px-8 py-4 font-semibold uppercase">Plan</th>
+<th class="px-8 py-4 font-semibold uppercase">Amount</th>
+<th class="px-8 py-4 font-semibold uppercase">Date</th>
+<th class="px-8 py-4 font-semibold uppercase">Status</th>
+<th class="px-8 py-4 font-semibold uppercase text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary/10 border border-outline-variant/20">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A professional high-resolution avatar of a young tech professional with short dark hair and a modern blazer. The lighting is soft and corporate, set against a clean, minimal white background to fit a premium SaaS user interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRFkqzj26oCn6ysa-fRULUWxSbynFIQQea_FZi9209PgjGnhVyZXU5GCXKMVVL5lpxpqsOnqcrWff_GaRz3m5e9w_h6mS5xoktlZzo79sT0Fm7ub_bg5TzhmGGezk-uKn9PXKiDTUrKD0qy29qDURX1Z_sfTnbwtJowbX6GxLd8FEFATYYjwAUKmk-2ip_SM1vno9aNccogQrBNxd2EDInXIqn7Tkf7C7vKRH3jTom_EHhRlCReCM2UhGT-1xNj6B_yT4QO8aaA_w"/>
+</div>
+<div>
+<div class="font-semibold text-[15px] text-on-surface">Morgan Maxwell</div>
+<div class="text-[13px] text-on-surface-variant mt-0.5">morgan.maxwell@stripe.com</div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1.5 rounded-full text-[12px] bg-primary/10 text-primary font-semibold border border-primary/20">Enterprise Pro</span>
+</td>
+<td class="px-8 py-5 font-semibold text-on-surface">$499.00</td>
+<td class="px-8 py-5 text-[14px] text-on-surface-variant">Oct 12, 2024</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2 text-emerald-700 font-medium text-[14px]">
+<span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span> Successful
+                                    </div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 hover:bg-surface-container-high rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-secondary/10 border border-outline-variant/20">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A portrait of a confident female professional with glasses and a friendly expression. The visual style is crisp and modern, featuring soft studio lighting and a subtle pastel-toned background, ideal for high-end web dashboard elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4jRW8B5m09ZFaX-GO0w6-FutsHUJXSszVDhu18Qr1Z1Z-vy9xnI-C9Lbbn2jzu76My0sgZ3pKUWJJ4ViTewQj4yneagiZ-pWP4GQnA3lZjBOeoqTaIvxyWlBUK9iaE-MNpsxJoBoxfXqbWeUx96lcebyhlduuorMFhkSfaZM67LoHu7h6Qv3gUD7F36mS_cX11o8G2MSrjKcay9hkZLBG1mzr5gIbkHTxOXd84-neHXR4YHJKcO-YHHLNxLrEEQBlvQovysVChvg"/>
+</div>
+<div>
+<div class="font-semibold text-[15px] text-on-surface">Sarah Connor</div>
+<div class="text-[13px] text-on-surface-variant mt-0.5">sarah@jobfit.ai</div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1.5 rounded-full text-[12px] bg-secondary/10 text-secondary font-semibold border border-secondary/20">Monthly Basic</span>
+</td>
+<td class="px-8 py-5 font-semibold text-on-surface">$29.00</td>
+<td class="px-8 py-5 text-[14px] text-on-surface-variant">Oct 11, 2024</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2 text-emerald-700 font-medium text-[14px]">
+<span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span> Successful
+                                    </div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 hover:bg-surface-container-high rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-tertiary-fixed/30 border border-outline-variant/20">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Close-up headshot of a mature businessman with graying hair and a calm, authoritative presence. The photography follows a high-key lighting style with deep contrast, conveying a sense of corporate leadership and reliability for an enterprise platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvF0oDM-AyUOGv38gKxC4oRDhznPAmWru0BTVSJCq275WiiS4kBKt5SchNMM_J6Ov2AQIjoIze_v3bSjz-19PHMPXGu1M3VDuNuqTFNXehKLxDes6cIjW88dcoqOiPuimctkPYCtUbobFcbQt4PMAmz5l14eOGLwhfxOOpZ0HV-k0Pf9rYdx5VNUwo97ZmvJtyFxNuun-JEAvKb03LLytB4pou8zKiYUshvZeuLvwAylL_hb1nvUpGH3XHHdnSbYlsd1afLbOYmsw"/>
+</div>
+<div>
+<div class="font-semibold text-[15px] text-on-surface">Victor Sullivan</div>
+<div class="text-[13px] text-on-surface-variant mt-0.5">vsully@globalhire.co</div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1.5 rounded-full text-[12px] bg-primary/10 text-primary font-semibold border border-primary/20">Enterprise Pro</span>
+</td>
+<td class="px-8 py-5 font-semibold text-on-surface">$499.00</td>
+<td class="px-8 py-5 text-[14px] text-on-surface-variant">Oct 11, 2024</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2 text-error font-medium text-[14px]">
+<span class="w-2 h-2 rounded-full bg-error shadow-[0_0_8px_rgba(186,26,26,0.4)]"></span> Failed
+                                    </div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 hover:bg-surface-container-high rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-8 py-4 bg-surface-container-low/30 border-t border-outline-variant/20 flex justify-between items-center text-[13px] text-on-surface-variant">
+<span>Showing 1 to 3 of 1,240 entries</span>
+<div class="flex gap-2">
+<button class="px-4 py-2 border border-outline-variant/40 rounded-lg hover:bg-surface transition-colors font-medium">Previous</button>
+<button class="px-4 py-2 border border-primary text-primary font-semibold rounded-lg bg-primary/5 shadow-sm">1</button>
+<button class="px-4 py-2 border border-outline-variant/40 rounded-lg hover:bg-surface transition-colors font-medium">2</button>
+<button class="px-4 py-2 border border-outline-variant/40 rounded-lg hover:bg-surface transition-colors font-medium">Next</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Integration -->
+<footer class="mt-auto py-8 px-lg flex flex-col md:flex-row justify-between items-center border-t border-outline-variant/20 bg-surface">
+<div class="flex flex-col gap-1">
+<h5 class="font-h3 text-[20px] font-bold text-primary tracking-tight">AI JobFit</h5>
+<p class="font-label-caps text-[11px] text-on-surface-variant mt-1 tracking-wide">© 2024 AI JobFit. Effortless Precision in Hiring.</p>
+</div>
+<div class="flex gap-8 mt-6 md:mt-0">
+<a class="font-label-caps text-[12px] text-on-surface-variant hover:text-primary transition-colors font-medium" href="#">Privacy Policy</a>
+<a class="font-label-caps text-[12px] text-on-surface-variant hover:text-primary transition-colors font-medium" href="#">Terms of Service</a>
+<a class="font-label-caps text-[12px] text-on-surface-variant hover:text-primary transition-colors font-medium" href="#">Cookie Settings</a>
+<a class="font-label-caps text-[12px] text-on-surface-variant hover:text-primary transition-colors font-medium" href="#">Contact Us</a>
+</div>
+</footer>
+</div>
+</body></html>

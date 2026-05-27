@@ -5,6 +5,7 @@ const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  transpilePackages: ['recharts', 'es-toolkit'],
 
   logging: {
     fetches: {

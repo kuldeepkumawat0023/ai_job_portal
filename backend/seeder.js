@@ -361,6 +361,25 @@ const seedDB = async () => {
     await Interview.insertMany(interviewsData);
     console.log(`✅ 10 Recruiter Interviews scheduled and seeded.`);
 
+    // 12. Seed Super Admin
+    console.log('👤 Seeding Super Admin...');
+    const adminEmail = process.env.SUPER_ADMIN_EMAIL || 'kuldeepkumawat2383@gmail.com';
+    const adminPassword = process.env.SUPER_ADMIN_PASSWORD || 'Admin@123';
+    
+    const superAdmin = new User({
+      fullname: 'Super Admin',
+      email: adminEmail,
+      countryCode: '+91',
+      phoneNumber: '9876543210',
+      password: adminPassword,
+      role: ROLES.ADMIN,
+      isOtpVerified: true,
+      isHiringOtpVerified: true,
+      isActive: true,
+    });
+    await superAdmin.save();
+    console.log('✅ Super Admin seeded.');
+
     console.log('\n🌟 DATABASE SEEDING COMPLETED SUCCESSFULY! 🌟');
     console.log(`📊 TOTAL SEEDED RECORDS:`);
     console.log(`   - 👤 Recruiters:  5`);
@@ -370,7 +389,8 @@ const seedDB = async () => {
     console.log(`   - 📄 Resumes:     30`);
     console.log(`   - 📝 Applications:40`);
     console.log(`   - 🎤 Practice Mocks:15`);
-    console.log(`   - 📅 Recruiter Live:10\n`);
+    console.log(`   - 📅 Recruiter Live:10`);
+    console.log(`   - 👤 Super Admin: 1\n`);
 
     // Exit
     process.exit(0);
