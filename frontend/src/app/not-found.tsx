@@ -3,12 +3,21 @@
 import React from 'react';
 import Link from 'next/link';
 import { Compass, ArrowLeft, Search, Briefcase } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * 🚀 Custom 404 Page (Not Found) for Frontend Job Portal
  * Renders a visually stunning, interactive page with animations matching globals.css
  */
 export default function NotFound() {
+  const { user, isAuthenticated } = useAuth();
+
+  const getHomeLink = () => {
+    if (!isAuthenticated || !user) return '/';
+    if (user.role === 'recruiter') return '/recruiter/dashboard';
+    return '/candidate/dashboard';
+  };
+
   return (
     <main className="relative min-h-screen w-full flex items-center justify-center bg-background px-6 overflow-hidden hero-gradient">
       {/* Background Decorative Blurs */}
@@ -44,11 +53,11 @@ export default function NotFound() {
         {/* Interactive CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-2">
           <Link
-            href="/"
+            href={getHomeLink()}
             className="w-full sm:w-auto flex items-center justify-center gap-2 gradient-button text-white px-6 py-3.5 rounded-2xl text-sm font-black shadow-xl hover:opacity-90 active:scale-95 transition-all cursor-pointer button-glow"
           >
             <ArrowLeft className="w-4 h-4" />
-            Go Back Home
+            {isAuthenticated ? 'Back to Dashboard' : 'Go Back Home'}
           </Link>
           <Link
             href="/login"
