@@ -30,7 +30,7 @@ exports.getProfile = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized access to this profile', data: null });
     }
 
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id).populate('companyId');
 
     if (!user) {
       return res.status(404).json({ success: false, statusCode: 404, message: 'User not found', data: null });

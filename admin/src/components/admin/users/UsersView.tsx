@@ -249,54 +249,115 @@ export default function UsersView() {
     toast.success('CSV downloaded successfully');
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (users.length === 0) return toast.error('No data to export');
     
-    const toastId = toast.loading('Generating PDF...');
+    const toastId = toast.loading('Generating PDF report...');
     try {
-      const doc = new jsPDF('landscape');
-      
-      doc.setFontSize(18);
-      doc.text('AI JobFit - User Directory Report', 14, 22);
-      
-      doc.setFontSize(11);
-      doc.setTextColor(100);
-      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
-      
-      let y = 45;
-      doc.setFontSize(10);
-      doc.setTextColor(50);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Name', 14, y);
-      doc.text('Email', 55, y);
-      doc.text('Mobile', 125, y);
-      doc.text('Role', 170, y);
-      doc.text('Status', 195, y);
-      doc.text('Plan', 225, y);
-      doc.text('Joined', 250, y);
-      
-      doc.line(14, y + 2, 283, y + 2);
-      
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(80);
-      
-      users.forEach((user) => {
-        if (y > 180) {
-          doc.addPage();
-          y = 20;
-          doc.setFont('helvetica', 'bold');
-          doc.text('Name', 14, y);
-          doc.text('Email', 55, y);
-          doc.text('Mobile', 125, y);
-          doc.text('Role', 170, y);
-          doc.text('Status', 195, y);
-          doc.text('Plan', 225, y);
-          doc.text('Joined', 250, y);
-          doc.line(14, y + 2, 283, y + 2);
-          doc.setFont('helvetica', 'normal');
+      const doc = new jsPDF('landscape', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      // Ensure no duplicate records by filtering unique user IDs
+      const uniqueUsers = Array.from(new Map(users.map(u => [u._id, u])).values());
+
+      // Load watermark image
+      const logoImg = new window.Image();
+      await new Promise((resolve) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = resolve;
+        logoImg.src = '/images/logo/logo.png';
+        if (logoImg.complete) {
+          resolve(true);
         }
-        
-        y += 8;
+      });
+
+      const drawPageDecorations = (isFirstPage = false) => {
+        // Draw Watermark
+        if (logoImg.complete && logoImg.naturalWidth > 0) {
+          doc.saveGraphicsState();
+          doc.setGState(new (doc as any).GState({ opacity: 0.06 }));
+          const imgWidth = 140;
+          const imgHeight = (logoImg.naturalHeight / logoImg.naturalWidth) * imgWidth;
+          doc.addImage(logoImg, 'PNG', (pageWidth - imgWidth) / 2, (pageHeight - imgHeight) / 2, imgWidth, imgHeight);
+          doc.restoreGraphicsState();
+        }
+
+        if (isFirstPage) {
+          // Draw Primary Theme Header Block
+          doc.setFillColor(70, 72, 212); // Primary Color (#4648d4)
+          doc.rect(0, 0, pageWidth, 26, 'F');
+
+          // Draw Secondary Theme Accent Strip
+          doc.setFillColor(129, 39, 207); // Secondary Color (#8127cf)
+          doc.rect(0, 26, pageWidth, 1.5, 'F');
+
+          // Draw Header Text
+          doc.setTextColor(255, 255, 255);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(16);
+          doc.text('AI JOBFIT - USER DIRECTORY AUDIT REPORT', 14, 11);
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(9.5);
+          doc.setTextColor(220, 230, 255);
+          doc.text(`Generated on: ${new Date().toLocaleString()} | Total Users: ${uniqueUsers.length} | Admin Controls`, 14, 18);
+        } else {
+          // Minimal header for page 2+ to avoid duplicating the big colored banner
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(9);
+          doc.setTextColor(100, 100, 100);
+          doc.text(`AI JOBFIT - USER DIRECTORY AUDIT REPORT (Page Header)`, 14, 10);
+          
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(150, 150, 150);
+          doc.text(`Total Users: ${uniqueUsers.length}`, pageWidth - 14, 10, { align: 'right' });
+
+          doc.setDrawColor(220, 220, 230);
+          doc.setLineWidth(0.3);
+          doc.line(14, 12, pageWidth - 14, 12);
+        }
+      };
+
+      const drawTableHeader = (currentY: number) => {
+        // Draw Header Background row
+        doc.setFillColor(30, 27, 75); // Dark Navy Indigo (#1e1b4b)
+        doc.rect(14, currentY - 5, 269, 8, 'F');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9.5);
+        doc.setTextColor(255, 255, 255);
+        doc.text('#', 16, currentY);
+        doc.text('Name', 24, currentY);
+        doc.text('Email', 65, currentY);
+        doc.text('Mobile', 130, currentY);
+        doc.text('Role', 180, currentY);
+        doc.text('Status', 208, currentY);
+        doc.text('Plan', 236, currentY);
+        doc.text('Joined Date', 256, currentY);
+      };
+
+      // Draw first page decorations & table headers
+      drawPageDecorations(true);
+      let y = 42;
+      drawTableHeader(y);
+      y += 8;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+
+      uniqueUsers.forEach((user, index) => {
+        if (y > 185) {
+          doc.addPage();
+          drawPageDecorations(false);
+          y = 22; // Start higher up on subsequent pages
+          drawTableHeader(y);
+          y += 8;
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(9);
+        }
+
         const name = (user.fullname || '').substring(0, 20);
         const email = (user.email || '').substring(0, 32);
         const mobile = `${user.countryCode ? user.countryCode + ' ' : ''}${user.phoneNumber || ''}`.substring(0, 18);
@@ -304,23 +365,82 @@ export default function UsersView() {
         const status = user.isActive !== false ? 'ACTIVE' : 'SUSPENDED';
         const plan = user.isPremium ? 'PREMIUM' : 'FREE';
         const joined = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '';
-        
-        doc.text(name, 14, y);
-        doc.text(email, 55, y);
-        doc.text(mobile, 125, y);
-        doc.text(role, 170, y);
-        doc.text(status, 195, y);
-        doc.text(plan, 225, y);
-        doc.text(joined, 250, y);
+
+        // Draw light bottom border for row
+        doc.setDrawColor(230, 230, 240);
+        doc.setLineWidth(0.2);
+        doc.line(14, y + 2, 283, y + 2);
+
+        // Draw S.No. and user data
+        doc.setTextColor(120, 120, 120);
+        doc.text(String(index + 1), 16, y);
+
+        doc.setTextColor(60, 60, 60);
+        doc.text(name, 24, y);
+        doc.text(email, 65, y);
+        doc.text(mobile, 130, y);
+
+        // Role Color: Admin Indigo, Recruiter Purple, Candidate Sky
+        if (role === 'ADMIN') {
+          doc.setTextColor(70, 72, 212); // Primary theme
+        } else if (role === 'RECRUITER') {
+          doc.setTextColor(129, 39, 207); // Secondary theme
+        } else {
+          doc.setTextColor(14, 165, 233); // Sky-500
+        }
+        doc.text(role, 180, y);
+
+        // Status Color: Active Green, Suspended Red
+        if (status === 'ACTIVE') {
+          doc.setTextColor(16, 185, 129); // Emerald-500
+        } else {
+          doc.setTextColor(239, 68, 68); // Red-500
+        }
+        doc.text(status, 208, y);
+
+        // Plan Color: Premium Gold, Free Slate
+        if (plan === 'PREMIUM') {
+          doc.setTextColor(245, 158, 11); // Amber-500
+        } else {
+          doc.setTextColor(100, 116, 139); // Slate-500
+        }
+        doc.text(plan, 236, y);
+
+        // Joined Date Color
+        doc.setTextColor(80, 80, 80);
+        doc.text(joined, 256, y);
+
+        y += 8;
       });
-      
+
+      // Add page numbers and footers at the end
+      const pageCount = (doc.internal as any).getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          pageWidth - 14,
+          pageHeight - 8,
+          { align: 'right' }
+        );
+        doc.text(
+          'AI JobFit © 2026. Confidential Platform Directory Report.',
+          14,
+          pageHeight - 8
+        );
+      }
+
       doc.save(`users_report_${Date.now()}.pdf`);
       toast.success('PDF downloaded successfully', { id: toastId });
     } catch (err: any) {
       console.error(err);
-      toast.error('Failed to generate PDF. Make sure "jspdf" is installed: npm install jspdf', { id: toastId });
+      toast.error('Failed to generate PDF report', { id: toastId });
     }
   };
+
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
