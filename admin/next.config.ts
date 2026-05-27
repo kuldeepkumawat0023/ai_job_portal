@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   reactCompiler: true,
   transpilePackages: ['recharts', 'es-toolkit'],
+  turbopack: {},
 
   logging: {
     fetches: {

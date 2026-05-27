@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Viewport } from "next";
 import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "@/provider/StoreProvider";
@@ -18,48 +18,13 @@ const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
 });
-
-export const metadata: Metadata = {
-  title: "AIJobFit Admin — Super Admin Panel",
-  description: "AI JobFit Super Admin Panel — Manage users, recruiters, job listings, and analyze platform metrics with AI-powered insights.",
-  keywords: "AI JobFit admin, super admin panel, admin dashboard, job portal management, recruiter management, user management",
-  authors: [{ name: "AI JobFit" }],
-  creator: "AI JobFit",
-  publisher: "AI JobFit",
-  manifest: "/manifest.json",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#4648d4" },
-    { media: "(prefers-color-scheme: dark)", color: "#0B0F19" },
-  ],
-  icons: {
-    icon: [
-      { url: "/logo.png", type: "image/png", sizes: "32x32" },
-      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
-      { url: "/icons/icon-512.png", type: "image/png", sizes: "512x512" },
-    ],
-    apple: [
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-    ],
-    shortcut: [{ url: "/logo.png" }],
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "AIJobFit Admin",
-  },
-  openGraph: {
-    title: "AIJobFit Admin — Super Admin Panel",
-    description: "Manage users, recruiters, job listings, and analyze platform metrics with AI-powered insights.",
-    siteName: "AIJobFit Admin",
-    locale: "en_IN",
-    type: "website",
-  },
-  robots: {
-    index: false,
-    follow: false,
-    googleBot: { index: false, follow: false },
-  },
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
+
+
 
 export default function RootLayout({
   children,
