@@ -8,7 +8,7 @@ const router = express.Router();
 
 // All routes here are protected and restricted to Admin only
 router.use(protect);
-router.use(authorize('admin'));
+router.use(authorize('admin', 'super_admin'));
 
 router.get('/stats', getDashboardStats);
 router.get('/transactions', getTransactions);       // Revenue report

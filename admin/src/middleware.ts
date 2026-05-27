@@ -7,10 +7,24 @@ import { NextResponse, NextRequest } from 'next/server';
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Exclude static assets, public files, next internals, and APIs from middleware check
+  const isPublicAsset = 
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.includes('.') ||
+    pathname.startsWith('/icons') ||
+    pathname.startsWith('/images');
+
+  if (isPublicAsset) {
+    return NextResponse.next();
+  }
   
   // Get token and role from cookies
   const token = request.cookies.get('portal_token')?.value;
   const role = request.cookies.get('user_role')?.value;
+
+  console.log('🛡️ [Middleware Debug] URL:', pathname, 'Token:', token ? 'exists' : 'null', 'Role:', role);
 
   const authPaths = [
     '/login',
@@ -23,13 +37,15 @@ export function middleware(request: NextRequest) {
   const isAuthPath = authPaths.some(path => pathname === path);
 
   // 1. If admin user is already logged in and tries to access login/auth screens, redirect to dashboard root (/)
-  if (isAuthPath && token && role === 'admin') {
+  if (isAuthPath && token && (role === 'admin' || role === 'super_admin')) {
+    console.log('🛡️ [Middleware] Redirecting logged in admin to /');
     return NextResponse.redirect(new URL('/', request.url));
   }
 
   // 2. Protect admin dashboard routes
-  // If not logged in as admin (no token or role !== admin), redirect to /login
-  if (!isAuthPath && (!token || role !== 'admin')) {
+  // If not logged in as admin/super_admin, redirect to /login
+  if (!isAuthPath && (!token || (role !== 'admin' && role !== 'super_admin'))) {
+    console.log('🛡️ [Middleware] Redirecting to /login because:', !token ? 'no token' : `invalid role: ${role}`);
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

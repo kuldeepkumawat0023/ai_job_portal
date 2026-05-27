@@ -38,7 +38,7 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children }) => {
   }
 
   // Admin Role Check
-  if (user?.role !== 'admin') {
+  if (user?.role !== 'admin' && user?.role !== 'super_admin') {
     return (
       <section
         className="h-screen w-full flex flex-col items-center justify-center bg-zinc-950 p-6 text-center text-white"

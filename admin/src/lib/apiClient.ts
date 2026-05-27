@@ -45,7 +45,7 @@ export interface AuthUser {
   email: string;
   countryCode: string;
   phoneNumber: string;
-  role: 'candidate' | 'recruiter' | 'admin';
+  role: 'candidate' | 'recruiter' | 'admin' | 'super_admin';
   profilePhoto?: string;
   location?: string;
   bio?: string;

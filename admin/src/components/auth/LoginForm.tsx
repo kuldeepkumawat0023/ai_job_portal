@@ -78,7 +78,7 @@ const LoginForm = () => {
       if (response.success) {
         const { user, token } = response.data;
 
-        if (user.role !== 'admin') {
+        if (user.role !== 'admin' && user.role !== 'super_admin') {
           toast.error('Access Denied: Only administrators are authorized.', { id: toastId });
           setLoading(false);
           return;
@@ -107,7 +107,7 @@ const LoginForm = () => {
       if (response.success) {
         const { user, token } = response.data;
 
-        if (user.role !== 'admin') {
+        if (user.role !== 'admin' && user.role !== 'super_admin') {
           toast.error('Access Denied: Only administrators are authorized.', { id: toastId });
           setLoading(false);
           return;

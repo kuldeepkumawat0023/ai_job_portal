@@ -33,6 +33,6 @@ export const useAuth = () => {
     updateUser: (data: Partial<AuthUser>) => dispatch(updateUserAction(data)),
     isCandidate: user?.role === 'candidate',
     isRecruiter: user?.role === 'recruiter',
-    isAdmin: user?.role === 'admin',
+    isAdmin: user?.role === 'admin' || user?.role === 'super_admin',
   };
 };
