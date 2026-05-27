@@ -207,7 +207,7 @@ exports.getTeamMembers = async (req, res, next) => {
       query = { _id: currentUser._id };
     }
 
-    let team = await User.find(query).select('fullname email role profilePhoto isActive createdAt');
+    let team = await User.find(query).select('fullname email role profilePhoto isActive isPending createdAt');
 
     // If only current user is in the team, let's auto-generate a couple of interactive teammates to make the portal active and dynamic!
     if (team.length <= 1) {
@@ -220,9 +220,10 @@ exports.getTeamMembers = async (req, res, next) => {
         _id: 'mock-member-1',
         fullname: 'Alex Rivera',
         email: 'alex@startup.ai',
-        role: 'Admin',
+        role: 'admin',
         profilePhoto: mockAvatars[0],
         isActive: true,
+        isPending: false,
         isMock: true
       };
 
@@ -230,13 +231,25 @@ exports.getTeamMembers = async (req, res, next) => {
         _id: 'mock-member-2',
         fullname: 'Sarah Chen',
         email: 'sarah@startup.ai',
-        role: 'Recruiter',
+        role: 'recruiter',
         profilePhoto: mockAvatars[1],
         isActive: true,
+        isPending: false,
         isMock: true
       };
 
-      team = [currentUser, guest1, guest2];
+      const guest3 = {
+        _id: 'mock-member-3',
+        fullname: 'Kabir Verma',
+        email: 'kabir@startup.ai',
+        role: 'recruiter',
+        profilePhoto: null,
+        isActive: true,
+        isPending: true,
+        isMock: true
+      };
+
+      team = [currentUser, guest1, guest2, guest3];
     }
 
     res.status(200).json({
@@ -276,6 +289,7 @@ exports.inviteTeamMember = async (req, res, next) => {
       role: role.toLowerCase() === 'admin' ? 'admin' : role.toLowerCase(),
       companyId: currentUser.companyId || null,
       isActive: true,
+      isPending: true,
       jobRole: role,
       department: 'Talent Acquisition'
     });

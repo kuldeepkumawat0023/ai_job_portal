@@ -17,6 +17,8 @@ import {
   Pencil,
   Trash2,
   Crown,
+  UserCheck,
+  UserX,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -181,7 +183,7 @@ function InviteModal({ onClose, onSuccess }: InviteModalProps) {
                 className="w-full pl-10 pr-10 py-3 bg-surface-container-low/50 border border-outline-variant/20 rounded-2xl text-sm focus:outline-none focus:border-primary/50 text-on-surface transition-all font-medium appearance-none cursor-pointer"
               >
                 <option value="recruiter">Recruiter</option>
-                <option value="admin">Super Admin</option>
+                <option value="admin">Admin</option>
               </select>
               <ChevronDown className="w-4 h-4 text-on-surface-variant/40 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -220,6 +222,7 @@ export default function TeamView() {
   const [removing, setRemoving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState('ALL MEMBERS');
   const [currentPage, setCurrentPage] = useState(1);
   const membersPerPage = 10;
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -248,22 +251,33 @@ export default function TeamView() {
 
   const stats = useMemo(() => ({
     total: members.length,
-    admins: members.filter((m) => m.role === 'admin').length,
+    active: members.filter((m) => m.isActive !== false && m.isPending !== true).length,
     recruiters: members.filter((m) => m.role === 'recruiter').length,
+    inactive: members.filter((m) => m.isActive === false).length,
   }), [members]);
+
+  const pendingCount = useMemo(() => members.filter((m) => m.isPending === true).length, [members]);
+  const activeCount = useMemo(() => members.filter((m) => m.isActive !== false && m.isPending !== true).length, [members]);
 
   // ─── Filter + Pagination ────────────────────────────────────────────────────
 
   const filteredMembers = useMemo(() => {
     return members.filter((m) => {
+      // 1. Tab filter
+      if (activeTab === 'ACTIVE' && (m.isActive === false || m.isPending === true)) return false;
+      if (activeTab === 'PENDING' && m.isPending !== true) return false;
+
+      // 2. Role filter
       if (roleFilter !== 'all' && m.role !== roleFilter) return false;
+
+      // 3. Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         return m.fullname?.toLowerCase().includes(q) || m.email?.toLowerCase().includes(q);
       }
       return true;
     });
-  }, [members, roleFilter, searchQuery]);
+  }, [members, activeTab, roleFilter, searchQuery]);
 
   const totalPages = Math.ceil(filteredMembers.length / membersPerPage);
   const currentMembers = useMemo(() =>
@@ -271,7 +285,7 @@ export default function TeamView() {
     [filteredMembers, currentPage]
   );
 
-  useEffect(() => { setCurrentPage(1); }, [searchQuery, roleFilter]);
+  useEffect(() => { setCurrentPage(1); }, [activeTab, searchQuery, roleFilter]);
 
   // ─── Remove ─────────────────────────────────────────────────────────────────
 
@@ -320,7 +334,7 @@ export default function TeamView() {
       </header>
 
       {/* ── Stats Cards — using StatsCard component ── */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-6" aria-label="Team Statistics Overview">
+      <section className="grid grid-cols-2 xl:grid-cols-4 gap-6" aria-label="Team Statistics Overview">
         <StatsCard
           label="Total Members"
           value={loading ? '—' : stats.total.toLocaleString()}
@@ -331,13 +345,13 @@ export default function TeamView() {
           progressPercent={100}
         />
         <StatsCard
-          label="Super Admins"
-          value={loading ? '—' : stats.admins.toLocaleString()}
-          icon={ShieldCheck}
-          lineClass="bg-indigo-500"
-          iconBg="bg-indigo-500/10"
-          iconColor="text-indigo-500"
-          progressPercent={stats.total ? Math.round((stats.admins / stats.total) * 100) : 0}
+          label="Active Members"
+          value={loading ? '—' : stats.active.toLocaleString()}
+          icon={UserCheck}
+          lineClass="bg-emerald-500"
+          iconBg="bg-emerald-500/10"
+          iconColor="text-emerald-500"
+          progressPercent={stats.total ? Math.round((stats.active / stats.total) * 100) : 0}
         />
         <StatsCard
           label="Recruiters"
@@ -347,6 +361,15 @@ export default function TeamView() {
           iconBg="bg-secondary/10"
           iconColor="text-secondary"
           progressPercent={stats.total ? Math.round((stats.recruiters / stats.total) * 100) : 0}
+        />
+        <StatsCard
+          label="Inactive Members"
+          value={loading ? '—' : stats.inactive.toLocaleString()}
+          icon={UserX}
+          lineClass="bg-red-500"
+          iconBg="bg-red-500/10"
+          iconColor="text-red-500"
+          progressPercent={stats.total ? Math.round((stats.inactive / stats.total) * 100) : 0}
         />
       </section>
 
@@ -358,7 +381,7 @@ export default function TeamView() {
           <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
             <div>
               <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-black text-on-surface tracking-tight">Active Members</h2>
+                <h2 className="text-2xl font-black text-on-surface tracking-tight">Team Directory</h2>
                 <span className="h-4 w-1 bg-gradient-to-b from-primary to-secondary rounded-full" />
                 {!loading && (
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">
@@ -372,6 +395,37 @@ export default function TeamView() {
               </p>
             </div>
 
+            {/* Navigation Filter Tabs */}
+            <div className="flex items-center overflow-x-auto flex-nowrap bg-surface-container-low/50 p-1.5 rounded-2xl border border-outline-variant/10 max-w-full no-scrollbar">
+              {[
+                { id: 'ALL MEMBERS', label: 'ALL MEMBERS', badge: null },
+                { id: 'ACTIVE', label: 'ACTIVE', badge: activeCount },
+                { id: 'PENDING', label: 'PENDING INVITES', badge: pendingCount }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  disabled={loading}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 cursor-pointer shrink-0",
+                    activeTab === tab.id
+                      ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg"
+                      : "text-on-surface-variant/70 hover:text-on-surface disabled:opacity-50"
+                  )}
+                >
+                  <span>{tab.label}</span>
+                  {tab.badge !== null && tab.badge > 0 && (
+                    <span className={cn(
+                      "px-2 py-0.5 rounded-full text-[9px] font-black shrink-0",
+                      activeTab === tab.id ? "bg-black/20 text-white" : "bg-primary/20 text-primary"
+                    )}>
+                      {tab.badge}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto shrink-0">
               {/* Role filter */}
@@ -383,7 +437,7 @@ export default function TeamView() {
                   className="appearance-none w-full xl:w-44 pl-4 pr-10 py-3 bg-surface-container-low/50 border border-outline-variant/20 rounded-2xl text-sm focus:outline-none focus:border-primary/50 text-on-surface transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <option value="all">ALL ROLES</option>
-                  <option value="admin">SUPER ADMINS</option>
+                  <option value="admin">ADMINS</option>
                   <option value="recruiter">RECRUITERS</option>
                 </select>
                 <ChevronDown className="w-4 h-4 text-on-surface-variant/60 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -526,7 +580,7 @@ export default function TeamView() {
                       ) : (
                         <User className="w-3 h-3" />
                       )}
-                      {member.role === 'admin' ? 'Super Admin' : (member.role || 'recruiter')}
+                      {member.role === 'admin' ? 'Admin' : (member.role || 'recruiter')}
                     </span>
                   </td>
 
@@ -534,15 +588,19 @@ export default function TeamView() {
                   <td className="py-5">
                     <span className={cn(
                       'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border',
-                      member.isActive !== false
-                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                        : 'bg-red-500/10 text-red-500 border-red-500/20'
+                      member.isPending === true
+                        ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                        : member.isActive !== false
+                          ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                          : 'bg-red-500/10 text-red-500 border-red-500/20'
                     )}>
                       <span className={cn(
                         'w-1.5 h-1.5 rounded-full',
-                        member.isActive !== false ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
+                        member.isPending === true
+                          ? 'bg-amber-500 animate-pulse'
+                          : member.isActive !== false ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
                       )} />
-                      {member.isActive !== false ? 'ACTIVE' : 'INACTIVE'}
+                      {member.isPending === true ? 'PENDING' : member.isActive !== false ? 'ACTIVE' : 'INACTIVE'}
                     </span>
                   </td>
 

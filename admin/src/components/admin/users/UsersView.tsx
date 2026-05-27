@@ -25,6 +25,7 @@ import {
 import { motion } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import { jsPDF } from 'jspdf';
+import { useRouter } from 'next/navigation';
 
 // Services
 import { adminService } from '@/lib/services/admin.services';
@@ -77,6 +78,7 @@ const getGradient = (id?: string) => {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function UsersView() {
+  const router = useRouter();
   const [users, setUsers] = useState<AuthUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
@@ -93,7 +95,6 @@ export default function UsersView() {
 
   // Modal States
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [viewingUser, setViewingUser] = useState<AuthUser | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
 
   // ─── Fetch Users ─────────────────────────────────────────────────────────
@@ -201,8 +202,6 @@ export default function UsersView() {
         setUsers((prev) =>
           prev.map((u) => (u._id === id ? { ...u, isActive: false } : u))
         );
-        // Sync active views if open
-        if (viewingUser?._id === id) setViewingUser((prev) => prev ? { ...prev, isActive: false } : null);
       }
     } catch (err) {
       toast.error('Failed to suspend user');
@@ -217,8 +216,6 @@ export default function UsersView() {
         setUsers((prev) =>
           prev.map((u) => (u._id === id ? { ...u, isActive: true } : u))
         );
-        // Sync active views if open
-        if (viewingUser?._id === id) setViewingUser((prev) => prev ? { ...prev, isActive: true } : null);
       }
     } catch (err) {
       toast.error('Failed to activate user');
@@ -628,7 +625,7 @@ export default function UsersView() {
                       )}
                       <div className="min-w-0">
                         <p
-                          onClick={() => setViewingUser(user)}
+                          onClick={() => router.push(`/users/${user._id}`)}
                           className="font-black text-on-surface hover:text-primary transition-colors cursor-pointer truncate text-base leading-tight mb-0.5"
                         >
                           {user.fullname || '—'}
@@ -713,7 +710,7 @@ export default function UsersView() {
                   <td className="py-5 text-right pr-4">
                     <div className="flex justify-end items-center gap-2.5">
                       <button
-                        onClick={() => setViewingUser(user)}
+                        onClick={() => router.push(`/users/${user._id}`)}
                         className="p-1.5 text-on-surface-variant/60 hover:text-primary transition-all hover:scale-110 active:scale-95 cursor-pointer"
                         title="View Profile Details"
                       >
@@ -762,205 +759,6 @@ export default function UsersView() {
           )}
         </div>
       </section>
-
-      {/* ── User Detail View Modal ── */}
-      {viewingUser && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 md:p-8">
-          {/* Backdrop */}
-          <div
-            onClick={() => setViewingUser(null)}
-            className="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm transition-opacity duration-300"
-          />
-
-          {/* Container */}
-          <div className="relative w-full max-w-2xl bg-card border border-outline-variant/30 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" />
-
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-outline-variant/10">
-              <h3 className="text-xl font-black text-on-surface flex items-center gap-2">
-                <Info className="w-5 h-5 text-primary" /> User Details
-              </h3>
-              <button
-                onClick={() => setViewingUser(null)}
-                className="p-1.5 rounded-xl text-on-surface-variant/60 hover:text-on-surface hover:bg-surface-container-low dark:hover:bg-zinc-800 transition-all cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 md:p-8 max-h-[70vh] overflow-y-auto space-y-6">
-              <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-outline-variant/10">
-                {viewingUser.profilePhoto && !brokenImages[viewingUser._id] ? (
-                  <img
-                    src={viewingUser.profilePhoto}
-                    alt={viewingUser.fullname}
-                    onError={() => {
-                      setBrokenImages(prev => ({ ...prev, [viewingUser._id]: true }));
-                    }}
-                    className="w-20 h-20 rounded-full object-cover shadow-lg shrink-0 border border-outline-variant/20"
-                  />
-                ) : (
-                  <div className={cn(
-                    "w-20 h-20 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-3xl font-black shadow-lg shrink-0",
-                    getGradient(viewingUser._id)
-                  )}>
-                    {getInitials(viewingUser.fullname)}
-                  </div>
-                )}
-                <div className="text-center sm:text-left space-y-2">
-                  <h4 className="text-2xl font-black text-on-surface">{viewingUser.fullname || '—'}</h4>
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                    <span className={cn(
-                      "inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border",
-                      viewingUser.role === 'admin'
-                        ? "bg-primary/10 text-primary border-primary/20"
-                        : viewingUser.role === 'recruiter'
-                          ? "bg-secondary/10 text-secondary border-secondary/20"
-                          : "bg-sky-500/10 text-sky-500 border-sky-500/20"
-                    )}>
-                      {viewingUser.role === 'admin' ? (
-                        <ShieldCheck className="w-3 h-3" />
-                      ) : viewingUser.role === 'recruiter' ? (
-                        <Briefcase className="w-3 h-3" />
-                      ) : (
-                        <User className="w-3 h-3" />
-                      )}
-                      {viewingUser.role}
-                    </span>
-                    <span className={cn(
-                      "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border",
-                      viewingUser.isActive !== false
-                        ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                        : "bg-red-500/10 text-red-500 border-red-500/20"
-                    )}>
-                      {viewingUser.isActive !== false ? 'ACTIVE' : 'SUSPENDED'}
-                    </span>
-                    {viewingUser.isPremium && (
-                      <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        <Crown className="w-2.5 h-2.5" /> Premium
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Info Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Mail className="w-4.5 h-4.5 text-on-surface-variant/60 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Email Address</p>
-                      <p className="text-sm font-bold text-on-surface break-all">{viewingUser.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Phone className="w-4.5 h-4.5 text-on-surface-variant/60 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Phone Number</p>
-                      <p className="text-sm font-bold text-on-surface">
-                        {viewingUser.countryCode ? `${viewingUser.countryCode} ` : ''}{viewingUser.phoneNumber || '—'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-4.5 h-4.5 text-on-surface-variant/60 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Location</p>
-                      <p className="text-sm font-bold text-on-surface">{viewingUser.location || 'Remote'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="w-4.5 h-4.5 text-on-surface-variant/60 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Joined Date</p>
-                      <p className="text-sm font-bold text-on-surface">{formatDate(viewingUser.createdAt)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <RefreshCw className="w-4.5 h-4.5 text-on-surface-variant/60 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Last Updated</p>
-                      <p className="text-sm font-bold text-on-surface">{formatDate(viewingUser.updatedAt)}</p>
-                    </div>
-                  </div>
-                  {viewingUser.role === 'recruiter' && (
-                    <div className="flex items-start gap-3">
-                      <Briefcase className="w-4.5 h-4.5 text-on-surface-variant/60 mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Department / Job Role</p>
-                        <p className="text-sm font-bold text-on-surface">
-                          {viewingUser.department || 'Talent Acquisition'} — {viewingUser.jobRole || 'Recruiter'}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Bio */}
-              {viewingUser.bio && (
-                <div className="p-4 rounded-2xl bg-surface-container-low/50 border border-outline-variant/10">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-1.5">Biography</p>
-                  <p className="text-sm text-on-surface leading-relaxed">{viewingUser.bio}</p>
-                </div>
-              )}
-
-              {/* Skills */}
-              {viewingUser.skills && viewingUser.skills.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-2.5">Key Skills</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {viewingUser.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="px-2.5 py-1 bg-surface-container-high/50 border border-outline-variant/10 text-xs font-semibold text-on-surface rounded-lg uppercase tracking-tight"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="flex justify-end gap-3 p-6 border-t border-outline-variant/10 bg-surface-container-low/50">
-              <Button variant="outline" size="md" onClick={() => setViewingUser(null)}>
-                Close Details
-              </Button>
-              {viewingUser.isActive !== false ? (
-                <Button
-                  variant="outline"
-                  size="md"
-                  onClick={() => {
-                    handleSuspendUser(viewingUser._id);
-                  }}
-                  className="text-orange-500 border-orange-500/20 hover:bg-orange-500/5"
-                >
-                  Suspend Account
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="md"
-                  onClick={() => {
-                    handleActivateUser(viewingUser._id);
-                  }}
-                  className="text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/5"
-                >
-                  Activate Account
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Delete Confirmation Modal */}
       <DeleteModal

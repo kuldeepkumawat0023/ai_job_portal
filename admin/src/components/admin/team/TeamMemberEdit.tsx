@@ -44,7 +44,7 @@ const getGradient = (id?: string) => {
 const ROLE_OPTIONS = [
   {
     value: 'admin',
-    label: 'Super Admin',
+    label: 'Admin',
     desc: 'Full access to platform management, users, analytics, and settings.',
     icon: ShieldCheck,
     color: 'text-primary',
@@ -63,17 +63,6 @@ const ROLE_OPTIONS = [
     border: 'border-secondary/30',
     activeBorder: 'border-secondary',
     activeBg: 'bg-secondary/10',
-  },
-  {
-    value: 'candidate',
-    label: 'Candidate',
-    desc: 'Limited access — can apply to jobs and manage their own profile.',
-    icon: User,
-    color: 'text-sky-500',
-    bg: 'bg-sky-500/10',
-    border: 'border-sky-500/30',
-    activeBorder: 'border-sky-500',
-    activeBg: 'bg-sky-500/10',
   },
 ];
 
@@ -167,7 +156,7 @@ export default function TeamMemberEdit() {
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <main
-      className="w-full max-w-2xl space-y-8 animate-in fade-in duration-500"
+      className="w-full space-y-8 animate-in fade-in duration-500"
       aria-label="Edit Team Member Role"
     >
       {/* Back header */}
@@ -179,58 +168,82 @@ export default function TeamMemberEdit() {
           <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
           Back to Team
         </button>
-        <button
-          onClick={() => router.push(`/team/${id}`)}
-          className="text-xs font-bold text-on-surface-variant/60 hover:text-primary transition-colors cursor-pointer"
-        >
-          View Profile →
-        </button>
       </header>
 
-      {/* Edit Card */}
-      <div className="bg-surface-container-low/80 backdrop-blur-md rounded-[2.5rem] border border-outline-variant/10 p-6 md:p-10 shadow-2xl space-y-8">
+      {/* ── Visual Banner Header (Combined mockup design) ── */}
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-violet-600 via-indigo-700 to-purple-800 p-6 md:p-8 shadow-2xl shadow-purple-950/20 border border-outline-variant/10 text-white">
+        {/* Decorative backdrop shapes */}
+        <div className="absolute right-0 top-0 -mr-16 -mt-16 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 bottom-0 -ml-16 -mb-16 w-60 h-60 bg-black/10 rounded-full blur-2xl pointer-events-none" />
 
-        {/* Top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary rounded-t-[2.5rem] pointer-events-none" />
-
-        {/* Member Info (read-only) */}
-        <div className="flex items-center gap-5 pb-8 border-b border-outline-variant/10">
-          {member.profilePhoto && !brokenImage ? (
-            <img
-              src={member.profilePhoto}
-              alt={member.fullname}
-              onError={() => setBrokenImage(true)}
-              className="w-16 h-16 rounded-2xl object-cover shrink-0 border border-outline-variant/20"
-            />
-          ) : (
-            <div
-              className={cn(
-                'w-16 h-16 rounded-2xl bg-gradient-to-br flex items-center justify-center text-white text-xl font-black shrink-0',
-                getGradient(member._id)
+        <div className="relative flex flex-col md:flex-row items-center justify-between gap-6 z-10">
+          
+          {/* Avatar and Identity */}
+          <div className="flex flex-col sm:flex-row items-center gap-5 sm:text-left text-center">
+            {/* Avatar Frame with Glow */}
+            <div className="relative shrink-0">
+              {member.profilePhoto && !brokenImage ? (
+                <img
+                  src={member.profilePhoto}
+                  alt={member.fullname}
+                  onError={() => setBrokenImage(true)}
+                  className="w-20 h-20 rounded-3xl object-cover ring-4 ring-white/20 shadow-xl shadow-purple-950/50"
+                />
+              ) : (
+                <div
+                  className={cn(
+                    'w-20 h-20 rounded-3xl bg-gradient-to-br flex items-center justify-center text-white text-2xl font-black shadow-xl ring-4 ring-white/20 shadow-purple-950/50 uppercase',
+                    getGradient(member._id)
+                  )}
+                >
+                  {getInitials(member.fullname)}
+                </div>
               )}
-            >
-              {getInitials(member.fullname)}
             </div>
-          )}
-          <div>
-            <p className="text-lg font-black text-on-surface">{member.fullname}</p>
-            <p className="text-sm text-on-surface-variant/60 font-semibold">{member.email}</p>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className="text-[9px] font-black text-on-surface-variant/50 uppercase tracking-widest">
-                Current Role:
-              </span>
-              <span className={cn(
-                'text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md',
-                member.role === 'admin' ? 'bg-primary/10 text-primary'
-                  : member.role === 'recruiter' ? 'bg-secondary/10 text-secondary'
-                    : 'bg-sky-500/10 text-sky-500'
-              )}>
-                {member.role === 'admin' ? 'Super Admin' : member.role}
-              </span>
+
+            {/* Title Identity */}
+            <div className="space-y-1.5">
+              <div>
+                <h1 className="text-xl md:text-2xl font-black tracking-tight drop-shadow-md">
+                  {member.fullname || '—'}
+                </h1>
+                <p className="text-xs text-white/70 font-semibold mt-0.5">
+                  {member.email}
+                </p>
+              </div>
+
+              {/* Badges */}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">
+                  Current Role:
+                </span>
+                <span className={cn(
+                  'text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border backdrop-blur-md',
+                  member.role === 'admin' ? 'bg-purple-500/20 text-purple-200 border-purple-400/30'
+                    : member.role === 'recruiter' ? 'bg-amber-500/20 text-amber-200 border-amber-400/30'
+                      : 'bg-sky-500/20 text-sky-200 border-sky-400/30'
+                )}>
+                  {member.role === 'admin' ? 'Admin' : member.role}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
+          {/* Action buttons */}
+          <div className="flex gap-2 shrink-0 w-full md:w-auto justify-center">
+            <button
+              onClick={() => router.push(`/team/${id}`)}
+              className="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/35 border border-white/10 text-white font-black text-xs uppercase tracking-wider transition-colors shadow-md cursor-pointer"
+            >
+              View Profile →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Role Selection Card */}
+      <div className="bg-surface-container-low/80 backdrop-blur-md rounded-[2.5rem] border border-outline-variant/10 p-6 md:p-10 shadow-2xl space-y-8 relative overflow-hidden">
+        
         {/* Role Selection */}
         <div className="space-y-4">
           <div>

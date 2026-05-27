@@ -11,10 +11,13 @@ import {
   ShieldCheck,
   Briefcase,
   User,
-  Pencil,
   Crown,
-  Info,
   Clock,
+  Info,
+  Pencil,
+  Copy,
+  Check,
+  Globe,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import Button from '@/components/common/Button';
@@ -37,8 +40,8 @@ const formatDate = (date?: string) => {
 };
 
 const AVATAR_GRADIENTS = [
-  'from-indigo-500 to-purple-500',
-  'from-pink-500 to-rose-500',
+  'from-violet-500 to-indigo-500',
+  'from-fuchsia-500 to-pink-500',
   'from-cyan-500 to-blue-500',
   'from-amber-500 to-orange-500',
   'from-emerald-500 to-teal-500',
@@ -49,27 +52,27 @@ const getGradient = (id?: string) => {
   return AVATAR_GRADIENTS[id.charCodeAt(id.length - 1) % AVATAR_GRADIENTS.length];
 };
 
-// ─── Info Row Sub-Component ───────────────────────────────────────────────────
+// ─── Sub-Component for Grid Items ────────────────────────────────────────────
 
-function InfoRow({
+function DetailCardItem({
   icon: Icon,
   label,
   value,
 }: {
   icon: any;
   label: string;
-  value?: string | null;
+  value?: string | number | null;
 }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="w-8 h-8 rounded-xl bg-surface-container flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="w-4 h-4 text-on-surface-variant/60" />
+    <div className="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low border border-outline-variant/10 shadow-sm transition-all hover:bg-surface-container-high/40 hover:border-outline-variant/20">
+      <div className="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
+        <Icon className="w-4.5 h-4.5 text-primary" />
       </div>
-      <div>
-        <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-0.5">
+      <div className="min-w-0">
+        <p className="text-[9px] font-black uppercase tracking-wider text-on-surface-variant/40 mb-0.5">
           {label}
         </p>
-        <p className="text-sm font-bold text-on-surface">{value || '—'}</p>
+        <p className="text-sm font-bold text-on-surface truncate">{value || '—'}</p>
       </div>
     </div>
   );
@@ -85,33 +88,37 @@ export default function TeamMemberView() {
   const [member, setMember] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [brokenImage, setBrokenImage] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
+
+  const fetchMember = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const res = await userService.getProfile(id);
+      if (res.success) {
+        setMember(res.data);
+      } else {
+        toast.error('Team member not found');
+        router.push('/team');
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to load team member');
+      router.push('/team');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!id) return;
-    const fetchMember = async () => {
-      setLoading(true);
-      try {
-        const res = await userService.getProfile(id);
-        if (res.success) {
-          setMember(res.data);
-        } else {
-          toast.error('Member not found');
-          router.push('/team');
-        }
-      } catch (err: any) {
-        toast.error(err?.message || 'Failed to load member');
-        router.push('/team');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchMember();
   }, [id]);
 
-  const roleColors: Record<string, string> = {
-    admin: 'bg-primary/10 text-primary border-primary/20',
-    recruiter: 'bg-secondary/10 text-secondary border-secondary/20',
-    candidate: 'bg-sky-500/10 text-sky-500 border-sky-500/20',
+  const handleCopyId = () => {
+    if (!member) return;
+    navigator.clipboard.writeText(member._id);
+    setCopiedId(true);
+    toast.success('Member ID copied to clipboard');
+    setTimeout(() => setCopiedId(false), 2000);
   };
 
   // ── Skeleton Loading ────────────────────────────────────────────────────────
@@ -123,14 +130,7 @@ export default function TeamMemberView() {
           <div className="h-6 bg-on-surface/10 rounded-md w-40 animate-pulse" />
         </div>
         <div className="bg-surface-container-low/80 rounded-[2.5rem] border border-outline-variant/10 p-8 shadow-2xl animate-pulse space-y-8">
-          <div className="flex items-center gap-6">
-            <div className="w-24 h-24 rounded-full bg-on-surface/10 shrink-0" />
-            <div className="space-y-3 flex-1">
-              <div className="h-7 bg-on-surface/10 rounded-md w-48" />
-              <div className="h-4 bg-on-surface/5 rounded-md w-32" />
-              <div className="h-6 bg-on-surface/10 rounded-full w-20" />
-            </div>
-          </div>
+          <div className="h-32 bg-on-surface/10 rounded-3xl" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="flex gap-3">
@@ -149,11 +149,17 @@ export default function TeamMemberView() {
 
   if (!member) return null;
 
+  const roleColors: Record<string, string> = {
+    admin: 'bg-purple-500/20 text-purple-200 border-purple-400/30',
+    recruiter: 'bg-amber-500/20 text-amber-200 border-amber-400/30',
+    candidate: 'bg-sky-500/20 text-sky-200 border-sky-400/30',
+  };
+
   // ── Main View ───────────────────────────────────────────────────────────────
   return (
     <main
-      className="w-full space-y-8 animate-in fade-in duration-500"
-      aria-label="Team Member Detail View"
+      className="w-full space-y-8 animate-in fade-in duration-700"
+      aria-label="Team Member Profile Detail View"
     >
       {/* Back header */}
       <header className="flex items-center justify-between">
@@ -164,173 +170,256 @@ export default function TeamMemberView() {
           <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
           Back to Team
         </button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push(`/team/${id}/edit`)}
-          className="border-amber-500/30 text-amber-600 hover:bg-amber-500/10 hover:border-amber-500/50 font-bold"
-        >
-          <Pencil className="w-3.5 h-3.5 mr-1.5" />
-          Edit Member
-        </Button>
       </header>
 
-      {/* Main Card */}
-      <div className="bg-surface-container-low/80 backdrop-blur-md rounded-[2.5rem] border border-outline-variant/10 p-6 md:p-10 shadow-2xl space-y-8">
+      {/* ── Visual Banner Header (Combined mockup design) ── */}
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-violet-600 via-indigo-700 to-purple-800 p-6 md:p-8 shadow-2xl shadow-purple-950/20 border border-outline-variant/10 text-white">
+        {/* Decorative backdrop shapes */}
+        <div className="absolute right-0 top-0 -mr-16 -mt-16 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 bottom-0 -ml-16 -mb-16 w-60 h-60 bg-black/10 rounded-full blur-2xl pointer-events-none" />
 
-        {/* Profile Header */}
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 pb-8 border-b border-outline-variant/10">
-          {/* Avatar */}
-          {member.profilePhoto && !brokenImage ? (
-            <img
-              src={member.profilePhoto}
-              alt={member.fullname}
-              onError={() => setBrokenImage(true)}
-              className="w-24 h-24 rounded-3xl object-cover shadow-xl border border-outline-variant/20 shrink-0"
-            />
-          ) : (
-            <div
-              className={cn(
-                'w-24 h-24 rounded-3xl bg-gradient-to-br flex items-center justify-center text-white text-3xl font-black shadow-xl shrink-0',
-                getGradient(member._id)
+        <div className="relative flex flex-col md:flex-row items-center justify-between gap-6 z-10">
+          
+          {/* Avatar and Identity */}
+          <div className="flex flex-col sm:flex-row items-center gap-5 sm:text-left text-center">
+            {/* Avatar Frame with Glow */}
+            <div className="relative shrink-0">
+              {member.profilePhoto && !brokenImage ? (
+                <img
+                  src={member.profilePhoto}
+                  alt={member.fullname}
+                  onError={() => setBrokenImage(true)}
+                  className="w-24 h-24 rounded-3xl object-cover ring-4 ring-white/20 shadow-xl shadow-purple-950/50"
+                />
+              ) : (
+                <div
+                  className={cn(
+                    'w-24 h-24 rounded-3xl bg-gradient-to-br flex items-center justify-center text-white text-3xl font-black shadow-xl ring-4 ring-white/20 shadow-purple-950/50 uppercase',
+                    getGradient(member._id)
+                  )}
+                >
+                  {getInitials(member.fullname)}
+                </div>
               )}
-            >
-              {getInitials(member.fullname)}
-            </div>
-          )}
-
-          {/* Identity */}
-          <div className="text-center sm:text-left space-y-3">
-            <div>
-              <h1 className="text-2xl font-black text-on-surface tracking-tight">
-                {member.fullname || '—'}
-              </h1>
-              <p className="text-sm text-on-surface-variant/60 font-semibold mt-0.5">
-                {member.email}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              {/* Role badge */}
-              <span
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border',
-                  roleColors[member.role] ||
-                    'bg-surface-container text-on-surface-variant border-outline-variant/30'
-                )}
-              >
-                {member.role === 'admin' ? (
-                  <ShieldCheck className="w-3 h-3" />
-                ) : member.role === 'recruiter' ? (
-                  <Briefcase className="w-3 h-3" />
+              {/* Active dot indicator overlay */}
+              <span className={cn(
+                "absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-4 border-indigo-700 flex items-center justify-center text-white shadow-lg",
+                member.isActive !== false ? "bg-emerald-500" : "bg-red-500"
+              )}>
+                {member.isActive !== false ? (
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 ) : (
-                  <User className="w-3 h-3" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
                 )}
-                {member.role === 'admin' ? 'Super Admin' : member.role}
               </span>
+            </div>
 
-              {/* Status badge */}
-              <span
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border',
-                  member.isActive !== false
-                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                    : 'bg-red-500/10 text-red-500 border-red-500/20'
-                )}
-              >
+            {/* Title Identity */}
+            <div className="space-y-2.5">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight drop-shadow-md">
+                  {member.fullname || '—'}
+                </h1>
+                <p className="text-sm text-white/70 font-semibold mt-0.5">
+                  {member.email}
+                </p>
+              </div>
+
+              {/* Badges and ID Pill */}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                 <span
                   className={cn(
-                    'w-1.5 h-1.5 rounded-full',
-                    member.isActive !== false ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
+                    'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border backdrop-blur-md',
+                    roleColors[member.role] || 'bg-sky-500/20 text-sky-200 border-sky-400/30'
                   )}
-                />
-                {member.isActive !== false ? 'Active' : 'Inactive'}
-              </span>
-
-              {/* Premium badge */}
-              {member.isPremium && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                  <Crown className="w-2.5 h-2.5" /> Premium
+                >
+                  {member.role === 'admin' ? (
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                  ) : member.role === 'recruiter' ? (
+                    <Briefcase className="w-3.5 h-3.5" />
+                  ) : (
+                    <User className="w-3.5 h-3.5" />
+                  )}
+                  {member.role === 'admin' ? 'Admin' : member.role}
                 </span>
-              )}
+
+                <span className={cn(
+                  'inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border backdrop-blur-md',
+                  member.isActive !== false
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
+                    : 'bg-red-500/20 text-red-300 border-red-400/30'
+                )}>
+                  {member.isActive !== false ? '• ACTIVE' : '• SUSPENDED'}
+                </span>
+
+                {member.isPremium && (
+                  <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-300 bg-amber-500/20 border border-amber-400/30 px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-md">
+                    <Crown className="w-3 h-3 text-amber-300" /> Premium
+                  </span>
+                )}
+
+                {/* Copiable tag */}
+                <button
+                  onClick={handleCopyId}
+                  className="inline-flex items-center gap-1.5 bg-black/20 hover:bg-black/30 border border-white/10 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-colors cursor-pointer"
+                  title="Copy Member ID"
+                >
+                  <span className="text-white/50">ID:</span>
+                  <span className="font-bold tracking-tight text-white/95">{member._id.slice(-8)}</span>
+                  {copiedId ? (
+                    <Check className="w-3 h-3 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-3 h-3 text-white/40 hover:text-white" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-5">
-            <InfoRow icon={Mail} label="Email Address" value={member.email} />
-            <InfoRow
+          {/* Action buttons (from mockup 2 & 3) */}
+          <div className="flex flex-col sm:flex-row gap-2 shrink-0 w-full md:w-auto">
+            <button
+              onClick={() => router.push(`/team/${id}/edit`)}
+              className="px-5 py-2.5 rounded-xl bg-white text-indigo-900 hover:bg-indigo-50 font-black text-xs uppercase tracking-wider transition-colors shadow-md cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <Pencil className="w-4 h-4" />
+              Edit Member Role
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Biography / Story Statement ── */}
+      {member.bio && (
+        <div className="bg-surface-container-low/80 backdrop-blur-md p-6 rounded-[2rem] border border-outline-variant/10 shadow-xl space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-3 bg-gradient-to-b from-primary to-secondary rounded-full" />
+            <h3 className="text-xs font-black uppercase tracking-wider text-on-surface-variant/50">Biography</h3>
+          </div>
+          <p className="text-sm font-semibold text-on-surface leading-relaxed text-justify">
+            {member.bio}
+          </p>
+        </div>
+      )}
+
+      {/* ── Primary Information Grid (Mockup 2 & 3: Demographics vs Core Assignment) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left Column: Demographics */}
+        <div className="lg:col-span-2 bg-surface-container-low/80 backdrop-blur-md p-6 rounded-[2rem] border border-outline-variant/10 shadow-xl space-y-6">
+          <div className="flex items-center gap-2 pb-2 border-b border-outline-variant/10">
+            <span className="w-1.5 h-3.5 bg-primary rounded-full" />
+            <h3 className="text-sm font-black uppercase tracking-wider text-on-surface">Contact & Location</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <DetailCardItem icon={Mail} label="Email Address" value={member.email} />
+            <DetailCardItem
               icon={Phone}
               label="Phone Number"
-              value={
-                member.countryCode
-                  ? `${member.countryCode} ${member.phoneNumber}`
-                  : member.phoneNumber
-              }
+              value={member.countryCode ? `${member.countryCode} ${member.phoneNumber}` : member.phoneNumber}
             />
-            <InfoRow icon={MapPin} label="Location" value={member.location || 'Remote'} />
-          </div>
-          <div className="space-y-5">
-            <InfoRow icon={Calendar} label="Joined Date" value={formatDate(member.createdAt)} />
-            <InfoRow icon={Clock} label="Last Updated" value={formatDate(member.updatedAt)} />
-            {member.role === 'recruiter' && (
-              <InfoRow
-                icon={Briefcase}
-                label="Department / Job Role"
-                value={`${member.department || 'Talent Acquisition'} — ${member.jobRole || 'Recruiter'}`}
-              />
-            )}
+            <DetailCardItem icon={MapPin} label="Workplace Location" value={member.location || 'Remote'} />
+            <DetailCardItem icon={Globe} label="User Country Code" value={member.countryCode || '+91'} />
           </div>
         </div>
 
-        {/* Bio */}
-        {member.bio && (
-          <div className="p-5 rounded-2xl bg-surface-container/50 border border-outline-variant/10">
-            <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-2 flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5" /> Biography
-            </p>
-            <p className="text-sm text-on-surface leading-relaxed">{member.bio}</p>
+        {/* Right Column: Workforce Audit Details */}
+        <div className="bg-surface-container-low/80 backdrop-blur-md p-6 rounded-[2rem] border border-outline-variant/10 shadow-xl space-y-6">
+          <div className="flex items-center gap-2 pb-2 border-b border-outline-variant/10">
+            <span className="w-1.5 h-3.5 bg-secondary rounded-full" />
+            <h3 className="text-sm font-black uppercase tracking-wider text-on-surface">Audit Trail</h3>
           </div>
-        )}
-
-        {/* Skills */}
-        {member.skills && member.skills.length > 0 && (
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-3">
-              Key Skills
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {member.skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="px-3 py-1 bg-surface-container/60 border border-outline-variant/10 text-xs font-semibold text-on-surface rounded-lg uppercase tracking-tight"
-                >
-                  {skill}
-                </span>
-              ))}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center py-2 border-b border-outline-variant/5">
+              <span className="text-xs font-bold text-on-surface-variant/60">Member Since</span>
+              <span className="text-xs font-black text-on-surface">{formatDate(member.createdAt)}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-outline-variant/5">
+              <span className="text-xs font-bold text-on-surface-variant/60">Last Modified</span>
+              <span className="text-xs font-black text-on-surface">{formatDate(member.updatedAt)}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-outline-variant/5">
+              <span className="text-xs font-bold text-on-surface-variant/60">System Role</span>
+              <span className="text-xs font-black text-primary uppercase tracking-wide">{member.role === 'admin' ? 'Admin' : member.role}</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-xs font-bold text-on-surface-variant/60">Account Status</span>
+              <span className={cn(
+                "text-xs font-black uppercase tracking-wide",
+                member.isActive !== false ? "text-emerald-500" : "text-red-500"
+              )}>
+                {member.isActive !== false ? 'ACTIVE' : 'SUSPENDED'}
+              </span>
             </div>
           </div>
-        )}
-
-        {/* Footer Buttons */}
-        <div className="flex gap-3 pt-4 border-t border-outline-variant/10">
-          <Button
-            variant="outline"
-            onClick={() => router.push('/team')}
-            className="font-bold"
-          >
-            Back to Team
-          </Button>
-          <Button
-            variant="gradient"
-            onClick={() => router.push(`/team/${id}/edit`)}
-            className="font-black text-white"
-          >
-            <Pencil className="w-4 h-4 mr-2" />
-            Edit Member Role
-          </Button>
         </div>
+
+      </div>
+
+      {/* ── Recruiter Company Section ── */}
+      {member.role === 'recruiter' && (
+        <div className="bg-surface-container-low/80 backdrop-blur-md p-6 rounded-[2rem] border border-outline-variant/10 shadow-xl space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-outline-variant/10">
+            <span className="w-1.5 h-3.5 bg-amber-500 rounded-full" />
+            <h3 className="text-sm font-black uppercase tracking-wider text-on-surface">Recruitment Core Assignment</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Department</p>
+              <p className="text-sm font-black text-on-surface mt-1">{member.department || 'Talent Acquisition'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Job Role</p>
+              <p className="text-sm font-black text-on-surface mt-1">{member.jobRole || 'Lead Recruiter'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Company Affiliation</p>
+              <p className="text-sm font-black text-on-surface mt-1">
+                {member.hasCompanyProfile ? 'Profile Integrated' : 'No integrated company details'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Professional Skills Section ── */}
+      {member.skills && member.skills.length > 0 && (
+        <div className="bg-surface-container-low/80 backdrop-blur-md p-6 rounded-[2rem] border border-outline-variant/10 shadow-xl space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-3.5 bg-gradient-to-b from-cyan-500 to-blue-500 rounded-full" />
+            <h3 className="text-xs font-black uppercase tracking-wider text-on-surface-variant/50">Verified Skills</h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {member.skills.map((skill) => (
+              <span
+                key={skill}
+                className="px-3.5 py-2 bg-surface-container border border-outline-variant/10 text-xs font-black text-on-surface rounded-xl uppercase tracking-tight shadow-sm hover:scale-105 transition-transform"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Footer Actions Section ── */}
+      <div className="flex gap-3 pt-6 border-t border-outline-variant/10">
+        <Button
+          variant="outline"
+          onClick={() => router.push('/team')}
+          className="font-bold shadow-sm"
+        >
+          Back to Team
+        </Button>
+
+        <Button
+          variant="gradient"
+          onClick={() => router.push(`/team/${id}/edit`)}
+          className="font-black text-white shadow-lg shadow-indigo-500/10 ml-auto"
+        >
+          <Pencil className="w-4 h-4 mr-2" />
+          Edit Member Role
+        </Button>
       </div>
     </main>
   );
