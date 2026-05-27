@@ -166,7 +166,7 @@ const PortfolioView = () => {
       const email = dataToExport.email || '';
       const phone = dataToExport.phoneNumber ? `${dataToExport.countryCode || '+91'} ${dataToExport.phoneNumber}` : '';
       const location = dataToExport.location || '';
-      const githubLink = 'github.com/profile'; 
+      const githubLink = 'github.com/profile';
 
       // ─── Background Watermark Image ───
       const logoImg = new window.Image();
@@ -179,14 +179,20 @@ const PortfolioView = () => {
         }
       });
 
-      if (logoImg.complete && logoImg.naturalWidth > 0) {
-        doc.saveGraphicsState();
-        doc.setGState(new (doc as any).GState({ opacity: 0.1 }));
-        const imgWidth = 140;
-        const imgHeight = (logoImg.naturalHeight / logoImg.naturalWidth) * imgWidth;
-        doc.addImage(logoImg, 'PNG', (pageWidth - imgWidth) / 2, (pageHeight - imgHeight) / 2, imgWidth, imgHeight);
-        doc.restoreGraphicsState();
-      }
+      const drawWatermark = () => {
+        if (logoImg.complete && logoImg.naturalWidth > 0) {
+          doc.saveGraphicsState();
+          doc.setGState(new (doc as any).GState({ opacity: 0.1 }));
+          const imgWidth = 140;
+          const imgHeight = (logoImg.naturalHeight / logoImg.naturalWidth) * imgWidth;
+          doc.addImage(logoImg, 'PNG', (pageWidth - imgWidth) / 2, (pageHeight - imgHeight) / 2, imgWidth, imgHeight);
+          doc.restoreGraphicsState();
+        }
+      };
+
+      // Draw watermark on Page 1
+      drawWatermark();
+
       // ─── Header: Professional Blue Block ───
       const headerHeight = 35;
       doc.setFillColor(30, 64, 175); // Deep Blue (#1e40af)
@@ -207,7 +213,7 @@ const PortfolioView = () => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(255, 255, 255);
-      
+
       let contactY = 16;
       if (phone || location) {
         const contactStr = [phone, location].filter(Boolean).join(' | ');
@@ -228,7 +234,7 @@ const PortfolioView = () => {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(11);
         doc.text(title.toUpperCase(), margin, y);
-        
+
         doc.setDrawColor(30, 64, 175);
         doc.setLineWidth(0.5);
         doc.line(margin, y + 2, pageWidth - margin, y + 2);
@@ -238,6 +244,7 @@ const PortfolioView = () => {
       const checkPageBreak = (neededHeight: number) => {
         if (yPos + neededHeight > pageHeight - margin) {
           doc.addPage();
+          drawWatermark(); // Draw watermark on new page
           yPos = margin + 5;
           return true;
         }
@@ -248,11 +255,13 @@ const PortfolioView = () => {
       if (dataToExport.bio) {
         doc.setFont('helvetica', 'italic');
         doc.setFontSize(9.5);
-        const bioLines = doc.splitTextToSize(dataToExport.bio, contentWidth);
+        const bioLines = doc.splitTextToSize(dataToExport.bio, contentWidth - 12);
         checkPageBreak(bioLines.length * 5 + 10);
         yPos = drawSectionHeader('PROFESSIONAL SUMMARY', yPos);
-        
+
         doc.setTextColor(50, 50, 50);
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(9.5);
         doc.text(bioLines, margin, yPos);
         yPos += bioLines.length * 5 + 6;
       }
@@ -264,75 +273,46 @@ const PortfolioView = () => {
       if (hasCategorizedSkills || hasFlatSkills) {
         checkPageBreak(20);
         yPos = drawSectionHeader('TECHNICAL SKILLS', yPos);
-        
-        doc.setFontSize(8.5);
 
         if (hasCategorizedSkills) {
           dataToExport.categorizedSkills.forEach((g: any) => {
             if (Array.isArray(g.skills) && g.skills.length > 0) {
+              const cleanSkills = g.skills.filter(Boolean);
+              if (cleanSkills.length === 0) return;
+
               checkPageBreak(15);
               // Print Category Title
               doc.setFont('helvetica', 'bold');
               doc.setTextColor(30, 64, 175);
               doc.text(g.title ? g.title.toUpperCase() : 'SKILLS', margin, yPos);
-              yPos += 6;
+              yPos += 5;
 
-              let currentX = margin;
-              let currentY = yPos;
-              doc.setFont('helvetica', 'bold');
-              
-              g.skills.forEach((skill: string) => {
-                if (!skill) return;
-                const textWidth = doc.getTextWidth(skill);
-                const pillWidth = textWidth + 6;
-                const pillHeight = 6;
-                
-                if (currentX + pillWidth > pageWidth - margin) {
-                  currentX = margin;
-                  currentY += 8;
-                  checkPageBreak(10);
-                }
-                
-                doc.setDrawColor(200, 200, 200);
-                doc.setFillColor(250, 250, 250);
-                doc.roundedRect(currentX, currentY - 4, pillWidth, pillHeight, 1, 1, 'FD');
-                
-                doc.setTextColor(50, 50, 50);
-                doc.text(skill, currentX + 3, currentY + 0.2);
-                
-                currentX += pillWidth + 3;
-              });
-              yPos = currentY + 10;
+              doc.setFont('helvetica', 'normal');
+              doc.setTextColor(50, 50, 50);
+              doc.setFontSize(9.5);
+
+              const skillsString = cleanSkills.join(', ');
+              const skillsLines = doc.splitTextToSize(skillsString, contentWidth - 12);
+
+              checkPageBreak(skillsLines.length * 5);
+              doc.text(skillsLines, margin, yPos);
+              yPos += skillsLines.length * 5 + 6;
             }
           });
-          yPos += 2;
         } else if (hasFlatSkills) {
-          let currentX = margin;
-          let currentY = yPos;
-          doc.setFont('helvetica', 'bold');
-          
-          dataToExport.skills.forEach((skill: string) => {
-            if (!skill) return;
-            const textWidth = doc.getTextWidth(skill);
-            const pillWidth = textWidth + 6;
-            const pillHeight = 6;
-            
-            if (currentX + pillWidth > pageWidth - margin) {
-              currentX = margin;
-              currentY += 8;
-              checkPageBreak(10);
-            }
-            
-            doc.setDrawColor(200, 200, 200);
-            doc.setFillColor(250, 250, 250);
-            doc.roundedRect(currentX, currentY - 4, pillWidth, pillHeight, 1, 1, 'FD');
-            
+          const cleanSkills = dataToExport.skills.filter(Boolean);
+          if (cleanSkills.length > 0) {
+            doc.setFont('helvetica', 'normal');
             doc.setTextColor(50, 50, 50);
-            doc.text(skill, currentX + 3, currentY + 0.2);
-            
-            currentX += pillWidth + 3;
-          });
-          yPos = currentY + 12;
+            doc.setFontSize(9.5);
+
+            const skillsString = cleanSkills.join(', ');
+            const skillsLines = doc.splitTextToSize(skillsString, contentWidth - 12);
+
+            checkPageBreak(skillsLines.length * 5);
+            doc.text(skillsLines, margin, yPos);
+            yPos += skillsLines.length * 5 + 6;
+          }
         }
       }
 
@@ -340,31 +320,47 @@ const PortfolioView = () => {
       if (dataToExport.workExperience && dataToExport.workExperience.length > 0) {
         checkPageBreak(20);
         yPos = drawSectionHeader('EXPERIENCE', yPos);
-        
+
         dataToExport.workExperience.forEach((exp: any) => {
           checkPageBreak(25);
-          
+
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(10);
           doc.setTextColor(30, 64, 175);
           doc.text(`${exp.role} / ${exp.company}`, margin, yPos);
-          
+
           if (exp.duration) {
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(30, 64, 175);
             doc.text(exp.duration, pageWidth - margin, yPos, { align: 'right' });
           }
           yPos += 5;
-          
+
           if (exp.description) {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9.5);
             doc.setTextColor(50, 50, 50);
-            const descLines = doc.splitTextToSize(exp.description, contentWidth - 4);
-            descLines.forEach((line: string) => {
-              checkPageBreak(5);
-              doc.text(`• ${line}`, margin + 2, yPos);
-              yPos += 5;
+
+            // Split the description by newlines to process individual bullet items
+            const bulletItems = exp.description.split('\n').map((item: string) => item.trim()).filter(Boolean);
+
+            bulletItems.forEach((bulletText: string) => {
+              // Remove any existing bullet points to prevent double bullets
+              const cleanText = bulletText.replace(/^[•\-\*\s\u2022]+/, '');
+
+              // Wrap text with a safety margin
+              const wrappedLines = doc.splitTextToSize(cleanText, contentWidth - 12);
+
+              wrappedLines.forEach((line: string, index: number) => {
+                checkPageBreak(5);
+                if (index === 0) {
+                  // Only draw a bullet on the first wrapped line of this bullet item
+                  doc.text('•', margin + 2, yPos);
+                }
+                // Indent text properly to align with the bullet list style
+                doc.text(line, margin + 6, yPos);
+                yPos += 5;
+              });
             });
           } else {
             yPos += 2;
@@ -377,15 +373,15 @@ const PortfolioView = () => {
       if (dataToExport.projects && dataToExport.projects.length > 0) {
         checkPageBreak(20);
         yPos = drawSectionHeader('PROJECTS', yPos);
-        
+
         dataToExport.projects.forEach((proj: any) => {
           checkPageBreak(20);
-          
+
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(10);
           doc.setTextColor(30, 64, 175);
           doc.text(proj.title, margin, yPos);
-          
+
           if (proj.link) {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
@@ -393,16 +389,32 @@ const PortfolioView = () => {
             doc.text(proj.link, pageWidth - margin, yPos, { align: 'right' });
           }
           yPos += 5;
-          
+
           if (proj.description) {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9.5);
             doc.setTextColor(50, 50, 50);
-            const descLines = doc.splitTextToSize(proj.description, contentWidth - 4);
-            descLines.forEach((line: string) => {
-              checkPageBreak(5);
-              doc.text(`• ${line}`, margin + 2, yPos);
-              yPos += 5;
+
+            // Split the description by newlines to process individual bullet items
+            const bulletItems = proj.description.split('\n').map((item: string) => item.trim()).filter(Boolean);
+
+            bulletItems.forEach((bulletText: string) => {
+              // Remove any existing bullet points to prevent double bullets
+              const cleanText = bulletText.replace(/^[•\-\*\s\u2022]+/, '');
+
+              // Wrap text with a safety margin
+              const wrappedLines = doc.splitTextToSize(cleanText, contentWidth - 12);
+
+              wrappedLines.forEach((line: string, index: number) => {
+                checkPageBreak(5);
+                if (index === 0) {
+                  // Only draw a bullet on the first wrapped line of this bullet item
+                  doc.text('•', margin + 2, yPos);
+                }
+                // Indent text properly to align with the bullet list style
+                doc.text(line, margin + 6, yPos);
+                yPos += 5;
+              });
             });
           }
           yPos += 4;
@@ -413,23 +425,23 @@ const PortfolioView = () => {
       if (dataToExport.education && dataToExport.education.length > 0) {
         checkPageBreak(20);
         yPos = drawSectionHeader('EDUCATION', yPos);
-        
+
         dataToExport.education.forEach((edu: any) => {
           checkPageBreak(15);
-          
+
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(10);
           doc.setTextColor(50, 50, 50);
           const eduTitle = `${edu.degree}${edu.university ? ` - ${edu.university}` : ''}`;
           doc.text(eduTitle, margin, yPos);
-          
+
           if (edu.year) {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9.5);
             doc.text(edu.year, pageWidth - margin, yPos, { align: 'right' });
           }
           yPos += 5;
-          
+
           if (edu.cgpa) {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9.5);
@@ -445,22 +457,22 @@ const PortfolioView = () => {
       if (dataToExport.certificates && dataToExport.certificates.length > 0) {
         checkPageBreak(20);
         yPos = drawSectionHeader('CERTIFICATES & AWARDS', yPos);
-        
+
         dataToExport.certificates.forEach((cert: any) => {
           checkPageBreak(15);
-          
+
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(10);
           doc.setTextColor(50, 50, 50);
           doc.text(cert.name, margin, yPos);
-          
+
           if (cert.year) {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9.5);
             doc.text(cert.year.toString(), pageWidth - margin, yPos, { align: 'right' });
           }
           yPos += 5;
-          
+
           if (cert.issuer) {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9.5);
@@ -483,7 +495,7 @@ const PortfolioView = () => {
       if (hasPersonalDetails) {
         checkPageBreak(25);
         yPos = drawSectionHeader('PERSONAL DETAILS', yPos);
-        
+
         const details = [
           { label: 'Date of Birth', value: dataToExport.personalDetail.dob },
           { label: 'Gender', value: dataToExport.personalDetail.gender },
@@ -507,7 +519,7 @@ const PortfolioView = () => {
         yPos += 2;
       }
 
-      const filename = `${(userName).replace(/\s+/g, '_')}_Professional_Resume.pdf`;
+      const filename = `${(userName).replace(/\s+/g, '_')}_Resume.pdf`;
       doc.save(filename);
       toast.success('Professional Resume Downloaded!', { id: 'portfolio-pdf-gen' });
     } catch (pdfErr: any) {
