@@ -5,7 +5,8 @@
 const ROLES = {
   CANDIDATE: 'candidate',
   RECRUITER: 'recruiter',
-  ADMIN: 'admin'
+  ADMIN: 'admin',
+  SUPER_ADMIN: 'super_admin'
 };
 
 module.exports = ROLES;
