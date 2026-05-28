@@ -1,6 +1,14 @@
 const cloudinary = require('cloudinary').v2;
 const { Readable } = require('stream');
 
+// Check ENV Variables
+if (
+  !process.env.CLOUDINARY_CLOUD_NAME ||
+  !process.env.CLOUDINARY_API_KEY ||
+  !process.env.CLOUDINARY_API_SECRET
+) {
+  console.error("❌ Cloudinary environment variables missing");
+}
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -58,17 +66,17 @@ const uploadToCloudinary = (fileBuffer, folder, resourceType = 'auto') => {
  */
 const extractPublicId = (url) => {
   if (!url || !url.includes('cloudinary.com')) return null;
-  
+
   try {
     const parts = url.split('/');
     const uploadIndex = parts.indexOf('upload');
     if (uploadIndex === -1) return null;
 
     // Remove version and extension
-    const remainingParts = parts.slice(uploadIndex + 2); 
+    const remainingParts = parts.slice(uploadIndex + 2);
     const publicIdWithExt = remainingParts.join('/');
     const publicId = publicIdWithExt.split('.')[0];
-    
+
     return publicId;
   } catch (error) {
     return null;

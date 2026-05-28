@@ -54,66 +54,76 @@ const seedSuperAdmin = async () => {
   }
 };
 
-const PORT = process.env.PORT || 5001;
-const numCPUs = os.cpus().length;
-
-if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
-  console.log(`\n🚀 Primary Process ${process.pid} is starting...`);
-  console.log(`💻 System: ${os.type()} | Cores: ${numCPUs}`);
-  console.log(`📡 Deployment: Ready for Market\n`);
-
-  // Fork workers
-  for (let i = 0; i < numCPUs; i++) {
-    cluster.fork();
-  }
-
-  cluster.on('exit', (worker, code, signal) => {
-    console.error(`⚠️ Worker ${worker.process.pid} died. Reviving...`);
-    cluster.fork();
+// Expose app for Vercel Serverless Functions
+if (process.env.VERCEL) {
+  connectDB().then(() => {
+    seedSuperAdmin();
+  }).catch(err => {
+    console.error('❌ MongoDB Connection failed on Vercel start:', err.message);
   });
+  module.exports = app;
 } else {
-  // Worker process logic
-  const startServer = async () => {
-    try {
-      // 1. Connect to Database & Redis
-      await connectDB();
-      // await connectRedis();
+  const PORT = process.env.PORT || 5001;
+  const numCPUs = os.cpus().length;
 
-      // Seed Super Admin
-      await seedSuperAdmin();
+  if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
+    console.log(`\n🚀 Primary Process ${process.pid} is starting...`);
+    console.log(`💻 System: ${os.type()} | Cores: ${numCPUs}`);
+    console.log(`📡 Deployment: Ready for Market\n`);
 
-      // 2. Start HTTP Server
-      const server = http.createServer(app);
-
-      // 3. Initialize Socket.io
-      initSocket(server);
-
-      // Bind to 0.0.0.0 for external access (Market Ready)
-      server.listen(PORT, '0.0.0.0', () => {
-        if (cluster.isWorker && cluster.worker.id === 1 || !cluster.isWorker) {
-          console.log(`\n✅ Server Status: ONLINE`);
-          console.log(`🚀 API Base:   http://localhost:${PORT}/api/v1`);
-          console.log(`💚 Health:     http://localhost:${PORT}/api/v1/health`);
-          console.log(`🌐 Network:    0.0.0.0:${PORT}\n`);
-        }
-      });
-
-      // Handle rejections
-      process.on('unhandledRejection', (err) => {
-        console.error(`❌ Worker ${process.pid} Error: ${err.message}`);
-        server.close(() => process.exit(1));
-      });
-
-      // Graceful shutdown
-      process.on('SIGTERM', () => {
-        server.close(() => process.exit(0));
-      });
-
-    } catch (error) {
-      console.error(`❌ Failed to start worker ${process.pid}:`, error.message);
-      process.exit(1);
+    // Fork workers
+    for (let i = 0; i < numCPUs; i++) {
+      cluster.fork();
     }
-  };
 
-  startServer();
+    cluster.on('exit', (worker, code, signal) => {
+      console.error(`⚠️ Worker ${worker.process.pid} died. Reviving...`);
+      cluster.fork();
+    });
+  } else {
+    // Worker process logic
+    const startServer = async () => {
+      try {
+        // 1. Connect to Database & Redis
+        await connectDB();
+        // await connectRedis();
+
+        // Seed Super Admin
+        await seedSuperAdmin();
+
+        // 2. Start HTTP Server
+        const server = http.createServer(app);
+
+        // 3. Initialize Socket.io
+        initSocket(server);
+
+        // Bind to 0.0.0.0 for external access (Market Ready)
+        server.listen(PORT, '0.0.0.0', () => {
+          if (cluster.isWorker && cluster.worker.id === 1 || !cluster.isWorker) {
+            console.log(`\n✅ Server Status: ONLINE`);
+            console.log(`🚀 API Base:   http://localhost:${PORT}/api/v1`);
+            console.log(`💚 Health:     http://localhost:${PORT}/api/v1/health`);
+            console.log(`🌐 Network:    0.0.0.0:${PORT}\n`);
+          }
+        });
+
+        // Handle rejections
+        process.on('unhandledRejection', (err) => {
+          console.error(`❌ Worker ${process.pid} Error: ${err.message}`);
+          server.close(() => process.exit(1));
+        });
+
+        // Graceful shutdown
+        process.on('SIGTERM', () => {
+          server.close(() => process.exit(0));
+        });
+
+      } catch (error) {
+        console.error(`❌ Failed to start worker ${process.pid}:`, error.message);
+        process.exit(1);
+      }
+    };
+
+    startServer();
+  }
 }
