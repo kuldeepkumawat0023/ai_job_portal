@@ -18,7 +18,8 @@ import {
   ChevronDown,
   Bot,
   Sparkles,
-  BrainCircuit
+  BrainCircuit,
+  Phone
 } from 'lucide-react';
 
 import AuthSplitLayout from './AuthSplitLayout';
@@ -77,9 +78,10 @@ const RegisterForm = () => {
           if (!emailRegex.test(value)) {
             error = 'Invalid email address';
           } else if (
-            !value.toLowerCase().endsWith('@gmail.com')
+            !value.toLowerCase().endsWith('@gmail.com') &&
+            !value.toLowerCase().endsWith('@example.com')
           ) {
-            error = 'Only @gmail.com is allowed';
+            error = 'Only @gmail.com or @example.com is allowed';
           }
           break;
 
@@ -179,10 +181,11 @@ const RegisterForm = () => {
 
             isValid = false;
           } else if (
-            !val.toLowerCase().endsWith('@gmail.com')
+            !val.toLowerCase().endsWith('@gmail.com') &&
+            !val.toLowerCase().endsWith('@example.com')
           ) {
             newErrors[key] =
-              'Only @gmail.com is allowed';
+              'Only @gmail.com or @example.com is allowed';
 
             isValid = false;
           }
@@ -550,6 +553,229 @@ const RegisterForm = () => {
                 {errors.email}
               </p>
             )}
+          </div>
+
+          {/* Phone Number */}
+          <div>
+            <label
+              className="block text-[10px] font-bold text-on-surface-variant mb-1 uppercase tracking-widest"
+              htmlFor="phoneNumber"
+            >
+              PHONE NUMBER
+            </label>
+
+            <div className="relative flex gap-2">
+              <div className="relative w-24 shrink-0">
+                <select
+                  className="w-full glass-input rounded-xl py-2.5 pl-3 pr-8 text-sm focus:ring-0 transition-all appearance-none bg-surface/50"
+                  id="countryCode"
+                  name="countryCode"
+                  value={formData.countryCode}
+                  onChange={handleChange}
+                >
+                  <option value="+91">+91 (IN)</option>
+                  <option value="+1">+1 (US)</option>
+                  <option value="+44">+44 (UK)</option>
+                  <option value="+61">+61 (AU)</option>
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
+              </div>
+              <div className="relative flex-1">
+                <Phone
+                  className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 z-10 transition-colors ${errors.phoneNumber
+                      ? 'text-red-500'
+                      : 'text-primary/70'
+                    }`}
+                  aria-hidden="true"
+                />
+
+                <input
+                  className={`w-full glass-input rounded-xl py-2.5 pl-10 pr-4 text-sm focus:ring-0 transition-all ${errors.phoneNumber
+                      ? '!border-red-500 !ring-red-500/10'
+                      : ''
+                    }`}
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  type="tel"
+                  placeholder="9876543210"
+                  aria-invalid={!!errors.phoneNumber}
+                  aria-describedby={
+                    errors.phoneNumber
+                      ? 'phoneNumber-error'
+                      : undefined
+                  }
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            {errors.phoneNumber && (
+              <p
+                id="phoneNumber-error"
+                className="text-[10px] text-red-500 mt-1 font-bold px-1"
+              >
+                {errors.phoneNumber}
+              </p>
+            )}
+          </div>
+
+          {/* Password */}
+          <div>
+            <label
+              className="block text-[10px] font-bold text-on-surface-variant mb-1 uppercase tracking-widest"
+              htmlFor="password"
+            >
+              PASSWORD
+            </label>
+
+            <div className="relative">
+              <Lock
+                className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 z-10 transition-colors ${errors.password
+                    ? 'text-red-500'
+                    : 'text-primary/70'
+                  }`}
+                aria-hidden="true"
+              />
+
+              <input
+                className={`w-full glass-input rounded-xl py-2.5 pl-10 pr-10 text-sm focus:ring-0 transition-all ${errors.password
+                    ? '!border-red-500 !ring-red-500/10'
+                    : ''
+                  }`}
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                placeholder="••••••••"
+                aria-invalid={!!errors.password}
+                aria-describedby={
+                  errors.password
+                    ? 'password-error'
+                    : undefined
+                }
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+
+              <button
+                type="button"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors z-10"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+
+            {errors.password && (
+              <p
+                id="password-error"
+                className="text-[10px] text-red-500 mt-1 font-bold px-1"
+              >
+                {errors.password}
+              </p>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div>
+            <label
+              className="block text-[10px] font-bold text-on-surface-variant mb-1 uppercase tracking-widest"
+              htmlFor="confirmPassword"
+            >
+              CONFIRM PASSWORD
+            </label>
+
+            <div className="relative">
+              <ShieldCheck
+                className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 z-10 transition-colors ${errors.confirmPassword
+                    ? 'text-red-500'
+                    : 'text-primary/70'
+                  }`}
+                aria-hidden="true"
+              />
+
+              <input
+                className={`w-full glass-input rounded-xl py-2.5 pl-10 pr-10 text-sm focus:ring-0 transition-all ${errors.confirmPassword
+                    ? '!border-red-500 !ring-red-500/10'
+                    : ''
+                  }`}
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                placeholder="••••••••"
+                aria-invalid={!!errors.confirmPassword}
+                aria-describedby={
+                  errors.confirmPassword
+                    ? 'confirmPassword-error'
+                    : undefined
+                }
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+
+              <button
+                type="button"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors z-10"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+
+            {errors.confirmPassword && (
+              <p
+                id="confirmPassword-error"
+                className="text-[10px] text-red-500 mt-1 font-bold px-1"
+              >
+                {errors.confirmPassword}
+              </p>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full mt-6 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-on-primary py-3 px-4 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></span>
+                  Creating Account...
+                </span>
+              ) : (
+                <>
+                  Create Account
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-white/20 to-primary/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+          </button>
+
+          <div className="text-center mt-4">
+            <p className="text-sm text-on-surface-variant">
+              Already have an account?{' '}
+              <Link href="/login" className="text-primary hover:underline font-bold">
+                Log In
+              </Link>
+            </p>
           </div>
         </form>
       </section>

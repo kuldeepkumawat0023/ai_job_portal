@@ -45,7 +45,7 @@ const FeedbackForm = ({
   const applicant = typeof application.applicantId === 'object' ? application.applicantId : null;
   
   return (
-    <div className="glass-card p-8 rounded-3xl border border-white/10 shadow-xl relative overflow-hidden" id={`feedback-form-${application._id}`}>
+    <article className="glass-card p-8 rounded-3xl border border-white/10 shadow-xl relative overflow-hidden" id={`feedback-form-${application._id}`} aria-label={`Feedback Form for ${applicant?.fullname || 'Applicant'}`}>
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       
       <div className="flex justify-between items-start mb-8 relative z-10">
@@ -57,8 +57,9 @@ const FeedbackForm = ({
           onClick={onClose}
           className="p-2 text-on-surface-variant hover:text-rose-500 transition-colors"
           id="btn-close-form"
+          aria-label="Close feedback form"
         >
-          <XCircle className="w-5 h-5" />
+          <XCircle className="w-5 h-5" aria-hidden="true" />
         </button>
       </div>
 
@@ -72,13 +73,14 @@ const FeedbackForm = ({
           ].map((skill) => (
             <div key={skill.key} className="space-y-3">
               <div className="flex justify-between items-center">
-                <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
-                  <skill.icon className={`w-3.5 h-3.5 ${skill.color}`} />
+                <label htmlFor={`score-${skill.key}-input`} className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
+                  <skill.icon className={`w-3.5 h-3.5 ${skill.color}`} aria-hidden="true" />
                   {skill.label}
                 </label>
                 <span className="text-xs font-black text-on-surface">{scores[skill.key]}/10</span>
               </div>
               <input 
+                id={`score-${skill.key}-input`}
                 type="range" 
                 min="0" 
                 max="10" 
@@ -103,7 +105,7 @@ const FeedbackForm = ({
             )}
             id="btn-decision-hire"
           >
-            <ThumbsUp className="w-4 h-4" />
+            <ThumbsUp className="w-4 h-4" aria-hidden="true" />
             Recommend Hire
           </button>
           <button 
@@ -117,7 +119,7 @@ const FeedbackForm = ({
             )}
             id="btn-decision-reject"
           >
-            <ThumbsDown className="w-4 h-4" />
+            <ThumbsDown className="w-4 h-4" aria-hidden="true" />
             Reject
           </button>
         </div>
@@ -125,7 +127,7 @@ const FeedbackForm = ({
         {/* Notes & AI Refinement */}
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Internal Notes</label>
+            <label htmlFor="raw-notes-textarea" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Internal Notes</label>
             <textarea 
               className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-2xl p-4 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/20 transition-all outline-none resize-none"
               placeholder="Type raw assessment draft notes here..."
@@ -145,12 +147,12 @@ const FeedbackForm = ({
           >
             {isRefining ? (
               <div className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                <Loader2 className="w-4 h-4 animate-spin text-primary" aria-hidden="true" />
                 Refining...
               </div>
             ) : (
               <>
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4" aria-hidden="true" />
                 AI Refine Summary
               </>
             )}
@@ -179,14 +181,14 @@ const FeedbackForm = ({
           id="btn-submit-evaluation"
         >
           {isSubmitting ? (
-            <Loader2 className="w-4 h-4 animate-spin text-white" />
+            <Loader2 className="w-4 h-4 animate-spin text-white" aria-hidden="true" />
           ) : (
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
           )}
           Submit Final Decision
         </button>
       </div>
-    </div>
+    </article>
   );
 };
 
@@ -314,7 +316,7 @@ const FeedbackView = () => {
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" aria-hidden="true" />
             <input 
               type="text" 
               placeholder="Search candidates..." 
@@ -322,17 +324,22 @@ const FeedbackView = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-surface-container rounded-2xl py-2 pl-10 pr-4 text-sm font-medium border border-white/10 focus:ring-2 focus:ring-primary/20 transition-all outline-none"
               id="search-candidates-input"
+              aria-label="Search candidates"
             />
           </div>
-          <button className="p-2.5 bg-surface-container rounded-2xl border border-white/10 text-on-surface-variant hover:bg-surface-container-high transition-all" id="btn-filter-toggle">
-            <Filter className="w-5 h-5" />
+          <button 
+            className="p-2.5 bg-surface-container rounded-2xl border border-white/10 text-on-surface-variant hover:bg-surface-container-high transition-all" 
+            id="btn-filter-toggle"
+            aria-label="Filter candidates list"
+          >
+            <Filter className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
       </header>
 
       {error && (
         <div className="p-5 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-3xl flex items-center gap-3 text-sm font-semibold" id="feedback-error-banner">
-          <AlertCircle className="w-5 h-5 shrink-0" />
+          <AlertCircle className="w-5 h-5 shrink-0" aria-hidden="true" />
           <span>{error}</span>
         </div>
       )}
@@ -343,7 +350,7 @@ const FeedbackView = () => {
         <section className="lg:col-span-8 space-y-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-black text-on-surface flex items-center gap-2">
-              <Clock className="w-5 h-5 text-secondary" />
+              <Clock className="w-5 h-5 text-secondary" aria-hidden="true" />
               Pending Evaluation
               <span className="ml-2 px-2.5 py-0.5 bg-secondary/10 text-secondary text-[10px] rounded-full uppercase font-black tracking-widest">
                 {filteredPending.length}
@@ -359,7 +366,7 @@ const FeedbackView = () => {
               
               return (
                 <React.Fragment key={app._id}>
-                  <motion.div 
+                  <motion.article 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: Math.min(i * 0.05, 0.4) }}
@@ -379,6 +386,7 @@ const FeedbackView = () => {
                       }
                     }}
                     id={`candidate-row-${app._id}`}
+                    aria-label={`Pending evaluation candidate ${applicant?.fullname || 'Anonymous Candidate'}`}
                   >
                     <div className="flex items-center gap-5">
                       <div className="relative shrink-0">
@@ -405,7 +413,7 @@ const FeedbackView = () => {
                             </p>
                           </div>
                           <div className="flex items-center shrink-0 gap-1.5 px-3 py-1 rounded-xl bg-secondary/10 text-secondary text-[10px] font-black uppercase tracking-wider">
-                            <Clock size={12} />
+                            <Clock size={12} aria-hidden="true" />
                             <span>Interviewed</span>
                           </div>
                         </div>
@@ -416,14 +424,17 @@ const FeedbackView = () => {
                           </span>
                         </div>
                       </div>
-                      <button className={cn(
-                        "p-3 bg-primary/10 text-primary rounded-2xl transition-all shrink-0",
-                        isSelected ? 'rotate-90 bg-primary text-white' : 'group-hover:scale-110 opacity-0 group-hover:opacity-100'
-                      )}>
-                        <ChevronRight className="w-5 h-5" />
+                      <button 
+                        className={cn(
+                          "p-3 bg-primary/10 text-primary rounded-2xl transition-all shrink-0",
+                          isSelected ? 'rotate-90 bg-primary text-white' : 'group-hover:scale-110 opacity-0 group-hover:opacity-100'
+                        )}
+                        aria-label="Toggle candidate evaluation details"
+                      >
+                        <ChevronRight className="w-5 h-5" aria-hidden="true" />
                       </button>
                     </div>
-                  </motion.div>
+                  </motion.article>
 
                   {/* Dynamic Mobile Form inline drop-down */}
                   <AnimatePresence>
@@ -460,7 +471,7 @@ const FeedbackView = () => {
 
             {filteredPending.length === 0 && (
               <div className="border-4 border-dashed border-outline-variant/10 rounded-[32px] p-20 flex flex-col items-center justify-center text-center opacity-45 bg-surface-container/10">
-                <Users className="w-16 h-16 text-outline-variant mb-4" />
+                <Users className="w-16 h-16 text-outline-variant mb-4" aria-hidden="true" />
                 <h3 className="text-lg font-black text-on-surface uppercase tracking-widest">No Pending Candidates</h3>
                 <p className="text-xs font-bold text-on-surface-variant mt-1">There are currently no active applications in the interviewing state.</p>
               </div>
@@ -470,7 +481,7 @@ const FeedbackView = () => {
           {/* Evaluation History Section */}
           <section className="pt-10">
             <h2 className="text-xl font-black text-on-surface flex items-center gap-2 mb-6">
-              <Award className="w-5 h-5 text-emerald-500" />
+              <Award className="w-5 h-5 text-emerald-500" aria-hidden="true" />
               Evaluation History
             </h2>
             <div className="glass-card rounded-3xl border border-white/10 overflow-hidden shadow-sm">
@@ -516,6 +527,7 @@ const FeedbackView = () => {
                                       "w-2.5 h-2.5",
                                       star <= avgRating ? "fill-amber-500 text-amber-500" : "text-outline-variant/20"
                                     )} 
+                                    aria-hidden="true"
                                   />
                                 ))}
                                 <span className="ml-1 text-[10px] font-black text-on-surface">{avgRating} Stars</span>
@@ -579,7 +591,7 @@ const FeedbackView = () => {
                 className="glass-card p-10 rounded-3xl border border-white/10 shadow-sm flex flex-col items-center justify-center text-center space-y-4 min-h-[400px]"
               >
                 <div className="p-5 bg-surface-container rounded-full">
-                  <BrainCircuit className="w-10 h-10 text-on-surface-variant/30 animate-pulse" />
+                  <BrainCircuit className="w-10 h-10 text-on-surface-variant/30 animate-pulse" aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-on-surface">Select Candidate</h3>

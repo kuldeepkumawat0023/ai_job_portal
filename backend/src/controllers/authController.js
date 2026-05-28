@@ -220,6 +220,12 @@ exports.login = async (req, res, next) => {
     // Create token
     const token = signToken(user._id);
 
+    // If invited teammate is logging in for the first time, clear isPending flag
+    if (user.isPending === true) {
+      user.isPending = false;
+      await user.save({ validateBeforeSave: false });
+    }
+
     // Send Login Notification Email (Fire and forget, don't await to avoid slowing login)
     const loginHtmlMessage = `
     <!DOCTYPE html>
@@ -294,6 +300,12 @@ exports.googleLogin = async (req, res, next) => {
     if (user && user.isActive === false) {
       // Seamless Reactivation via Google Auth
       user.isActive = true;
+      await user.save();
+    }
+
+    if (user && user.isPending === true) {
+      // Clear isPending flag on Google Login for invited team members
+      user.isPending = false;
       await user.save();
     }
 

@@ -1,63 +1,44 @@
-import apiClient, { ApiResponse } from '../apiClient';
-
-// ─── API Paths ──────────────────────────────────────────────────────────────
-
-const ADMIN_PATHS = {
-  STATS: 'admin/dashboard-stats',
-  USERS: 'admin/users',
-  COMPANIES: 'admin/companies',
-  JOBS: 'admin/jobs',
-};
-
-// ─── Payload Types ────────────────────────────────────────────────────────────
-
-export interface DashboardStatsData {
-  totalUsers: number;
-  totalCandidates: number;
-  totalRecruiters: number;
-  totalCompanies: number;
-  totalJobs: number;
-  activeJobs: number;
-  totalApplications: number;
-  totalRevenue: number;
-  
-  // Live analytics arrays for graphs
-  revenueByMonth?: { month: string; amount: number }[];
-  applicationsByDay?: { day: string; count: number }[];
-}
-
-// ─── The Admin Service ────────────────────────────────────────────────────────
+import apiClient from '../apiClient';
+import { ApiResponse, AuthUser } from '../apiClient';
 
 export const adminService = {
-  /**
-   * Fetch Global Dashboard Stats (All project status at once)
-   */
-  getDashboardStats: async (params?: Record<string, any>): Promise<ApiResponse<DashboardStatsData>> => {
-    const response = await apiClient.get(ADMIN_PATHS.STATS, { params });
+  getDashboardStats: async (): Promise<ApiResponse<any>> => {
+    const response = await apiClient.get('/admin/stats');
     return response.data;
   },
 
-  /**
-   * Fetch All Users
-   */
-  getUsers: async (params?: Record<string, any>): Promise<ApiResponse> => {
-    const response = await apiClient.get(ADMIN_PATHS.USERS, { params });
+  getTransactions: async (): Promise<ApiResponse<any>> => {
+    const response = await apiClient.get('/admin/transactions');
     return response.data;
   },
 
-  /**
-   * Fetch All Companies
-   */
-  getCompanies: async (params?: Record<string, any>): Promise<ApiResponse> => {
-    const response = await apiClient.get(ADMIN_PATHS.COMPANIES, { params });
+  importBulkJobs: async (formData: FormData): Promise<ApiResponse<any>> => {
+    const response = await apiClient.post('/admin/jobs/bulk-import', formData);
     return response.data;
   },
 
-  /**
-   * Fetch All Jobs
-   */
-  getJobs: async (params?: Record<string, any>): Promise<ApiResponse> => {
-    const response = await apiClient.get(ADMIN_PATHS.JOBS, { params });
+  getAllUsers: async (): Promise<ApiResponse<AuthUser[]>> => {
+    const response = await apiClient.get('/admin/users');
+    return response.data;
+  },
+
+  suspendUser: async (id: string): Promise<ApiResponse<AuthUser>> => {
+    const response = await apiClient.put(`/admin/user/${id}/suspend`);
+    return response.data;
+  },
+
+  activateUser: async (id: string): Promise<ApiResponse<AuthUser>> => {
+    const response = await apiClient.put(`/admin/user/${id}/activate`);
+    return response.data;
+  },
+
+  updateUser: async (id: string, data: any): Promise<ApiResponse<AuthUser>> => {
+    const response = await apiClient.put(`/admin/user/${id}/update`, data);
+    return response.data;
+  },
+
+  deleteUser: async (id: string): Promise<ApiResponse<void>> => {
+    const response = await apiClient.delete(`/admin/user/${id}/delete`);
     return response.data;
   },
 };

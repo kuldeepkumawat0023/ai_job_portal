@@ -443,8 +443,9 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       {/* Full Name */}
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Full Name</label>
+                        <label htmlFor="recruiter-fullname-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Full Name</label>
                         <input 
+                          id="recruiter-fullname-input"
                           className={`w-full bg-transparent border-b py-3 font-medium transition-all focus:outline-none focus:ring-0 ${
                             isEditing 
                               ? 'border-outline-variant focus:border-primary text-on-surface' 
@@ -460,8 +461,9 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
 
                       {/* Email Address */}
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Email Address</label>
+                        <label htmlFor="recruiter-email-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Email Address</label>
                         <input 
+                          id="recruiter-email-input"
                           className="w-full bg-transparent border-b border-transparent py-3 font-medium text-on-surface-variant opacity-75 cursor-not-allowed outline-none" 
                           value={profileData.email} 
                           type="email" 
@@ -471,8 +473,9 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
 
                       {/* Job Role */}
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Role</label>
+                        <label htmlFor="recruiter-jobrole-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Job Role</label>
                         <input 
+                          id="recruiter-jobrole-input"
                           className={`w-full bg-transparent border-b py-3 font-medium transition-all focus:outline-none focus:ring-0 ${
                             isEditing 
                               ? 'border-outline-variant focus:border-primary text-on-surface' 
@@ -487,8 +490,9 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
 
                       {/* Department */}
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Department</label>
+                        <label htmlFor="recruiter-department-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Department</label>
                         <input 
+                          id="recruiter-department-input"
                           className={`w-full bg-transparent border-b py-3 font-medium transition-all focus:outline-none focus:ring-0 ${
                             isEditing 
                               ? 'border-outline-variant focus:border-primary text-on-surface' 
@@ -504,8 +508,9 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
 
                     {/* Bio */}
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Professional Bio</label>
+                      <label htmlFor="recruiter-bio-textarea" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Professional Bio</label>
                       <textarea 
+                        id="recruiter-bio-textarea"
                         className={`w-full bg-transparent border rounded-2xl p-6 font-medium transition-all resize-none min-h-[120px] focus:outline-none focus:ring-0 ${
                           isEditing 
                             ? 'border-outline-variant/30 focus:border-primary text-on-surface' 
@@ -856,8 +861,9 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
                     </div>
                     <form onSubmit={handleInviteMember} className="space-y-4">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Full Name</label>
+                        <label htmlFor="invite-fullname-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Full Name</label>
                         <input 
+                          id="invite-fullname-input"
                           type="text" 
                           className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 focus:border-primary focus:ring-0 text-on-surface"
                           value={inviteForm.name}
@@ -866,8 +872,9 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Email Address</label>
+                        <label htmlFor="invite-email-input" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Email Address</label>
                         <input 
+                          id="invite-email-input"
                           type="email" 
                           className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 focus:border-primary focus:ring-0 text-on-surface"
                           value={inviteForm.email}
@@ -876,8 +883,9 @@ const RecruiterSettingsView: React.FC<RecruiterSettingsViewProps> = ({ initialTa
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Workspace Role</label>
+                        <label htmlFor="invite-role-select" className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Workspace Role</label>
                         <select 
+                          id="invite-role-select"
                           className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 focus:border-primary focus:ring-0 text-on-surface"
                           value={inviteForm.role}
                           onChange={(e) => setInviteForm({...inviteForm, role: e.target.value})}

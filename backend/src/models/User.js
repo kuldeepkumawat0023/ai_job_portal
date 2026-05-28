@@ -145,6 +145,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  isPending: {
+    type: Boolean,
+    default: false
+  },
   isFresher: {
     type: Boolean,
     default: false

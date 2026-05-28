@@ -86,6 +86,19 @@ const JobDetailView = ({ jobId: propJobId }: JobDetailViewProps) => {
     }
   };
 
+  // Approve pending job
+  const handleApproveJob = async () => {
+    if (!jobId) return;
+    try {
+      await jobService.approveJob(jobId);
+      toast.success('Job approved');
+      // Refresh or navigate back
+      router.push('/recruiter/job-board');
+    } catch (error) {
+      toast.error('Failed to approve job');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
@@ -131,22 +144,32 @@ const JobDetailView = ({ jobId: propJobId }: JobDetailViewProps) => {
         </button>
 
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            onClick={() => router.push(`/recruiter/job-board/${jobId}/edit`)}
-            className="flex items-center gap-2 border-outline-variant/10 text-on-surface hover:bg-surface-container-high py-2.5 rounded-2xl"
-          >
-            <Edit3 size={16} />
-            <span>Edit Role</span>
-          </Button>
-          <Button 
-            variant="ghost" 
-            onClick={() => setIsDeleteModalOpen(true)}
-            className="flex items-center gap-2 bg-error/10 hover:bg-error/20 text-error py-2.5 rounded-2xl"
-          >
-            <Trash2 size={16} />
-            <span>Delete Role</span>
-          </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => router.push(`/recruiter/job-board/${jobId}/edit`)}
+              className="flex items-center gap-2 border-outline-variant/10 text-on-surface hover:bg-surface-container-high py-2.5 rounded-2xl"
+            >
+              <Edit3 size={16} />
+              <span>Edit Role</span>
+            </Button>
+            {job && job.status === 'PENDING' && (
+              <Button 
+                variant="ghost" 
+                onClick={handleApproveJob}
+                className="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 py-2.5 rounded-2xl"
+              >
+                <CheckCircle2 size={16} />
+                <span>Approve Job</span>
+              </Button>
+            )}
+            <Button 
+              variant="ghost" 
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="flex items-center gap-2 bg-error/10 hover:bg-error/20 text-error py-2.5 rounded-2xl"
+            >
+              <Trash2 size={16} />
+              <span>Delete Role</span>
+            </Button>
         </div>
       </div>
 

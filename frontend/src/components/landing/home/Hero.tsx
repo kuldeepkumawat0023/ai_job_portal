@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { Sparkles, FileText, TrendingUp } from 'lucide-react';
+import { Sparkles, FileText, TrendingUp, Download } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 
 const Hero = () => {
@@ -67,20 +67,24 @@ const Hero = () => {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
+
+
           <Button
             variant="gradient"
             size="lg"
             glow
+            onClick={() => {
+              window.dispatchEvent(new Event('showInstallModal'));
+            }}
             className="w-full sm:w-auto gap-2"
-            aria-label="Analyze your resume with AI"
-            title="Analyze Resume"
+            aria-label="Install AI JobFit App"
+            title="Download App"
           >
-            <FileText
+            <Download
               className="w-5 h-5"
               aria-hidden="true"
             />
-
-            Analyze Resume
+            Download App
           </Button>
 
           <Button

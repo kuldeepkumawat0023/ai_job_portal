@@ -10,6 +10,7 @@ export default function AISuggestionsPage() {
           description: "Discover personalized job suggestions tailored to your skills and career goals by AIJobFit.",
           keywords: "AI job suggestions, personalized jobs, AIJobFit, smart job match",
           url: "/candidate/ai-suggestions",
+          noIndex: true,
         }}
       />
       <main className="w-full min-h-screen bg-surface">

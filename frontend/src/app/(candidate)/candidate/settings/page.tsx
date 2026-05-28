@@ -11,6 +11,7 @@ export default function SettingsPage() {
           description: "Manage your AIJobFit account settings and preferences.",
           keywords: "account settings, preferences, AIJobFit",
           url: "/candidate/settings",
+          noIndex: true,
         }}
       />
       <main className="w-full min-h-screen bg-surface">

@@ -20,7 +20,9 @@ export interface Job {
   perks?: string[];
   createdAt: string;
   updatedAt: string;
+  status?: string; // Optional status from backend
 }
+
 
 /**
  * 💼 Job Service
@@ -100,4 +102,13 @@ export const jobService = {
     const response = await apiClient.delete(`/job/delete/${id}`);
     return response.data;
   },
+
+  /**
+   * Approve a job posting (Recruiter/Admin)
+   * PUT /api/v1/job/approve/:id
+   */
+   approveJob: async (id: string): Promise<ApiResponse<Job>> => {
+     const response = await apiClient.put(`/job/approve/${id}`);
+     return response.data;
+   },
 };

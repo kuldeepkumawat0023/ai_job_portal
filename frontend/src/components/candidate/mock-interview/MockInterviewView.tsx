@@ -101,7 +101,7 @@ const MockInterviewView = () => {
       };
 
       recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
+        console.warn('Speech recognition error:', event.error);
 
         if (event.error === 'not-allowed') {
           toast.error('Microphone access denied! Please enable microphone permission in your browser address bar.');
@@ -320,11 +320,13 @@ const MockInterviewView = () => {
 
     // ─── Background Watermark Image ───
     const logoImg = new window.Image();
-    logoImg.src = '/images/logo/logoimage.png';
-
     await new Promise((resolve) => {
       logoImg.onload = resolve;
       logoImg.onerror = resolve;
+      logoImg.src = '/images/logo/logo.png';
+      if (logoImg.complete) {
+        resolve(true);
+      }
     });
 
     const addWatermark = (pageDoc: jsPDF) => {
@@ -359,69 +361,133 @@ const MockInterviewView = () => {
     // Draw watermark on first page
     addWatermark(doc);
 
-    // Header
-    doc.setFillColor(26, 32, 44);
-    doc.rect(0, 0, pageWidth, 40, 'F');
+    const margin = 15;
+    const contentWidth = pageWidth - margin * 2; // 180
+
+    // ─── Header: Premium Deep Navy Block ───
+    doc.setFillColor(70, 72, 212); // Primary app color
+    doc.rect(0, 0, pageWidth, 35, 'F');
+
+    // Accent line
+    doc.setFillColor(129, 39, 207); // Secondary app color
+    doc.rect(0, 34, pageWidth, 1, 'F');
 
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('MOCK INTERVIEW REPORT', 20, 25);
+    doc.setFontSize(16);
+    doc.text('AI MOCK INTERVIEW REPORT', margin, 14);
 
-    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - 60, 25);
+    doc.setFontSize(8.5);
+    doc.setTextColor(200, 210, 230);
+    doc.text(`CANDIDATE: ${candidateName.toUpperCase()}`, margin, 21);
+    doc.text(`DATE GENERATED: ${new Date().toLocaleDateString()}   |   POWERED BY AI JOB PORTAL`, margin, 26);
 
-    // Candidate Info
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(14);
+    // Right-aligned status badge in header
+    doc.setFillColor(129, 39, 207, 0.2);
+    doc.setDrawColor(129, 39, 207);
+    doc.roundedRect(pageWidth - margin - 32, 10, 32, 7, 1.5, 1.5, 'FD');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7.5);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Candidate: ${candidateName}`, 20, 55);
+    doc.text('INTERVIEW COMPLETE', pageWidth - margin - 16, 14.8, { align: 'center' });
 
-    // Summary Box
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.5);
-    doc.rect(20, 65, pageWidth - 40, 30);
+    let yPos = 46;
+
+    // ─── Row 1: Overall Score & Summary Box ───
+    doc.setFillColor(243, 246, 252);
+    doc.setDrawColor(220, 228, 242);
+    doc.roundedRect(margin, yPos, 45, 26, 2, 2, 'FD');
+
+    doc.setTextColor(71, 85, 105);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.text('OVERALL SCORE', margin + 22.5, yPos + 6, { align: 'center' });
 
     const totalScore = allAnswers.reduce((acc, curr) => acc + (curr.analysis?.score || 0), 0);
     const avgScore = allAnswers.length > 0 ? Math.round(totalScore / allAnswers.length) : 0;
-    const timeSpent = 900 - timeLeft;
+    
+    if (avgScore >= 80) doc.setTextColor(22, 163, 74);
+    else if (avgScore >= 60) doc.setTextColor(217, 119, 6);
+    else doc.setTextColor(220, 38, 38);
 
-    doc.setFontSize(11);
-    doc.text(`Overall Score: ${avgScore}%`, 30, 75);
-    doc.text(`Time Taken: ${formatTime(timeSpent)}`, 30, 85);
-    doc.text(`Questions: ${allAnswers.length}/${questions.length}`, 100, 75);
+    doc.setFontSize(26);
+    doc.text(`${avgScore}%`, margin + 22.5, yPos + 18, { align: 'center' });
+
+    // Right: Summary Block
+    doc.setTextColor(30, 41, 59);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.text('INTERVIEW SUMMARY', margin + 53, yPos + 5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(71, 85, 105);
+    
+    const timeSpent = 900 - timeLeft;
+    doc.text(`Time Taken: ${formatTime(timeSpent)}`, margin + 53, yPos + 11);
+    doc.text(`Questions Answered: ${allAnswers.length}/${questions.length}`, margin + 53, yPos + 16);
+
+    yPos += 34;
+
+    // Divider Line
+    doc.setDrawColor(226, 232, 240);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+
+    yPos += 10;
 
     // Q&A Section
-    let yPos = 110;
-    doc.setFontSize(16);
-    doc.text('Detailed Analysis', 20, yPos);
+    doc.setTextColor(70, 72, 212);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DETAILED ANALYSIS', margin, yPos);
     yPos += 10;
 
     allAnswers.forEach((item, idx) => {
-      if (yPos > 250) {
+      if (yPos > 260) {
         doc.addPage();
         addWatermark(doc);
-        yPos = 20;
+        yPos = 25; // Added top margin for new page
       }
 
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Q${idx + 1}: ${item.question}`, 20, yPos, { maxWidth: pageWidth - 40 });
-      yPos += (doc.splitTextToSize(item.question, pageWidth - 40).length * 7);
-
-      doc.setFont('helvetica', 'italic');
+      // Question
       doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      const answerText = `Your Answer: ${item.answer || 'No response'}`;
-      doc.text(answerText, 25, yPos, { maxWidth: pageWidth - 50 });
-      yPos += (doc.splitTextToSize(answerText, pageWidth - 50).length * 5) + 5;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      const qText = `Q${idx + 1}: ${item.question}`;
+      doc.text(qText, margin, yPos, { maxWidth: contentWidth });
+      yPos += (doc.splitTextToSize(qText, contentWidth).length * 5) + 2;
 
+      // Your Answer
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      const answerText = `Your Answer: ${item.answer || 'No response'}`;
+      doc.text(answerText, margin + 5, yPos, { maxWidth: contentWidth - 5 });
+      yPos += (doc.splitTextToSize(answerText, contentWidth - 5).length * 4) + 3;
+
+      // Feedback Box
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      const feedbackText = `Feedback: ${item.analysis?.feedback}`;
-      doc.text(feedbackText, 25, yPos, { maxWidth: pageWidth - 50 });
-      yPos += (doc.splitTextToSize(feedbackText, pageWidth - 50).length * 5) + 10;
+      doc.setFontSize(8.5);
+      doc.setTextColor(51, 65, 85);
+      
+      const feedbackText = `Feedback: ${item.analysis?.feedback || 'N/A'}`;
+      const fbLines = doc.splitTextToSize(feedbackText, contentWidth - 8);
+      const fbHeight = fbLines.length * 4 + 4;
+
+      // Check if feedback box fits on page, if not push to next page
+      if (yPos + fbHeight > 280) {
+        doc.addPage();
+        addWatermark(doc);
+        yPos = 25;
+      }
+
+      doc.setFillColor(243, 246, 252);
+      doc.setDrawColor(220, 228, 242);
+      doc.roundedRect(margin + 5, yPos, contentWidth - 5, fbHeight, 1.5, 1.5, 'FD');
+      
+      doc.text(fbLines, margin + 8, yPos + 5);
+      yPos += fbHeight + 8;
     });
 
     doc.save(`${candidateName}_Interview_Report.pdf`);
@@ -634,11 +700,11 @@ const MockInterviewView = () => {
                 <div className="relative w-full">
                   <textarea
                     value={transcript}
-                    onChange={(e) => setTranscript(e.target.value)}
+                    readOnly
                     placeholder={
                       isListening
-                        ? "Listening... Speak clearly into your mic (or type/edit your answer here directly)..."
-                        : "Click the mic button to speak your answer, or type/edit your answer here directly..."
+                        ? "Listening... Speak clearly into your mic..."
+                        : "Click the mic button to speak your answer..."
                     }
                     className="w-full min-h-[120px] md:min-h-[150px] p-6 pb-12 rounded-2xl bg-surface-container/30 border border-outline-variant/10 text-on-surface text-lg font-medium leading-relaxed resize-none focus:outline-none focus:border-primary/50 transition-all placeholder:text-on-surface-variant/40"
                   />

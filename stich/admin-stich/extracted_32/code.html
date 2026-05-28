@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 20px rgba(70, 72, 212, 0.04);
+        }
+        .glass-card-hover:hover {
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 12px 32px rgba(70, 72, 212, 0.08);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        .primary-gradient {
+            background: linear-gradient(135deg, #4648d4 0%, #8127cf 100%);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "primary": "#4648d4",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#9c48ea",
+                        "on-surface-variant": "#464554",
+                        "outline": "#767586",
+                        "surface-tint": "#494bd6",
+                        "surface-container-highest": "#e4e1ed",
+                        "inverse-on-surface": "#f2effb",
+                        "surface-dim": "#dbd8e4",
+                        "tertiary-fixed": "#ffdcc5",
+                        "tertiary": "#904900",
+                        "primary-container": "#6063ee",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "on-secondary-container": "#fffbff",
+                        "on-secondary": "#ffffff",
+                        "surface": "#fcf8ff",
+                        "background": "#fcf8ff",
+                        "secondary-fixed-dim": "#ddb7ff",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#303038",
+                        "outline-variant": "#c7c4d7",
+                        "on-tertiary-fixed": "#301400",
+                        "on-error": "#ffffff",
+                        "on-background": "#1b1b23",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e4e1ed",
+                        "surface-container": "#efecf8",
+                        "surface-container-high": "#e9e6f3",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#b55d00",
+                        "on-primary-fixed": "#07006c",
+                        "surface-bright": "#fcf8ff",
+                        "on-secondary-fixed": "#2c0051",
+                        "inverse-primary": "#c0c1ff",
+                        "on-surface": "#1b1b23",
+                        "secondary-fixed": "#f0dbff",
+                        "surface-container-low": "#f5f2fe",
+                        "on-tertiary-container": "#fffbff",
+                        "primary-fixed": "#e1e0ff",
+                        "on-primary-container": "#fffbff",
+                        "secondary": "#8127cf",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "on-secondary-fixed-variant": "#6900b3",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "64px",
+                        "max_width": "1280px",
+                        "gutter": "24px",
+                        "base": "4px",
+                        "xs": "8px",
+                        "sm": "16px",
+                        "md": "24px",
+                        "lg": "40px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "button": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h2": ["30px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                        "h3": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h1": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                        "button": ["14px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface antialiased overflow-x-hidden">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 border-r border-white/20 bg-surface/80 backdrop-blur-xl shadow-[4px_0_20px_rgba(70,72,212,0.04)] z-50 flex flex-col py-md">
+<div class="px-md mb-lg">
+<span class="text-h3 font-h3 font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">JobPortal</span>
+<p class="text-label-caps font-label-caps text-on-surface-variant opacity-70">Super Admin</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-sm text-on-surface-variant px-sm py-xs hover:bg-primary/5 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant px-sm py-xs hover:bg-primary/5 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-body-md text-body-md">Users</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant px-sm py-xs hover:bg-primary/5 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-body-md text-body-md">Team Management</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant px-sm py-xs hover:bg-primary/5 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span class="font-body-md text-body-md">Recruiters</span>
+</a>
+<!-- Active Tab: Job Posts -->
+<a class="flex items-center gap-sm text-primary font-bold border-r-2 border-primary bg-primary/5 px-sm py-xs transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="work" data-weight="fill" style="font-variation-settings: 'FILL' 1;">work</span>
+<span class="font-body-md text-body-md">Job Posts</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant px-sm py-xs hover:bg-primary/5 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="font-body-md text-body-md">Notifications</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant px-sm py-xs hover:bg-primary/5 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-body-md text-body-md">Revenue</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant px-sm py-xs hover:bg-primary/5 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="credit_card">credit_card</span>
+<span class="font-body-md text-body-md">Payments</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant px-sm py-xs hover:bg-primary/5 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="font-body-md text-body-md">Analytics</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant px-sm py-xs hover:bg-primary/5 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-md pt-md border-t border-white/10 flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed-dim">
+<img alt="Super Admin Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/ADBb0uiC7vuUeoQNuoMTeBA6tFheyCjCjZBBSNqeGYWj_BnedcI73UnWny1QXC421TbMFnYNhib0vd6of5eX7WCC9S3nW7MupoWUTxOaHypFbhJHK_XW8QK-UNzMztJUPBAgNbUblkHJ1fve1HkXB3kU6-V6b4TqtSeFodYZFHm5-UVtXYkm2Kjuw5eUs0mLT6t7ZDbF5Ia43tdynvDF1nHFIjHyfP91N_20hDhXrPsgPete9Mtu9N9Cc1IoFXivAYIPaQUi5NcPrL8lvA"/>
+</div>
+<div class="overflow-hidden">
+<p class="font-bold text-on-surface truncate">Alex Sterling</p>
+<p class="text-xs text-on-surface-variant truncate">superadmin@aijobfit.com</p>
+</div>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-64 h-20 bg-surface/80 backdrop-blur-xl border-b border-white/20 shadow-[0_4px_20px_rgba(70,72,212,0.04)] z-40 flex justify-between items-center px-md">
+<div class="flex items-center gap-md flex-1">
+<h1 class="font-h3 text-h3 font-bold text-primary whitespace-nowrap">Admin Dashboard</h1>
+<div class="relative max-w-md w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container rounded-full border-none focus:ring-2 focus:ring-primary/20 text-body-md font-body-md placeholder:text-outline-variant" placeholder="Search job posts, IDs, or companies..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-2 hover:bg-surface-variant/50 rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="dark_mode">dark_mode</span>
+</button>
+<button class="p-2 hover:bg-surface-variant/50 rounded-full transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
+</button>
+<div class="h-8 w-px bg-outline-variant mx-2"></div>
+<button class="flex items-center gap-xs px-2 py-1 rounded-full hover:bg-surface-variant/50 transition-colors">
+<img alt="Admin User Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/ADBb0uiC7vuUeoQNuoMTeBA6tFheyCjCjZBBSNqeGYWj_BnedcI73UnWny1QXC421TbMFnYNhib0vd6of5eX7WCC9S3nW7MupoWUTxOaHypFbhJHK_XW8QK-UNzMztJUPBAgNbUblkHJ1fve1HkXB3kU6-V6b4TqtSeFodYZFHm5-UVtXYkm2Kjuw5eUs0mLT6t7ZDbF5Ia43tdynvDF1nHFIjHyfP91N_20hDhXrPsgPete9Mtu9N9Cc1IoFXivAYIPaQUi5NcPrL8lvA"/>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="expand_more">expand_more</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pl-64 pt-20 min-h-screen">
+<div class="p-lg max-w-[1440px] mx-auto">
+<!-- Hero Summary Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-lg">
+<!-- Total Job Posts -->
+<div class="glass-card glass-card-hover p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="work" data-weight="fill" style="font-variation-settings: 'FILL' 1;">work</span>
+</div>
+<div class="flex items-center gap-1 text-emerald-600 font-bold text-xs bg-emerald-50 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                            +12%
+                        </div>
+</div>
+<p class="text-on-surface-variant text-label-caps font-label-caps mb-1 uppercase">Total Job Posts</p>
+<h3 class="text-h2 font-h2 text-on-surface">4,289</h3>
+<p class="text-xs text-outline mt-2 italic font-body-md">Compared to 3,830 last month</p>
+</div>
+<!-- Active Postings -->
+<div class="glass-card glass-card-hover p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-2 bg-secondary/10 rounded-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="bolt" data-weight="fill" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div class="flex items-center gap-1 text-emerald-600 font-bold text-xs bg-emerald-50 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                            +8.4%
+                        </div>
+</div>
+<p class="text-on-surface-variant text-label-caps font-label-caps mb-1 uppercase">Active Postings</p>
+<h3 class="text-h2 font-h2 text-on-surface">1,842</h3>
+<p class="text-xs text-outline mt-2 italic font-body-md">Currently live and receiving apps</p>
+</div>
+<!-- Pending Approval -->
+<div class="glass-card glass-card-hover p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-2 bg-tertiary-container/20 rounded-lg">
+<span class="material-symbols-outlined text-tertiary" data-icon="history" data-weight="fill" style="font-variation-settings: 'FILL' 1;">history</span>
+</div>
+<div class="flex items-center gap-1 text-error font-bold text-xs bg-error-container px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]" data-icon="priority_high">priority_high</span>
+                            Critical
+                        </div>
+</div>
+<p class="text-on-surface-variant text-label-caps font-label-caps mb-1 uppercase">Pending Approval</p>
+<h3 class="text-h2 font-h2 text-on-surface">38</h3>
+<p class="text-xs text-outline mt-2 italic font-body-md">Requires immediate admin review</p>
+</div>
+<!-- Expired/Closed -->
+<div class="glass-card glass-card-hover p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-2 bg-surface-variant rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="cancel" data-weight="fill" style="font-variation-settings: 'FILL' 1;">cancel</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant font-bold text-xs bg-surface-container-highest px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]" data-icon="remove">remove</span>
+                            Flat
+                        </div>
+</div>
+<p class="text-on-surface-variant text-label-caps font-label-caps mb-1 uppercase">Expired/Closed</p>
+<h3 class="text-h2 font-h2 text-on-surface">2,409</h3>
+<p class="text-xs text-outline mt-2 italic font-body-md">Historical archiving data</p>
+</div>
+</div>
+<!-- Main Data Table Container -->
+<section class="glass-card rounded-xl overflow-hidden mb-lg">
+<div class="p-md border-b border-outline-variant/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-sm">
+<div>
+<h2 class="text-h3 font-h3 text-on-surface">All Job Posts</h2>
+<p class="text-body-md text-on-surface-variant">Manage and audit the complete repository of job listings across all categories.</p>
+</div>
+<div class="flex gap-xs">
+<button class="flex items-center gap-xs px-sm py-2 rounded-lg border border-outline-variant hover:bg-surface-container transition-colors font-button text-button">
+<span class="material-symbols-outlined text-[18px]" data-icon="filter_list">filter_list</span>
+                            Filter
+                        </button>
+<button class="flex items-center gap-xs px-sm py-2 rounded-lg primary-gradient text-white hover:opacity-90 transition-opacity font-button text-button shadow-md">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+                            Post New Job
+                        </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-md py-4 text-label-caps font-label-caps text-outline uppercase">Job Title &amp; Company</th>
+<th class="px-md py-4 text-label-caps font-label-caps text-outline uppercase">Category</th>
+<th class="px-md py-4 text-label-caps font-label-caps text-outline uppercase">Status</th>
+<th class="px-md py-4 text-label-caps font-label-caps text-outline uppercase">Date Posted</th>
+<th class="px-md py-4 text-label-caps font-label-caps text-outline uppercase text-center">Applicants</th>
+<th class="px-md py-4 text-label-caps font-label-caps text-outline uppercase text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20">
+<!-- Row 1 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-md py-4">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white border border-outline-variant/30 p-1">
+<img alt="Stripe Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida/ADBb0ujtO-0hcZZNwtlzks4pXCvqm2ZLX5s2aGeNK_pxP68fskwIpgQ0npKIVhloGPZ1UwhhK3d1LcniganWchY65m7ryVjzKFpAT_t-MBA6zvE1FmZ30gWIf_SwXV7Zn3ydwC-ENJ7zDXge5L2f8xD2E1Czm1Nxv3QE9TDXNC5dQl820S-EuJ_lxkHorpLpJBL-kXKycXB2-wEPzHtYAiN1e0N0AIHtUemGx5wIsJG5LFTb02FOQidbhVietm5okuB0Dyn3aRfl45Fqpg"/>
+</div>
+<div>
+<p class="font-bold text-on-surface font-body-md">Senior Frontend Engineer</p>
+<p class="text-xs text-outline font-body-md">Stripe • San Francisco, CA</p>
+</div>
+</div>
+</td>
+<td class="px-md py-4">
+<span class="text-xs font-bold px-2 py-1 rounded bg-blue-50 text-blue-600 uppercase tracking-tight">Engineering</span>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="text-body-md text-emerald-600 font-medium">Active</span>
+</div>
+</td>
+<td class="px-md py-4 text-body-md text-on-surface-variant">Oct 24, 2023</td>
+<td class="px-md py-4 text-center">
+<div class="inline-flex items-center gap-1 px-3 py-1 bg-surface-container rounded-full font-bold text-primary">
+                                        248
+                                    </div>
+</td>
+<td class="px-md py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-primary hover:bg-primary/10 rounded-lg" title="View Details">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 text-error hover:bg-error/10 rounded-lg" title="Delete">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-md py-4">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white border border-outline-variant/30 p-1">
+<img alt="Airbnb Logo" class="w-full h-full object-cover" data-alt="A clean, minimalist tech company logo featuring a stylized 'A' symbol, presented in high-fidelity on a professional white background for a modern SaaS dashboard. The aesthetic is bright and airy with high-key lighting, reflecting a corporate yet innovative identity consistent with current premium digital brand standards." src="https://lh3.googleusercontent.com/aida/ADBb0ugPhYzAAJfnTj2d2F0F_SrPfxusJ3E51K1_uFIPjwZw5yEJdbvBMy_iLsiO_BW7P6vQZz2y83aDJl0ZQOAXImQjuYKwegde1n1dqztqqigEtKHC-9AqoDNaFvIRxBzZ2ekNp7bZyoPnO9_jStSesdcy3kKcMTS7ePN9VIdAivl17beqkwnditQsTt-xBI_RCWUZ7ZlTe-Pp6SguLSEJGeP62F-7PJi9lxLvA8XhNimdPIbv7YTFnhHtrqMzvNGDnwZzGfXlXNyWDQ"/>
+</div>
+<div>
+<p class="font-bold text-on-surface font-body-md">Lead Product Designer</p>
+<p class="text-xs text-outline font-body-md">Airbnb • Remote</p>
+</div>
+</div>
+</td>
+<td class="px-md py-4">
+<span class="text-xs font-bold px-2 py-1 rounded bg-pink-50 text-pink-600 uppercase tracking-tight">Design</span>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-orange-500"></span>
+<span class="text-body-md text-orange-600 font-medium">Pending</span>
+</div>
+</td>
+<td class="px-md py-4 text-body-md text-on-surface-variant">Oct 26, 2023</td>
+<td class="px-md py-4 text-center">
+<div class="inline-flex items-center gap-1 px-3 py-1 bg-surface-container rounded-full font-bold text-primary">
+                                        0
+                                    </div>
+</td>
+<td class="px-md py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-primary hover:bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 text-error hover:bg-error/10 rounded-lg">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-md py-4">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white border border-outline-variant/30 p-1">
+<img alt="Meta Logo" class="w-full h-full object-cover" data-alt="A professional, minimalist company brand icon for a global technology firm, shown in a clean square format with soft rounded corners. The lighting is neutral and clear, suitable for a sophisticated administrative interface. The image maintains a pristine, light-mode compatible style that is sharp and high-resolution, perfectly integrated into a high-end UI layout." src="https://lh3.googleusercontent.com/aida/ADBb0ujhRAFh0s7tXGRT70IO-ORkid98MlEhAObmwOD9h7bB6B4_KxNwj7T1l3vId8jcq88KX7qHpjxi5bVTAOA2TpZK1p9AfWFoOaLju4fzh-8tR9LHEg18UQuTA9M4NqITPpRbbQ2h4IvnsY8fwXxbq-OefNUbF3ZR81ankqwmlJ2K6DmVDhTgdmxJFxHsTh6IV8PaLhukZkAQFiRbs3k5sZLe1604yvQKxlTaoBptBEs6KLnQs8y8C1qFq5UY0IbvrTeTBlB2H4amQw"/>
+</div>
+<div>
+<p class="font-bold text-on-surface font-body-md">Growth Marketing Manager</p>
+<p class="text-xs text-outline font-body-md">Meta • New York, NY</p>
+</div>
+</div>
+</td>
+<td class="px-md py-4">
+<span class="text-xs font-bold px-2 py-1 rounded bg-emerald-50 text-emerald-600 uppercase tracking-tight">Marketing</span>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<span class="text-body-md text-outline font-medium">Expired</span>
+</div>
+</td>
+<td class="px-md py-4 text-body-md text-on-surface-variant">Sep 15, 2023</td>
+<td class="px-md py-4 text-center">
+<div class="inline-flex items-center gap-1 px-3 py-1 bg-surface-container rounded-full font-bold text-primary">
+                                        1,204
+                                    </div>
+</td>
+<td class="px-md py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-primary hover:bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 text-error hover:bg-error/10 rounded-lg">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-md py-4">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white border border-outline-variant/30 p-1">
+<img alt="Apple Logo" class="w-full h-full object-cover" data-alt="A sleek corporate emblem for a luxury tech brand, rendered in high-definition with minimalist aesthetics. The icon is placed against a soft, light-grey background that emphasizes precision and high-end design quality. This visual asset is intended for a professional business dashboard where cleanliness and premium branding are paramount." src="https://lh3.googleusercontent.com/aida/ADBb0ujM_GovSbDb2ChnWQkJMvVJuoAIsh8fyfVJ4xzap4wFjN0uK1nX_b11GRK0ZvphPSt2WqpP879EVlhll97N1igZZHhL5kh74ifqI_oL_uq-7CUrL3P0gmdNiW5WygciC6k6lTZn0JoIJaz-5pJMDs0f4JOayM04zE7AxGwYYBI2lKpu-UxfDOK1RXFE-eS6HtAQ8dBwMx9BXhHd9EZyZslm75UVjbsnEM6vHDcOe-nJNtUUt5T6r0TCOHJ2M7NvjLXTnrDsy4Oo"/>
+</div>
+<div>
+<p class="font-bold text-on-surface font-body-md">Hardware Product Manager</p>
+<p class="text-xs text-outline font-body-md">Apple • Cupertino, CA</p>
+</div>
+</div>
+</td>
+<td class="px-md py-4">
+<span class="text-xs font-bold px-2 py-1 rounded bg-blue-50 text-blue-600 uppercase tracking-tight">Engineering</span>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="text-body-md text-emerald-600 font-medium">Active</span>
+</div>
+</td>
+<td class="px-md py-4 text-body-md text-on-surface-variant">Oct 20, 2023</td>
+<td class="px-md py-4 text-center">
+<div class="inline-flex items-center gap-1 px-3 py-1 bg-surface-container rounded-full font-bold text-primary">
+                                        89
+                                    </div>
+</td>
+<td class="px-md py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-primary hover:bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 text-error hover:bg-error/10 rounded-lg">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-md bg-surface-container-low/30 flex items-center justify-between border-t border-outline-variant/20">
+<p class="text-xs text-on-surface-variant font-body-md">Showing 1 to 10 of 4,289 entries</p>
+<div class="flex gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white font-bold text-xs shadow-sm">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-on-surface-variant hover:bg-surface-container transition-colors text-xs">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-on-surface-variant hover:bg-surface-container transition-colors text-xs">3</button>
+<span class="px-2 self-center text-outline">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-on-surface-variant hover:bg-surface-container transition-colors text-xs">429</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Bottom Action/Insight Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<div class="lg:col-span-2 glass-card rounded-xl p-lg flex items-center gap-lg">
+<div class="hidden md:block w-48 h-32 rounded-lg overflow-hidden flex-shrink-0">
+<img alt="AI Analysis Graphic" class="w-full h-full object-cover" data-alt="A detailed digital illustration showing abstract data flows and neural network connections in a futuristic tech environment. The color scheme is dominated by cool blues, purples, and soft whites, creating a visionary and intelligent atmosphere. The lighting is diffused and high-key, aligning with a premium light-mode UI for an AI-powered SaaS platform." src="https://lh3.googleusercontent.com/aida/ADBb0ugPhYzAAJfnTj2d2F0F_SrPfxusJ3E51K1_uFIPjwZw5yEJdbvBMy_iLsiO_BW7P6vQZz2y83aDJl0ZQOAXImQjuYKwegde1n1dqztqqigEtKHC-9AqoDNaFvIRxBzZ2ekNp7bZyoPnO9_jStSesdcy3kKcMTS7ePN9VIdAivl17beqkwnditQsTt-xBI_RCWUZ7ZlTe-Pp6SguLSEJGeP62F-7PJi9lxLvA8XhNimdPIbv7YTFnhHtrqMzvNGDnwZzGfXlXNyWDQ"/>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-2">
+<div class="flex gap-1">
+<span class="w-2 h-2 rounded-full bg-primary/40 animate-ping"></span>
+<span class="text-label-caps font-label-caps text-primary uppercase">AI Fit Intelligence</span>
+</div>
+</div>
+<h4 class="text-h3 font-h3 text-on-surface mb-2">Optimization Suggestion</h4>
+<p class="text-body-md text-on-surface-variant mb-4">Your current Engineering posts have a 15% higher bounce rate than industry average. Consider adjusting the 'Requirements' section to be more specific to reduce mismatched applicants.</p>
+<button class="text-primary font-bold hover:underline flex items-center gap-1">
+                            Run AI Job Post Auditor
+                            <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="glass-card rounded-xl p-lg flex flex-col justify-center">
+<h4 class="font-bold text-on-surface mb-xs">Approval Queue</h4>
+<div class="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-container transition-colors cursor-pointer border border-transparent hover:border-outline-variant/30 mb-xs">
+<div class="w-8 h-8 rounded-full primary-gradient flex items-center justify-center text-white text-[18px]">
+<span class="material-symbols-outlined" data-icon="verified">verified</span>
+</div>
+<div>
+<p class="text-xs font-bold text-on-surface">38 Posts Pending</p>
+<p class="text-[10px] text-outline">Average wait time: 1.4 hours</p>
+</div>
+<span class="material-symbols-outlined ml-auto text-outline" data-icon="chevron_right">chevron_right</span>
+</div>
+<button class="w-full py-2 bg-surface-container-high rounded-lg text-on-surface font-button text-button hover:bg-surface-variant transition-colors">
+                        View Approval Dashboard
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual Floating Action Button -->
+<div class="fixed bottom-lg right-lg z-50">
+<button class="w-14 h-14 rounded-full primary-gradient text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all group">
+<span class="material-symbols-outlined text-[28px]" data-icon="add" data-weight="fill" style="font-variation-settings: 'FILL' 1;">add</span>
+<div class="absolute right-full mr-4 px-3 py-2 bg-inverse-surface text-inverse-on-surface rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
+                Create New Job Post
+            </div>
+</button>
+</div>
+</body></html>

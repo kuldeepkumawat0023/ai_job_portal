@@ -443,11 +443,13 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
       // WATERMARK LOGO
       // ─────────────────────────────────────
       const logoImg = new window.Image();
-      logoImg.src = '/images/logo/logoimage.png';
-
       await new Promise((resolve) => {
         logoImg.onload = resolve;
         logoImg.onerror = resolve;
+        logoImg.src = '/images/logo/logo.png';
+        if (logoImg.complete) {
+          resolve(true);
+        }
       });
 
       if (logoImg.complete && logoImg.naturalWidth > 0) {
@@ -985,13 +987,16 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profile-wizard-title"
             className="relative w-full max-w-4xl bg-surface rounded-[40px] shadow-2xl overflow-hidden border border-outline-variant/20 flex flex-col max-h-[90vh]"
           >
             {/* Sidebar Navigation */}
             <div className="flex h-full">
-              <div className="hidden md:flex w-64 bg-surface-container-low border-r border-outline-variant/10 flex-col p-8">
+              <nav aria-label="Wizard Steps" className="hidden md:flex w-64 bg-surface-container-low border-r border-outline-variant/10 flex-col p-8">
                 <div className="mb-10">
-                  <h2 className="text-xl font-black text-on-surface">Profile Wizard</h2>
+                  <h2 id="profile-wizard-title" className="text-xl font-black text-on-surface">Profile Wizard</h2>
                   <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-1">Build your legacy</p>
                 </div>
 
@@ -1001,7 +1006,7 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                       key={step.id}
                       className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${currentStep === step.id ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'text-on-surface-variant hover:bg-surface-container'}`}
                     >
-                      <step.icon className={`w-5 h-5 ${currentStep === step.id ? 'text-white' : 'text-primary'}`} />
+                      <step.icon className={`w-5 h-5 ${currentStep === step.id ? 'text-white' : 'text-primary'}`} aria-hidden="true" />
                       <span className="text-xs font-bold">{step.label}</span>
                     </div>
                   ))}
@@ -1013,7 +1018,7 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                   </div>
                   <p className="text-[9px] font-bold text-center text-on-surface-variant uppercase tracking-tighter">Step {currentStep} of 7 Complete</p>
                 </div>
-              </div>
+              </nav>
 
               {/* Main Content */}
               <div className="flex-1 flex flex-col bg-surface min-w-0">
@@ -1036,10 +1041,11 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-1.5">
-                              <label className={cn("text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1", errors.fullname && "!text-red-500")}>Full Name</label>
+                              <label htmlFor="wizard_fullname" className={cn("text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1", errors.fullname && "!text-red-500")}>Full Name</label>
                               <div className="relative">
-                                <User className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary", errors.fullname && "!text-red-500")} />
+                                <User className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary", errors.fullname && "!text-red-500")} aria-hidden="true" />
                                 <input
+                                  id="wizard_fullname"
                                   className={cn(
                                     "w-full bg-surface-container-low border border-outline-variant/30 rounded-2xl pl-12 pr-4 py-4 text-on-surface focus:border-primary transition-all outline-none",
                                     errors.fullname ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/30 focus:border-primary"
@@ -1066,10 +1072,11 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                               {errors.fullname && <p className="text-[9px] text-red-500 font-bold ml-1 mt-1 uppercase tracking-widest">{errors.fullname}</p>}
                             </div>
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1">Email (Verified)</label>
+                              <label htmlFor="wizard_email" className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1">Email (Verified)</label>
                               <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant/40" />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant/40" aria-hidden="true" />
                                 <input
+                                  id="wizard_email"
                                   disabled
                                   className="w-full bg-surface-container/50 border border-outline-variant/10 rounded-2xl pl-12 pr-4 py-4 text-on-surface-variant/60 cursor-not-allowed outline-none"
                                   value={formData.email}
@@ -1077,10 +1084,11 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                               </div>
                             </div>
                             <div className="space-y-1.5">
-                              <label className={cn("text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1", errors.phoneNumber && "!text-red-500")}>Phone Number</label>
+                              <label htmlFor="wizard_phone" className={cn("text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1", errors.phoneNumber && "!text-red-500")}>Phone Number</label>
                               <div className="relative">
-                                <Phone className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary", errors.phoneNumber && "!text-red-500")} />
+                                <Phone className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary", errors.phoneNumber && "!text-red-500")} aria-hidden="true" />
                                 <input
+                                  id="wizard_phone"
                                   className={cn(
                                     "w-full bg-surface-container-low border border-outline-variant/30 rounded-2xl pl-12 pr-4 py-4 text-on-surface focus:border-primary transition-all outline-none",
                                     errors.phoneNumber ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/30 focus:border-primary"
@@ -1107,10 +1115,11 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                               {errors.phoneNumber && <p className="text-[9px] text-red-500 font-bold ml-1 mt-1 uppercase tracking-widest">{errors.phoneNumber}</p>}
                             </div>
                             <div className="space-y-1.5">
-                              <label className={cn("text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1", errors.location && "!text-red-500")}>Location</label>
+                              <label htmlFor="wizard_location" className={cn("text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1", errors.location && "!text-red-500")}>Location</label>
                               <div className="relative">
-                                <MapPin className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-500", errors.location && "!text-red-500")} />
+                                <MapPin className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-500", errors.location && "!text-red-500")} aria-hidden="true" />
                                 <input
+                                  id="wizard_location"
                                   className={cn(
                                     "w-full bg-surface-container-low border border-outline-variant/30 rounded-2xl pl-12 pr-4 py-4 text-on-surface focus:border-primary transition-all outline-none",
                                     errors.location ? "!border-red-500 focus:!border-red-500 !bg-red-500/5 !text-red-500 placeholder:!text-red-500/45" : "border-outline-variant/30 focus:border-primary"
@@ -1138,8 +1147,9 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                             </div>
                           </div>
                           <div className="space-y-1.5">
-                            <label className={cn("text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1", errors.bio && "!text-red-500")}>Professional Bio</label>
+                            <label htmlFor="wizard_bio" className={cn("text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1", errors.bio && "!text-red-500")}>Professional Bio</label>
                             <textarea
+                              id="wizard_bio"
                               rows={4}
                               className={cn(
                                 "w-full bg-surface-container-low border border-outline-variant/30 rounded-[2rem] px-6 py-4 text-on-surface focus:border-primary transition-all outline-none resize-none",

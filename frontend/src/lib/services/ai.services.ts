@@ -72,11 +72,11 @@ export const aiService = {
    * Analyze feedback from a real company interview
    * POST /api/v1/ai/real-interview-feedback
    */
-  analyzeRealInterviewFeedback: async (data: { 
-    questions: string; 
-    experience: string; 
-    companyName?: string; 
-    role?: string; 
+  analyzeRealInterviewFeedback: async (data: {
+    questions: string;
+    experience: string;
+    companyName?: string;
+    role?: string;
   }): Promise<ApiResponse<any>> => {
     const response = await apiClient.post('/ai/real-interview-feedback', data);
     return response.data;
@@ -97,6 +97,14 @@ export const aiService = {
    */
   refineFeedback: async (rawNotes: string, scores?: { technical: number, communication: number, culture: number }): Promise<ApiResponse<string>> => {
     const response = await apiClient.post('/ai/refine-feedback', { rawNotes, scores });
+    return response.data;
+  },
+  /**
+   * Enhance full resume profile data using AI
+   * POST /api/v1/ai/enhance-resume
+   */
+  enhanceResume: async (profile: any): Promise<ApiResponse<any>> => {
+    const response = await apiClient.post('/ai/enhance-resume', { profile });
     return response.data;
   },
 };

@@ -3,10 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   // Avoid hydration mismatch by waiting until component is mounted on the client
   useEffect(() => {
@@ -27,7 +30,19 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </button>
         )}
       </div>
-      {children}
+      
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="min-h-screen w-full flex flex-col"
+        >
+          {children}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

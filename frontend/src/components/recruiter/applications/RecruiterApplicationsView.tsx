@@ -245,7 +245,7 @@ const RecruiterApplicationsView = () => {
                   });
 
                   return (
-                    <motion.div 
+                    <motion.article 
                       key={app._id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -254,6 +254,7 @@ const RecruiterApplicationsView = () => {
                       onClick={() => handleOpenDetails(app)}
                       className="glass-card p-4 md:p-5 rounded-2.5xl flex flex-col md:flex-row md:items-center justify-between hover:bg-surface-container-low transition-all duration-300 group border border-white/5 gap-4 cursor-pointer"
                       id={`applicant-card-${app._id}`}
+                      aria-label={`Application profile of ${applicant?.fullname || 'Anonymous Candidate'}`}
                     >
                       {/* Candidate Profile Details */}
                       <div className="flex items-center gap-4 md:w-1/3">
@@ -271,11 +272,11 @@ const RecruiterApplicationsView = () => {
                           </h3>
                           <div className="flex flex-col gap-1 mt-1">
                             <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-wider truncate flex items-center gap-1">
-                              <Briefcase className="w-3 h-3 text-primary shrink-0" />
+                              <Briefcase className="w-3 h-3 text-primary shrink-0" aria-hidden="true" />
                               {job?.title || 'Applied Position'}
                             </span>
                             <span className="text-[9px] text-on-surface-variant/80 font-semibold truncate flex items-center gap-1">
-                              <Building2 className="w-2.5 h-2.5 text-secondary shrink-0" />
+                              <Building2 className="w-2.5 h-2.5 text-secondary shrink-0" aria-hidden="true" />
                               {job?.category || 'General'}
                             </span>
                           </div>
@@ -291,7 +292,7 @@ const RecruiterApplicationsView = () => {
                             "flex items-center gap-1.5",
                             score >= 90 ? "text-emerald-600" : score >= 70 ? "text-secondary" : "text-red-500"
                           )}>
-                            <Sparkles size={16} fill="currentColor" className="opacity-80 animate-pulse" />
+                            <Sparkles size={16} fill="currentColor" className="opacity-80 animate-pulse" aria-hidden="true" />
                             <span className="text-lg md:text-xl font-black">{score}%</span>
                           </div>
                           
@@ -303,7 +304,7 @@ const RecruiterApplicationsView = () => {
                               className="text-[8px] md:text-[9px] font-black text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1"
                             >
                               AI Match Info
-                              <ArrowUpRight size={10} />
+                              <ArrowUpRight size={10} aria-hidden="true" />
                             </button>
                             
                             {/* Glowing reasoning details panel */}
@@ -319,7 +320,7 @@ const RecruiterApplicationsView = () => {
                         {/* Date applied */}
                         <div className="hidden sm:block md:w-1/6">
                           <div className="flex items-center gap-1 text-on-surface-variant">
-                            <Clock className="w-3.5 h-3.5 opacity-60" />
+                            <Clock className="w-3.5 h-3.5 opacity-60" aria-hidden="true" />
                             <span className="text-xs font-bold">{formattedDate}</span>
                           </div>
                         </div>
@@ -365,25 +366,27 @@ const RecruiterApplicationsView = () => {
                           id={`btn-details-${app._id}`}
                         >
                           Details
-                          <ChevronRight size={12} />
+                          <ChevronRight size={12} aria-hidden="true" />
                         </button>
                         <a 
                           href={`mailto:${applicant?.email || ''}`}
                           className="p-2.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-xl transition-all" 
                           title="Message Candidate"
                           id={`btn-email-${app._id}`}
+                          aria-label="Email Candidate"
                         >
-                          <Mail size={18} />
+                          <Mail size={18} aria-hidden="true" />
                         </a>
                         <button 
                           className="p-2.5 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded-xl transition-all" 
                           title="Schedule Interview"
                           id={`btn-schedule-${app._id}`}
+                          aria-label="Schedule Interview"
                         >
-                          <Calendar size={18} />
+                          <Calendar size={18} aria-hidden="true" />
                         </button>
                       </div>
-                    </motion.div>
+                    </motion.article>
                   );
                 })}
               </AnimatePresence>

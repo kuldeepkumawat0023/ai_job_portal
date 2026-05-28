@@ -38,8 +38,8 @@ const ForgotPasswordForm = () => {
 
       if (!emailRegex.test(val)) {
         err = 'Invalid email address';
-      } else if (!val.toLowerCase().endsWith('@gmail.com')) {
-        err = 'Only @gmail.com is allowed';
+      } else if (!val.toLowerCase().endsWith('@gmail.com') && !val.toLowerCase().endsWith('@example.com')) {
+        err = 'Only @gmail.com or @example.com is allowed';
       }
     }
 
@@ -59,7 +59,7 @@ const ForgotPasswordForm = () => {
     const isEmailValid =
       normalizedEmail &&
       emailRegex.test(normalizedEmail) &&
-      normalizedEmail.endsWith('@gmail.com');
+      (normalizedEmail.endsWith('@gmail.com') || normalizedEmail.endsWith('@example.com'));
 
     if (!isEmailValid) {
       let err = '';
@@ -68,14 +68,14 @@ const ForgotPasswordForm = () => {
         err = 'Required field';
       } else if (!emailRegex.test(email)) {
         err = 'Invalid email address';
-      } else if (!email.toLowerCase().endsWith('@gmail.com')) {
-        err = 'Only @gmail.com is allowed';
+      } else if (!email.toLowerCase().endsWith('@gmail.com') && !email.toLowerCase().endsWith('@example.com')) {
+        err = 'Only @gmail.com or @example.com is allowed';
       }
 
       setError(err);
 
       return toast.error(
-        'Please enter a valid Gmail address'
+        'Please enter a valid email address'
       );
     }
 
