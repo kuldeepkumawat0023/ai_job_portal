@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI JobFit - Recruiter Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e4e1ed",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#e1e0ff",
+                        "primary-container": "#6063ee",
+                        "on-secondary-fixed": "#2c0051",
+                        "outline": "#767586",
+                        "surface-dim": "#dbd8e4",
+                        "inverse-surface": "#303038",
+                        "tertiary": "#904900",
+                        "surface": "#fcf8ff",
+                        "on-primary-fixed": "#07006c",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "tertiary-container": "#b55d00",
+                        "secondary-container": "#9c48ea",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "outline-variant": "#c7c4d7",
+                        "surface-container-highest": "#e4e1ed",
+                        "surface-container": "#efecf8",
+                        "surface-tint": "#494bd6",
+                        "surface-container-high": "#e9e6f3",
+                        "inverse-primary": "#c0c1ff",
+                        "surface-bright": "#fcf8ff",
+                        "on-secondary-container": "#fffbff",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#fffbff",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "on-surface-variant": "#464554",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#1b1b23",
+                        "inverse-on-surface": "#f2effb",
+                        "on-background": "#1b1b23",
+                        "secondary-fixed": "#f0dbff",
+                        "tertiary-fixed": "#ffdcc5",
+                        "on-secondary-fixed-variant": "#6900b3",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "secondary-fixed-dim": "#ddb7ff",
+                        "secondary": "#8127cf",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#fffbff",
+                        "background": "#fcf8ff",
+                        "on-tertiary-fixed": "#301400",
+                        "primary": "#4648d4",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f5f2fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "8px",
+                        "lg": "40px",
+                        "xl": "64px",
+                        "md": "24px",
+                        "gutter": "24px",
+                        "base": "4px",
+                        "sm": "16px",
+                        "max_width": "1280px"
+                    },
+                    "fontFamily": {
+                        "h3": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "h2": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "button": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h3": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "h2": ["30px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "h1": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400" }],
+                        "button": ["14px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #fcf8ff;
+            color: #1b1b23;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 20px rgba(70, 72, 212, 0.04);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md antialiased overflow-hidden">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full flex flex-col p-4 z-40 w-64 overflow-y-auto border-r border-white/40 bg-surface/70 backdrop-blur-xl shadow-sm">
+<div class="mb-8 px-4">
+<h1 class="font-h2 text-h2 font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">AI JobFit</h1>
+<p class="text-on-surface-variant text-sm mt-1">Super Admin</p>
+</div>
+<div class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Users</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span>Team Management</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary font-bold bg-primary-fixed/50 rounded-xl Active: scale-[0.98] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="work_history" style="font-variation-settings: 'FILL' 1;">work_history</span>
+<span>Recruiters</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="work">work</span>
+<span>Job Posts</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span>Notifications</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span>Revenue</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span>Payments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</div>
+<div class="mt-auto space-y-2 pt-4 border-t border-white/40">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span>Profile</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="ml-64 flex flex-col h-screen">
+<!-- TopAppBar -->
+<header class="w-full flex justify-between items-center h-16 px-gutter z-30 border-b border-white/40 bg-surface/70 backdrop-blur-xl shadow-sm shrink-0">
+<div class="flex-1 flex items-center gap-4">
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-full text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Search recruiters, companies, jobs..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-primary transition-all p-2 rounded-full hover:bg-surface-variant/50 Active: opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="dark_mode">dark_mode</span>
+</button>
+<button class="hover:text-primary transition-all p-2 rounded-full hover:bg-surface-variant/50 Active: opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-sm ml-2 overflow-hidden shadow-sm">
+<img alt="Admin User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARAwYnHxvKtacubXVsUGZ_ADE21L67dafDQfLjye03YYTIQXE92ET3tO7Y07_bbuhYioxVGQ9EeOOFfbDaEXy-8DwIccVlCUcoeu00yzjisSE2JQGbdacWQpiGIPBMue4T-1cWsb9P4bPmNktys2hjp8wQlI2u1qh8Az6vlH2ovyEfI-7vNHYi6e5JAiWhDuH06yWcXyere0fWLEJwlbUIh1MMwQYvjoNEnHDvlNz1GL7QYgykwx8zuBTs_uqolSzNvmh9Soa6Gjk"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 overflow-y-auto p-gutter bg-gradient-to-br from-surface to-surface-container-low">
+<div class="max-w-max_width mx-auto">
+<!-- Header -->
+<div class="mb-md flex justify-between items-end">
+<div>
+<h2 class="font-h2 text-h2 text-on-surface mb-1">Recruiter Management</h2>
+<p class="text-on-surface-variant font-body-md text-body-md">Oversee recruiter activity, monitor performance, and manage platform access.</p>
+</div>
+<button class="bg-gradient-to-r from-primary to-secondary text-on-primary px-6 py-2 rounded-lg font-button text-button shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        Invite Recruiter
+                    </button>
+</div>
+<!-- Metrics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-md">
+<!-- Metric 1 -->
+<div class="glass-panel rounded-xl p-md flex flex-col justify-between hover:translate-y-[-2px] transition-transform duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary-fixed text-primary rounded-lg">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+</div>
+<span class="flex items-center text-secondary text-sm font-medium bg-secondary-fixed px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="trending_up">trending_up</span> +5%
+                            </span>
+</div>
+<div>
+<p class="text-outline text-sm font-medium mb-1">Total Recruiters</p>
+<h3 class="font-h2 text-h2 text-on-surface">1,402</h3>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="glass-panel rounded-xl p-md flex flex-col justify-between hover:translate-y-[-2px] transition-transform duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-secondary-fixed text-secondary rounded-lg">
+<span class="material-symbols-outlined" data-icon="work">work</span>
+</div>
+<span class="flex items-center text-secondary text-sm font-medium bg-secondary-fixed px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="trending_up">trending_up</span> +12%
+                            </span>
+</div>
+<div>
+<p class="text-outline text-sm font-medium mb-1">Active Job Posts</p>
+<h3 class="font-h2 text-h2 text-on-surface">348</h3>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="glass-panel rounded-xl p-md flex flex-col justify-between hover:translate-y-[-2px] transition-transform duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-tertiary-fixed text-tertiary rounded-lg">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+</div>
+<span class="flex items-center text-primary text-sm font-medium bg-primary-fixed px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="trending_down">trending_down</span> -2%
+                            </span>
+</div>
+<div>
+<p class="text-outline text-sm font-medium mb-1">Avg. Time to Fill</p>
+<h3 class="font-h2 text-h2 text-on-surface">18 <span class="text-lg text-outline font-normal">days</span></h3>
+</div>
+</div>
+<!-- Metric 4 -->
+<div class="glass-panel rounded-xl p-md flex flex-col justify-between hover:translate-y-[-2px] transition-transform duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary-fixed text-primary rounded-lg">
+<span class="material-symbols-outlined" data-icon="task_alt">task_alt</span>
+</div>
+<span class="flex items-center text-secondary text-sm font-medium bg-secondary-fixed px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="trending_up">trending_up</span> +8%
+                            </span>
+</div>
+<div>
+<p class="text-outline text-sm font-medium mb-1">Total Placements</p>
+<h3 class="font-h2 text-h2 text-on-surface">8,211</h3>
+</div>
+</div>
+</div>
+<!-- Main Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+<!-- Left Column (Table) -->
+<div class="lg:col-span-2 glass-panel rounded-xl overflow-hidden flex flex-col h-[600px]">
+<div class="p-md border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest/50">
+<h3 class="font-h3 text-h3 text-on-surface">Active Recruiters</h3>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 border border-outline-variant rounded-lg text-sm text-on-surface-variant hover:bg-surface-variant/50 transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]" data-icon="filter_list">filter_list</span> Filter
+                                </button>
+<button class="px-3 py-1.5 border border-outline-variant rounded-lg text-sm text-on-surface-variant hover:bg-surface-variant/50 transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]" data-icon="download">download</span> Export
+                                </button>
+</div>
+</div>
+<div class="flex-1 overflow-auto">
+<table class="w-full text-left border-collapse">
+<thead class="sticky top-0 bg-surface-container-lowest/90 backdrop-blur-md z-10 shadow-sm">
+<tr>
+<th class="py-3 px-4 font-label-caps text-label-caps text-outline border-b border-outline-variant/30">Recruiter</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-outline border-b border-outline-variant/30">Company</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-outline border-b border-outline-variant/30 text-center">Active Jobs</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-outline border-b border-outline-variant/30">Rating</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-outline border-b border-outline-variant/30">Status</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-outline border-b border-outline-variant/30 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-variant/30 transition-colors">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<img alt="Portrait of Sarah Jenkins, professional recruiter in a bright office environment, smiling warmly. Lighting is soft and natural. Shot on high-end DSLR." class="w-10 h-10 rounded-full border border-white/50 shadow-sm object-cover" data-alt="Portrait of Sarah Jenkins, professional recruiter in a bright office environment, smiling warmly. Lighting is soft and natural. Shot on high-end DSLR." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUR06YqJRn-k-xaAD-g-15DMCFMyoRwKKJlWFu-0c7Je9LPlQqa-2lH2H-pVpTfGdV6uJkjSLl_o_pz1WtgihJmyRn766kedZgTUuih4M_A4oNRccvTvOW0XpKnNnrhVnFT3Qx4-YVpOncSRc7PAw0P9pzLUPNXZ9FalqKpoc9eBuCKRs4ym1t0LDdRTd_XrKvwF2o_yqp-uOlSUu9igrFfROnxic9D2ScS1zqOzz41vM-XMyHB-cswPOmbk1QlA6m4m1H2F3h9ik"/>
+<div>
+<p class="font-medium text-on-surface">Sarah Jenkins</p>
+<p class="text-xs text-outline">sarah.j@techflow.io</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 text-on-surface-variant">TechFlow Systems</td>
+<td class="py-3 px-4 text-center font-medium">14</td>
+<td class="py-3 px-4">
+<div class="flex text-tertiary">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star_half" style="font-variation-settings: 'FILL' 1;">star_half</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-fixed text-primary-container">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container mr-1.5"></span> Active
+                                            </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="p-1.5 text-outline hover:text-primary transition-colors rounded-md hover:bg-surface-variant/50">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-outline hover:text-primary transition-colors rounded-md hover:bg-surface-variant/50">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-variant/30 transition-colors">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<img alt="Portrait of Marcus Chen, corporate recruiter looking directly at camera with a confident expression. Clean, modern office background. High contrast, sharp focus." class="w-10 h-10 rounded-full border border-white/50 shadow-sm object-cover" data-alt="Portrait of Marcus Chen, corporate recruiter looking directly at camera with a confident expression. Clean, modern office background. High contrast, sharp focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLUx7HAZzoibJ5YMQC9Q_aANU-RX6pjOvYOOKeJaM6Yo3NYXCocQIV_RYRwVNYJS6pEF1jv8zN8BfpgDE0d9vNi4cfZ7u658eNF1U_EW-17itrPm8g4WyDaB4DqAxGwr-uolgciNUl1LFanpdKDbzrktg9mOxV5_tDuvwEVthN7uPYUA9LWmInz0XSy219NLehovo02irkFbauXGq1nU3LVHDqtR2iHAQovUzTJHN5ercAPzBfNdMnXDSlCpstlxjFd9uBIVavZek"/>
+<div>
+<p class="font-medium text-on-surface">Marcus Chen</p>
+<p class="text-xs text-outline">m.chen@nexuscorp.com</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 text-on-surface-variant">Nexus Corp</td>
+<td class="py-3 px-4 text-center font-medium">8</td>
+<td class="py-3 px-4">
+<div class="flex text-tertiary">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star">star</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-fixed text-primary-container">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container mr-1.5"></span> Active
+                                            </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="p-1.5 text-outline hover:text-primary transition-colors rounded-md hover:bg-surface-variant/50">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-outline hover:text-primary transition-colors rounded-md hover:bg-surface-variant/50">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-variant/30 transition-colors">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-outline border border-white/50 shadow-sm">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+<div>
+<p class="font-medium text-on-surface">Elena Rodriguez</p>
+<p class="text-xs text-outline">elena@startupx.co</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 text-on-surface-variant">StartupX</td>
+<td class="py-3 px-4 text-center font-medium text-outline">0</td>
+<td class="py-3 px-4">
+<span class="text-xs text-outline italic">Unrated</span>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-surface-variant text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-outline mr-1.5"></span> Pending
+                                            </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="p-1.5 text-outline hover:text-primary transition-colors rounded-md hover:bg-surface-variant/50">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-outline hover:text-primary transition-colors rounded-md hover:bg-surface-variant/50">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-variant/30 transition-colors">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<img alt="Portrait of David Kim, senior recruiter. Serious expression, wearing a tailored suit. Cinematic lighting with a dark, professional background." class="w-10 h-10 rounded-full border border-white/50 shadow-sm object-cover filter grayscale" data-alt="Portrait of David Kim, senior recruiter. Serious expression, wearing a tailored suit. Cinematic lighting with a dark, professional background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWWCk-o6HwOty0vcK0iYnZ-PBWzM2cWe5p8gWDeFJqinnbOhqrL2ntumg-qf2Njo-jf_uXp4pGEy5FRHSeudSK1W-F0Iha4wfUZgdZL5dQenYn5YhK2xGYBy2dfnwvNkZKJPwsMO_lXWQehkQsOCvP8TQ41Kgj7vQAq2mteLtwNNcnlePvj1bYpWH09WrgiZ5Q0niKYwBGXmqOZvqBoDbd0huzW8uX-veBSrChTGFTW5vLt1HSWmvxxtLowU50tQUQY4PPE6KbaxQ"/>
+<div>
+<p class="font-medium text-on-surface">David Kim</p>
+<p class="text-xs text-outline">d.kim@globaltalent.com</p>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 text-on-surface-variant">Global Talent</td>
+<td class="py-3 px-4 text-center font-medium">3</td>
+<td class="py-3 px-4">
+<div class="flex text-tertiary">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star">star</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-error-container text-on-error-container">
+<span class="w-1.5 h-1.5 rounded-full bg-error mr-1.5"></span> Suspended
+                                            </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="p-1.5 text-outline hover:text-primary transition-colors rounded-md hover:bg-surface-variant/50">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-outline hover:text-primary transition-colors rounded-md hover:bg-surface-variant/50">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 border-t border-outline-variant/30 bg-surface-container-lowest/50 text-center">
+<button class="text-sm font-medium text-primary hover:text-primary-container transition-colors">View All Recruiters</button>
+</div>
+</div>
+<!-- Right Column (Insights) -->
+<div class="glass-panel rounded-xl flex flex-col h-[600px] overflow-hidden">
+<div class="p-md border-b border-outline-variant/30 bg-surface-container-lowest/50">
+<h3 class="font-h3 text-h3 text-on-surface">Insights</h3>
+</div>
+<div class="p-md flex-1 overflow-y-auto space-y-8">
+<!-- Chart Area -->
+<div>
+<h4 class="font-label-caps text-label-caps text-outline mb-4">Distribution by Co. Size</h4>
+<div class="relative h-48 flex items-center justify-center">
+<!-- Decorative SVG Doughnut Chart -->
+<svg class="w-32 h-32 transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="#e1e0ff" stroke-width="12"></circle>
+<!-- Startup segment (Secondary) -->
+<circle class="transition-all duration-1000" cx="50" cy="50" fill="transparent" r="40" stroke="#8127cf" stroke-dasharray="251.2" stroke-dashoffset="175.84" stroke-width="12"></circle>
+<!-- Enterprise segment (Primary) -->
+<circle class="transition-all duration-1000" cx="50" cy="50" fill="transparent" r="40" stroke="#4648d4" stroke-dasharray="251.2" stroke-dashoffset="75.36" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="text-2xl font-bold text-on-surface">1.4k</span>
+<span class="text-[10px] text-outline uppercase tracking-wider">Total</span>
+</div>
+</div>
+<div class="flex justify-center gap-4 mt-4 text-xs">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="text-on-surface-variant">Enterprise (70%)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="text-on-surface-variant">Startup (30%)</span>
+</div>
+</div>
+</div>
+<hr class="border-outline-variant/30"/>
+<!-- Top Performers -->
+<div>
+<h4 class="font-label-caps text-label-caps text-outline mb-4 flex justify-between items-center">
+                                    Top Performers
+                                    <span class="material-symbols-outlined text-[16px] text-tertiary" data-icon="emoji_events">emoji_events</span>
+</h4>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-lowest/50 border border-white/40 hover:shadow-sm transition-shadow">
+<div class="flex items-center gap-3">
+<img alt="Portrait of Sarah Jenkins, professional recruiter in a bright office environment." class="w-8 h-8 rounded-full object-cover" data-alt="Portrait of Sarah Jenkins, professional recruiter in a bright office environment, smiling warmly. Lighting is soft and natural. Shot on high-end DSLR." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGNE3XgpLu5PFPCLLs14WT1kZswqxftJ3kdAHTK0eThH4Xvl_4FQRVd2V-Q3nbhwXXei_h33oR9buxsUxS0v9ZB05NR-bwh4idlSexddfQLbGlnh7Q6zo09J3Vo-QcPJ3nY-dVpY1wbL_0-bn7ldD2AzFWU-JSeIs0BH7uqBujoxxcqOWMRZs2-ot8lpfpBVeFy_0r0DRVT6MY4dUuiVdQ_IiTIdUuCXeJjyqApD8ryCcS0FDZyhvaMhgvFiVb-wnhKsFcfEUoIWE"/>
+<div>
+<p class="text-sm font-medium text-on-surface">Sarah Jenkins</p>
+<p class="text-[10px] text-outline">42 Placements</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold text-primary">98%</p>
+<p class="text-[10px] text-outline">Match Rate</p>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-lowest/50 border border-white/40 hover:shadow-sm transition-shadow">
+<div class="flex items-center gap-3">
+<img alt="Portrait of Michael Ross, recruiter, smiling confidently in front of a modern glass office building. Bright daylight." class="w-8 h-8 rounded-full object-cover" data-alt="Portrait of Michael Ross, recruiter, smiling confidently in front of a modern glass office building. Bright daylight. Professional attire." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCONx91p-lsDwE-UWpqqR286y6nziq7qID1Hq-Kq86_PsuqH36eSQz_LRptjR3iNsUcAyMkPvjFeDPjOfsnmiuHnuoQ9BmzCoNIIf9Ai4z1dZd8OBQQnHPb6Cyw4N4vn7TvOgCQnd279MIl6GAVqGuTzMcXpGBG6m1AFqAxOKRBRR_LJYjLUR5JnIhfKubseNLs8pwHDKlA9TbnEy6u3As2tjSwHjekx7tTukca5UjoZgu7kcpsKBHFlRzh2UAVbzLKu64T2mY8DXU"/>
+<div>
+<p class="text-sm font-medium text-on-surface">Michael Ross</p>
+<p class="text-[10px] text-outline">38 Placements</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold text-primary">94%</p>
+<p class="text-[10px] text-outline">Match Rate</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

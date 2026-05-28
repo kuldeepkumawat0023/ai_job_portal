@@ -10,6 +10,7 @@ export default function ApplicationsPage() {
           description: "Track your job applications, view status updates, and manage your job hunt efficiently.",
           keywords: "job applications, application tracking, AIJobFit",
           url: "/candidate/applications",
+          noIndex: true,
         }}
       />
       <main className="w-full min-h-screen bg-surface">

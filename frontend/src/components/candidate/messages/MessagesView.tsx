@@ -146,10 +146,10 @@ const MessagesView = () => {
   };
 
   return (
-    <div className="flex h-[calc(100dvh-100px)] -m-4 md:-m-8 bg-surface-container-lowest dark:bg-background overflow-hidden animate-in fade-in duration-700">
+    <main className="flex h-[calc(100dvh-100px)] -m-4 md:-m-8 bg-surface-container-lowest dark:bg-background overflow-hidden animate-in fade-in duration-700">
 
       {/* ── Left Pane: Conversation List ────────────────────────────── */}
-      <section className={cn(
+      <section aria-label="Conversation list" className={cn(
         "w-full md:w-[360px] lg:w-[400px] border-r border-outline-variant/20 flex-col h-full bg-surface-container-low/50 backdrop-blur-md shadow-2xl",
         showChat ? "hidden md:flex" : "flex"
       )}>
@@ -259,7 +259,7 @@ const MessagesView = () => {
       </section>
 
       {/* ── Right Pane: Active Chat ──────────────────────────────────── */}
-      <section className={cn(
+      <section aria-label="Active chat conversation" className={cn(
         "flex-1 flex-col h-full bg-surface-container-lowest relative min-w-0",
         showChat ? "flex" : "hidden md:flex"
       )}>
@@ -426,7 +426,7 @@ const MessagesView = () => {
           </>
         )}
       </section>
-    </div>
+    </main>
   );
 };
 

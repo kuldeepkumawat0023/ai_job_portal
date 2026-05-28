@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Download, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,15 +10,21 @@ import { Button } from './Button';
 /**
  * 📲 Install PWA Button / Modal
  * Detects if the app can be installed as a PWA and shows a prompt.
+ * Only auto-prompts once on the Landing/Home page (`/`) when not logged in to avoid irritation.
  */
 export default function InstallPWAButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isVisible, setIsVisible] = useState(false);
   const { user, isInitialized } = useAuth();
+  const pathname = usePathname();
 
   useEffect(() => {
-    // If initialized, not logged in, and not installed as app, auto-show popup after 3 seconds
-    if (isInitialized && !user) {
+    // Check if dismissed once
+    const dismissed = localStorage.getItem('pwa_prompt_dismissed') === 'true';
+    if (dismissed) return;
+
+    // If initialized, not logged in, and on the home page, auto-show popup after 3 seconds
+    if (isInitialized && !user && pathname === '/') {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
       
       if (!isStandalone) {
@@ -27,7 +34,7 @@ export default function InstallPWAButton() {
         return () => clearTimeout(timer);
       }
     }
-  }, [user, isInitialized]);
+  }, [user, isInitialized, pathname]);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
@@ -35,8 +42,11 @@ export default function InstallPWAButton() {
       (window as any).deferredPrompt = e;
       window.dispatchEvent(new Event('pwa-ready'));
 
-      // Only show the global popup automatically if the user is not logged in
-      if (!user) {
+      // Check if dismissed once
+      const dismissed = localStorage.getItem('pwa_prompt_dismissed') === 'true';
+
+      // Only show the global popup automatically if the user is not logged in, on the home page, and not dismissed
+      if (!user && pathname === '/' && !dismissed) {
         setDeferredPrompt(e);
         setIsVisible(true);
       }
@@ -44,7 +54,8 @@ export default function InstallPWAButton() {
 
     // Check if it was already fired
     if ((window as any).deferredPrompt) {
-      if (!user) {
+      const dismissed = localStorage.getItem('pwa_prompt_dismissed') === 'true';
+      if (!user && pathname === '/' && !dismissed) {
         setDeferredPrompt((window as any).deferredPrompt);
         setIsVisible(true);
       }
@@ -62,11 +73,19 @@ export default function InstallPWAButton() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('showInstallModal', handleShowModal);
     };
-  }, [user]);
+  }, [user, pathname]);
+
+  const handleDismiss = () => {
+    setIsVisible(false);
+    localStorage.setItem('pwa_prompt_dismissed', 'true');
+  };
 
   const handleInstallClick = async () => {
     const promptEvent = deferredPrompt || (window as any).deferredPrompt;
     
+    // Set dismissed to true so we don't auto-prompt again
+    localStorage.setItem('pwa_prompt_dismissed', 'true');
+
     if (!promptEvent) {
       import('react-hot-toast').then(({ toast }) => {
         toast.success("To install: Open your browser menu (⋮) and tap 'Install App' or 'Add to Home Screen'");
@@ -107,7 +126,7 @@ export default function InstallPWAButton() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsVisible(false)}
+            onClick={handleDismiss}
             className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md"
           />
 
@@ -124,7 +143,7 @@ export default function InstallPWAButton() {
 
             {/* Close Button */}
             <button
-              onClick={() => setIsVisible(false)}
+              onClick={handleDismiss}
               className="absolute top-5 right-5 p-2 rounded-xl text-on-surface-variant/60 hover:text-on-surface hover:bg-surface-container-low transition-all"
               aria-label="Close"
             >
@@ -148,7 +167,7 @@ export default function InstallPWAButton() {
               <Button
                 variant="outline"
                 size="md"
-                onClick={() => setIsVisible(false)}
+                onClick={handleDismiss}
                 className="w-full sm:w-auto min-w-[120px] font-bold text-sm"
               >
                 Maybe Later

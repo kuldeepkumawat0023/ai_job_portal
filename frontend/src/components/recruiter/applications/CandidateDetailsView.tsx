@@ -189,14 +189,14 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
     <main className="min-h-screen bg-surface-container-lowest text-on-surface pb-16">
       {/* Dynamic Header / Navigation Panel */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/10 pb-6 mb-8">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/10 pb-6 mb-8">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/recruiter/applications')}
               className="w-10 h-10 rounded-full bg-surface-container hover:bg-primary hover:text-white transition-all flex items-center justify-center border-none outline-none cursor-pointer text-on-surface-variant shrink-0"
               title="Back to Applications"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={18} aria-hidden="true" />
             </button>
             <div>
               <h1 className="text-xl md:text-2xl font-black text-on-surface">Candidate Evaluation</h1>
@@ -215,12 +215,12 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
               Current: {application.status}
             </span>
           </div>
-        </div>
+        </header>
 
         {/* Detailed Info Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column: Candidate Profile details */}
-          <div className="space-y-6">
+          <article className="space-y-6" aria-label="Candidate Profile Details">
             {/* Candidate Card Summary */}
             <div className="glass-card border border-outline-variant/10 rounded-3xl p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4">
               <img 
@@ -231,11 +231,11 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
               <div className="text-center sm:text-left space-y-1.5 flex-1">
                 <h3 className="text-xl font-black text-on-surface">{applicant?.fullname || 'Anonymous Candidate'}</h3>
                 <p className="text-xs font-bold text-primary flex items-center justify-center sm:justify-start gap-1">
-                  <Mail size={12} /> {applicant?.email}
+                  <Mail size={12} aria-hidden="true" /> {applicant?.email}
                 </p>
                 {applicant?.location && (
                   <p className="text-xs text-on-surface-variant font-semibold flex items-center justify-center sm:justify-start gap-1">
-                    <MapPin size={12} /> {applicant.location}
+                    <MapPin size={12} aria-hidden="true" /> {applicant.location}
                   </p>
                 )}
                 {applicant?.experience !== undefined && (
@@ -295,7 +295,7 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
             {applicant?.education && applicant.education.length > 0 && (
               <div className="space-y-3">
                 <h4 className="text-xs font-black text-on-surface uppercase tracking-widest flex items-center gap-1.5">
-                  <GraduationCap size={14} className="text-primary" />
+                  <GraduationCap size={14} className="text-primary" aria-hidden="true" />
                   Education
                 </h4>
                 <div className="space-y-3">
@@ -319,7 +319,7 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
             {applicant?.projects && applicant.projects.length > 0 && (
               <div className="space-y-3">
                 <h4 className="text-xs font-black text-on-surface uppercase tracking-widest flex items-center gap-1.5">
-                  <Code2 size={14} className="text-primary" />
+                  <Code2 size={14} className="text-primary" aria-hidden="true" />
                   Projects
                 </h4>
                 <div className="space-y-3">
@@ -329,7 +329,7 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
                         <h5 className="text-sm font-black text-on-surface">{proj.title}</h5>
                         {proj.link && (
                           <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-high transition-colors">
-                            <ExternalLink size={14} />
+                            <ExternalLink size={14} aria-hidden="true" />
                           </a>
                         )}
                       </div>
@@ -350,7 +350,7 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
             {/* Resume Preview */}
             <div className="space-y-3">
               <h4 className="text-xs font-black text-on-surface uppercase tracking-widest flex items-center gap-1.5">
-                <FileText size={14} className="text-primary" />
+                <FileText size={14} className="text-primary" aria-hidden="true" />
                 Resume / CV Review
               </h4>
               {applicant?.resume ? (
@@ -362,7 +362,7 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
                       rel="noopener noreferrer" 
                       className="flex items-center gap-2 px-5 py-3 bg-primary text-white font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-primary-high transition-all shadow-md shadow-primary/10 cursor-pointer"
                     >
-                      <ExternalLink size={14} />
+                      <ExternalLink size={14} aria-hidden="true" />
                       Open PDF in New Tab
                     </a>
                   </div>
@@ -371,6 +371,7 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
                       src={`https://docs.google.com/gview?url=${encodeURIComponent(applicant.resume)}&embedded=true`}
                       className="w-full h-full border-none"
                       title="Resume PDF Preview"
+                      aria-label="Resume Document Preview"
                     />
                   </div>
                 </div>
@@ -380,10 +381,10 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
                 </div>
               )}
             </div>
-          </div>
+          </article>
 
           {/* Right Column: Recruiter Feedback Form */}
-          <div className="space-y-6 lg:border-l lg:border-outline-variant/10 lg:pl-8">
+          <article className="space-y-6 lg:border-l lg:border-outline-variant/10 lg:pl-8" aria-label="Candidate Evaluation Form">
             {/* Job Application Match Overview */}
             <div className="bg-primary/5 border border-primary/10 rounded-3xl p-6 space-y-4">
               <div className="flex justify-between items-start">
@@ -395,7 +396,7 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
                 <div className="text-right">
                   <span className="text-[9px] font-black text-secondary uppercase tracking-widest block">AI Match Score</span>
                   <div className="flex items-center gap-1 mt-1 justify-end text-secondary font-black text-xl">
-                    <Sparkles size={16} fill="currentColor" />
+                    <Sparkles size={16} fill="currentColor" aria-hidden="true" />
                     {score}%
                   </div>
                 </div>
@@ -404,8 +405,9 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
 
             {/* Status Update Option */}
             <div className="space-y-2">
-              <label className="text-xs font-black text-on-surface uppercase tracking-widest block">Application Pipeline Status</label>
+              <label htmlFor="pipeline-status-select" className="text-xs font-black text-on-surface uppercase tracking-widest block">Application Pipeline Status</label>
               <select 
+                id="pipeline-status-select"
                 value={application.status}
                 onChange={(e) => handleStatusUpdate(e.target.value)}
                 className="w-full bg-surface-container border border-outline-variant/20 px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
@@ -421,16 +423,17 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
             {/* Recruiter Evaluation Scores sliders */}
             <div className="bg-surface-container/20 border border-outline-variant/10 rounded-3xl p-6 space-y-5">
               <h4 className="text-xs font-black text-on-surface uppercase tracking-widest flex items-center gap-1.5">
-                <Award size={14} className="text-primary" />
+                <Award size={14} className="text-primary" aria-hidden="true" />
                 Recruiter Scores (0 - 10)
               </h4>
 
               <div className="space-y-2">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                <label htmlFor="technical-score-input" className="flex justify-between text-[10px] font-black uppercase tracking-widest cursor-pointer">
                   <span className="text-on-surface-variant">Technical Alignment</span>
                   <span className="text-primary">{technicalScore} / 10</span>
-                </div>
+                </label>
                 <input 
+                  id="technical-score-input"
                   type="range" 
                   min="0" 
                   max="10" 
@@ -441,11 +444,12 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                <label htmlFor="communication-score-input" className="flex justify-between text-[10px] font-black uppercase tracking-widest cursor-pointer">
                   <span className="text-on-surface-variant">Communication Skills</span>
                   <span className="text-primary">{communicationScore} / 10</span>
-                </div>
+                </label>
                 <input 
+                  id="communication-score-input"
                   type="range" 
                   min="0" 
                   max="10" 
@@ -456,11 +460,12 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                <label htmlFor="culture-score-input" className="flex justify-between text-[10px] font-black uppercase tracking-widest cursor-pointer">
                   <span className="text-on-surface-variant">Culture Fit</span>
                   <span className="text-primary">{cultureScore} / 10</span>
-                </div>
+                </label>
                 <input 
+                  id="culture-score-input"
                   type="range" 
                   min="0" 
                   max="10" 
@@ -473,8 +478,9 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
 
             {/* Evaluation Notes Area */}
             <div className="space-y-3">
-              <label className="text-xs font-black text-on-surface uppercase tracking-widest block">Recruiter Evaluation Notes</label>
+              <label htmlFor="recruiter-notes-textarea" className="text-xs font-black text-on-surface uppercase tracking-widest block">Recruiter Evaluation Notes</label>
               <textarea 
+                id="recruiter-notes-textarea"
                 value={recruiterNotes}
                 onChange={(e) => setRecruiterNotes(e.target.value)}
                 placeholder="Enter raw feedback notes about the candidate's skills, interview performance, strengths, or flags..."
@@ -490,7 +496,7 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
                 disabled={isRefiningNotes}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 py-4 px-6 bg-amber-500/5 hover:bg-amber-500/10 active:bg-amber-500/20 text-amber-500 transition-all text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-md disabled:opacity-50 cursor-pointer border border-amber-500/30 shrink-0"
               >
-                <BrainCircuit size={16} className={cn(isRefiningNotes && "animate-spin")} />
+                <BrainCircuit size={16} className={cn(isRefiningNotes && "animate-spin")} aria-hidden="true" />
                 {isRefiningNotes ? "Refining..." : "Refine with AI"}
               </button>
 
@@ -500,11 +506,11 @@ const CandidateDetailsView: React.FC<CandidateDetailsViewProps> = ({ id }) => {
                 disabled={isSavingEvaluation}
                 className="flex-1 w-full flex items-center justify-center gap-2 py-4 bg-primary text-white hover:bg-primary-high transition-all text-xs font-black uppercase tracking-wider rounded-2xl shadow-lg shadow-primary/20 disabled:opacity-50 cursor-pointer"
               >
-                <Save size={16} />
+                <Save size={16} aria-hidden="true" />
                 {isSavingEvaluation ? "Saving Evaluation..." : "Save Evaluation"}
               </button>
             </div>
-          </div>
+          </article>
         </div>
       </div>
     </main>

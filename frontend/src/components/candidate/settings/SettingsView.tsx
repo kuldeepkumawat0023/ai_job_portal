@@ -126,13 +126,13 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 lg:px-0 pb-10">
+    <main className="w-full max-w-7xl mx-auto px-4 lg:px-0 pb-10">
       <header className="mb-8">
         <div className="flex items-center gap-2 mb-2">
           <h1 className="text-4xl font-bold text-on-surface">Settings</h1>
           {updating && (
             <span className="text-[10px] uppercase font-bold tracking-widest text-secondary bg-secondary/10 px-2.5 py-1 rounded-full flex items-center gap-1">
-              <Loader2 className="w-3 h-3 animate-spin" /> Saving...
+              <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> Saving...
             </span>
           )}
         </div>
@@ -141,7 +141,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
 
       <div className="flex gap-8 flex-col md:flex-row">
         {/* Settings Navigation (Left Column) */}
-        <nav className="w-full md:w-64 flex-shrink-0">
+        <nav aria-label="Settings navigation" className="w-full md:w-64 flex-shrink-0">
           <ul className="space-y-1">
             <li>
               <button
@@ -195,7 +195,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
 
           {/* TAB 1: Profile Settings */}
           {activeTab === 'profile' && (
-            <section className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm space-y-6 animate-fadeIn">
+            <section className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm space-y-6 animate-fadeIn" aria-label="Profile settings tab content">
               <div className="mb-6 border-b border-outline-variant/20 pb-4">
                 <h2 className="text-3xl font-bold text-on-surface">Profile Settings</h2>
                 <p className="text-base text-on-surface-variant mt-2">Update your personal information and professional details.</p>
@@ -219,7 +219,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                      <Camera className="text-white w-6 h-6" />
+                      <Camera className="text-white w-6 h-6" aria-hidden="true" />
                     </div>
                   </div>
                   <button className="text-sm font-bold text-primary hover:text-primary-container transition-colors">Change Photo</button>
@@ -251,7 +251,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                   <div className="space-y-2">
                     <label className="text-[12px] uppercase font-bold tracking-widest text-on-surface-variant">Location</label>
                     <div className="relative">
-                      <MapPin className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" />
+                      <MapPin className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" aria-hidden="true" />
                       <input
                         className="w-full bg-transparent border-b border-outline-variant/50 focus:border-primary pl-8 py-2 text-base text-on-surface border-t-0 border-l-0 border-r-0 focus:ring-0 transition-colors"
                         type="text"
@@ -272,7 +272,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                       href="/forgot-password"
                       className="inline-flex items-center gap-2 px-5 py-2.5 bg-surface-container-highest hover:bg-outline/25 text-on-surface text-sm font-bold rounded-xl transition-all border border-outline-variant/30 cursor-pointer"
                     >
-                      <Key className="w-4 h-4 text-primary" /> Change Password
+                      <Key className="w-4 h-4 text-primary" aria-hidden="true" /> Change Password
                     </Link>
                   </div>
 
@@ -292,10 +292,10 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
 
           {/* TAB 2: Account Security & Privacy */}
           {activeTab === 'security' && (
-            <section className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm space-y-8 animate-fadeIn" id="security">
+            <section className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm space-y-8 animate-fadeIn" id="security" aria-label="Security settings tab content">
               <div className="mb-6 border-b border-outline-variant/20 pb-4">
                 <h2 className="text-3xl font-bold text-on-surface flex items-center gap-3">
-                  <Shield className="w-8 h-8 text-primary" />
+                  <Shield className="w-8 h-8 text-primary" aria-hidden="true" />
                   Security & Privacy
                 </h2>
                 <p className="text-base text-on-surface-variant mt-2">Manage your password, 2FA, and data privacy settings.</p>
@@ -312,7 +312,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                     href="/forgot-password"
                     className="px-5 py-2.5 bg-surface-container-highest text-on-surface text-sm font-bold rounded-xl hover:bg-surface-container-highest/80 transition-all border border-outline-variant/30 flex items-center gap-2 cursor-pointer"
                   >
-                    <Key className="w-4 h-4 text-primary" /> Change Password
+                    <Key className="w-4 h-4 text-primary" aria-hidden="true" /> Change Password
                   </Link>
                 </div>
 
@@ -358,10 +358,10 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
 
           {/* TAB 4: Notifications */}
           {activeTab === 'notifications' && (
-            <section className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm space-y-8 animate-fadeIn">
+            <section className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm space-y-8 animate-fadeIn" aria-label="Notification settings tab content">
               <div className="mb-6 border-b border-outline-variant/20 pb-4">
                 <h2 className="text-3xl font-bold text-on-surface flex items-center gap-3">
-                  <Bell className="w-8 h-8 text-primary" />
+                  <Bell className="w-8 h-8 text-primary" aria-hidden="true" />
                   Notifications
                 </h2>
                 <p className="text-base text-on-surface-variant mt-2">Control what updates you receive and how they are delivered.</p>
@@ -452,10 +452,10 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
 
           {/* TAB 5: Subscription & Billing */}
           {activeTab === 'billing' && (
-            <section className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm space-y-8 animate-fadeIn">
+            <section className="glass-card rounded-2xl p-8 border border-white/10 dark:border-white/5 shadow-sm space-y-8 animate-fadeIn" aria-label="Billing settings tab content">
               <div className="mb-6 border-b border-outline-variant/20 pb-4">
                 <h2 className="text-3xl font-bold text-on-surface flex items-center gap-3">
-                  <CreditCard className="w-8 h-8 text-primary" />
+                  <CreditCard className="w-8 h-8 text-primary" aria-hidden="true" />
                   Subscription & Billing
                 </h2>
                 <p className="text-base text-on-surface-variant mt-2">Manage your current plan, payment methods, and billing history.</p>
@@ -470,20 +470,20 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="text-2xl font-bold text-on-surface">AI Premium Plan</h3>
                       <span className="bg-primary text-white text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-md flex items-center gap-1">
-                        <Zap className="w-3 h-3 animate-pulse" /> Active
+                        <Zap className="w-3 h-3 animate-pulse" aria-hidden="true" /> Active
                       </span>
                     </div>
                     <p className="text-sm text-on-surface-variant font-medium">Your plan renews on <span className="font-bold text-on-surface">Oct 24, 2026</span> for $19.99/month.</p>
 
                     <ul className="mt-4 space-y-2">
                       <li className="flex items-center gap-2 text-sm text-on-surface-variant">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Unlimited AI Mock Interviews
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" aria-hidden="true" /> Unlimited AI Mock Interviews
                       </li>
                       <li className="flex items-center gap-2 text-sm text-on-surface-variant">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Priority Job Matching
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" aria-hidden="true" /> Priority Job Matching
                       </li>
                       <li className="flex items-center gap-2 text-sm text-on-surface-variant">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Advanced Portfolio Analytics
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" aria-hidden="true" /> Advanced Portfolio Analytics
                       </li>
                     </ul>
                   </div>
@@ -541,8 +541,8 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
                           <p className="text-sm font-bold text-on-surface">{bill.amount}</p>
                           <p className="text-[12px] text-emerald-600 font-bold">{bill.status}</p>
                         </div>
-                        <button className="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors cursor-pointer">
-                          <Receipt className="w-5 h-5" />
+                        <button className="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors cursor-pointer" aria-label={`View invoice ${bill.invoice}`}>
+                          <Receipt className="w-5 h-5" aria-hidden="true" />
                         </button>
                       </div>
                     </div>
@@ -554,7 +554,7 @@ const SettingsView = ({ defaultTab = 'profile' }: SettingsViewProps) => {
 
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

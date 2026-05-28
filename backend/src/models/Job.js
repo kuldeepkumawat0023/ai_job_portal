@@ -33,6 +33,11 @@ const jobSchema = new mongoose.Schema({
     type: String, // e.g. IT, Marketing, Finance
     required: [true, 'Please add a category']
   },
+  status: {
+    type: String,
+    enum: ['PENDING', 'APPROVED', 'REJECTED'],
+    default: 'PENDING'
+  },
   companyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',

@@ -92,10 +92,13 @@ const ResumeAnalysisView = () => {
 
       // ─── Background Watermark Image ───
       const logoImg = new Image();
-      logoImg.src = '/images/logo/logoimage.png';
       await new Promise((resolve) => {
         logoImg.onload = resolve;
         logoImg.onerror = resolve;
+        logoImg.src = '/images/logo/logo.png';
+        if (logoImg.complete) {
+          resolve(true);
+        }
       });
 
       if (logoImg.complete && logoImg.naturalWidth > 0) {

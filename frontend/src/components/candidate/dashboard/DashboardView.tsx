@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -24,6 +24,8 @@ import { RootState } from '@/store/store';
 import { dashboardService } from '@/lib/services/dashboard.services';
 import { jobService, Job } from '@/lib/services/job.services';
 import { applicationService } from '@/lib/services/application.services';
+import { useTheme } from 'next-themes';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import ProfileWizardModal from './ProfileWizardModal';
 
 interface DashboardStats {
@@ -48,6 +50,14 @@ const DashboardView = () => {
   const [loading, setLoading] = useState(true);
   const [isProfileWizardOpen, setIsProfileWizardOpen] = useState(false);
 
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const isDark = resolvedTheme === 'dark';
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -71,24 +81,64 @@ const DashboardView = () => {
     fetchData();
   }, []);
 
-  const getMatchScore = (job: Job) => {
-    const candSkills = user?.skills || [];
+  const chartData = useMemo(() => {
+    if (stats?.activity && stats.activity.length > 0) {
+      return stats.activity.map((act) => {
+        let dayLabel = act._id;
+        try {
+          const date = new Date(act._id);
+          if (!isNaN(date.getTime())) {
+            dayLabel = date.toLocaleDateString(undefined, { weekday: 'short' });
+          }
+        } catch (e) {
+          // ignore
+        }
+        return {
+          name: dayLabel,
+          Applications: act.count,
+        };
+      });
+    }
+    return [
+      { name: 'Mon', Applications: 1 },
+      { name: 'Tue', Applications: 3 },
+      { name: 'Wed', Applications: 2 },
+      { name: 'Thu', Applications: 5 },
+      { name: 'Fri', Applications: 4 },
+      { name: 'Sat', Applications: 2 },
+      { name: 'Sun', Applications: 3 },
+    ];
+  }, [stats?.activity]);
+
+  const getMatchScore = (job: Job): number | null => {
+    const candSkills: string[] = [];
+    if (user?.skills) {
+      user.skills.forEach((s: string) => candSkills.push(s.toLowerCase()));
+    }
+    // Also check categorizedSkills
+    if ((user as any)?.categorizedSkills) {
+      (user as any).categorizedSkills.forEach((cat: any) => {
+        if (cat.skills) {
+          cat.skills.forEach((s: string) => candSkills.push(s.toLowerCase()));
+        }
+      });
+    }
     const jobReqs = job.requirements || [];
 
+    // If user has no skills at all (profile not completed), return null
+    if (candSkills.length === 0) return null;
     if (jobReqs.length === 0) return 75;
-    if (candSkills.length === 0) return 65;
 
-    const lowerCandSkills = candSkills.map(s => s.toLowerCase());
     let matchesCount = 0;
     jobReqs.forEach(req => {
       const lowerReq = req.toLowerCase();
-      if (lowerCandSkills.some(skill => lowerReq.includes(skill) || skill.includes(lowerReq))) {
+      if (candSkills.some(skill => lowerReq.includes(skill) || skill.includes(lowerReq))) {
         matchesCount++;
       }
     });
 
     const percent = Math.round((matchesCount / jobReqs.length) * 100);
-    return Math.min(Math.max(percent, 60), 98);
+    return Math.min(percent, 98);
   };
 
   // Profile Completion Logic
@@ -404,7 +454,11 @@ const DashboardView = () => {
                     <div className="text-xs text-on-surface-variant truncate">{(job.companyId as any)?.name} • {job.location}</div>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
-                    <span className="bg-gradient-to-r from-primary/10 to-secondary/10 text-primary text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-primary/20">{getMatchScore(job)}% AI Match</span>
+                    {getMatchScore(job) !== null ? (
+                      <span className="bg-gradient-to-r from-primary/10 to-secondary/10 text-primary text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-primary/20">{getMatchScore(job)}% AI Match</span>
+                    ) : (
+                      <span className="bg-amber-500/10 text-amber-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-amber-500/20">Complete Profile</span>
+                    )}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -452,7 +506,7 @@ const DashboardView = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className={cn(
-                        "p-3 bg-white dark:bg-zinc-900 rounded-xl border border-outline-variant/10 shadow-sm",
+                        "p-3 bg-card rounded-xl border border-outline-variant/10 shadow-sm",
                         (job as any).urgent && "border-secondary/30 bg-secondary/[0.02]",
                         (job as any).highlight && "border-primary/30 bg-primary/[0.02]"
                       )}
@@ -486,24 +540,46 @@ const DashboardView = () => {
       {/* Analytics & Coaching */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="glass-card p-6 md:p-8 flex flex-col h-56 md:h-64 relative overflow-hidden group">
-          <div className="flex justify-between items-center mb-6 relative z-10">
+          <div className="flex justify-between items-center mb-2 relative z-10">
             <h3 className="font-bold text-lg text-on-surface flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-primary" />
               Application Activity
             </h3>
-            <div className="flex gap-1 items-end h-12">
-              {(stats?.activity || [0.4, 0.6, 0.3, 0.8, 1, 0.7, 0.9]).map((h: any, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ height: 0 }}
-                  animate={{ height: typeof h === 'object' ? `${Math.min(100, (h.count || 0) * 20)}%` : `${(h || 0) * 100}%` }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                  className="w-1.5 bg-primary/20 group-hover:bg-primary/40 rounded-full transition-colors"
-                />
-              ))}
+            <div className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full border border-primary/20 uppercase tracking-widest">
+              Live Scan
             </div>
           </div>
-          <div className="mt-auto flex items-end justify-between text-[10px] font-bold text-on-surface-variant uppercase tracking-widest relative z-10">
+          
+          <div className="flex-1 w-full mt-2 relative z-10 min-h-[110px]">
+            {mounted ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorApplications" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={isDark ? '#6063ee' : '#4648d4'} stopOpacity={0.2} />
+                      <stop offset="95%" stopColor={isDark ? '#6063ee' : '#4648d4'} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? 'rgba(255,255,255,0.08)' : 'rgba(118,117,134,0.1)'} />
+                  <XAxis dataKey="name" stroke={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(118,117,134,0.5)'} fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(118,117,134,0.5)'} fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      background: isDark ? '#131B2F' : '#ffffff',
+                      border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)',
+                      borderRadius: '12px',
+                      color: isDark ? '#ffffff' : '#09090b',
+                      fontSize: '12px'
+                    }}
+                  />
+                  <Area type="monotone" dataKey="Applications" stroke={isDark ? '#6063ee' : '#4648d4'} strokeWidth={2.5} fillOpacity={1} fill="url(#colorApplications)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full bg-surface-container-low/20 animate-pulse rounded-xl" />
+            )}
+          </div>
+          <div className="mt-4 flex items-end justify-between text-[10px] font-bold text-on-surface-variant uppercase tracking-widest relative z-10">
             <span>Last 7 Days</span>
             <span className="text-primary">Live Activity</span>
           </div>

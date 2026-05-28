@@ -10,6 +10,7 @@ export default function JobMatchesPage() {
           description: "Explore personalized AI job matches tailored to your resume, skills, and preferences.",
           keywords: "AI job matching, job recommendations, tailored jobs, AIJobFit",
           url: "/candidate/job-matches",
+          noIndex: true,
         }}
       />
       <main className="w-full min-h-screen bg-surface">

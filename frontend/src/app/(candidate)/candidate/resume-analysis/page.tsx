@@ -10,6 +10,7 @@ export default function ResumeAnalysisPage() {
           description: "Get detailed AI-powered insights and feedback on your resume to improve your job matches.",
           keywords: "resume analysis, AI resume reviewer, CV feedback, AIJobFit",
           url: "/candidate/resume-analysis",
+          noIndex: true,
         }}
       />
       <main className="w-full min-h-screen bg-surface">

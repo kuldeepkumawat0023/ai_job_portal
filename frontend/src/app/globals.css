@@ -166,9 +166,16 @@
 }
 
 .glass-sidebar {
-  background: color-mix(in srgb, var(--surface-container) 80%, transparent);
-  backdrop-filter: blur(24px);
-  border-right: 1px solid color-mix(in srgb, var(--outline-variant) 20%, transparent);
+  background: var(--surface-container);
+  border-right: 1px solid var(--outline-variant);
+}
+
+@media (min-width: 1024px) {
+  .glass-sidebar {
+    background: color-mix(in srgb, var(--surface-container) 80%, transparent);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid color-mix(in srgb, var(--outline-variant) 20%, transparent);
+  }
 }
 
 .glass-navbar {

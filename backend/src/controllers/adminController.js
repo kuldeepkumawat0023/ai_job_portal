@@ -124,7 +124,7 @@ exports.getDashboardStats = async (req, res, next) => {
 // @access  Private/Admin
 exports.getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find({}).sort('-createdAt');
+    const users = await User.find({}).populate('companyId').sort('-createdAt');
     res.status(200).json({
       success: true,
       statusCode: 200,

@@ -50,7 +50,7 @@ const degreeTemplates = [
 ];
 
 const roleTemplates = [
-  'Software Engineer', 'Frontend Developer', 'Backend Developer', 
+  'Software Engineer', 'Frontend Developer', 'Backend Developer',
   'Data Scientist', 'UI/UX Designer', 'DevOps Specialist', 'iOS Developer', 'Mobile Engineer'
 ];
 
@@ -87,7 +87,7 @@ const seedDB = async () => {
     console.log('👥 Creating 5 Recruiter users...');
     const recruitersData = [];
     const recruiterNames = ['Karan Mehra', 'Sophia Davis', 'Rajesh Sen', 'Emily Brown', 'Aditi Rao'];
-    
+
     for (let i = 0; i < 5; i++) {
       recruitersData.push({
         fullname: recruiterNames[i],
@@ -208,7 +208,7 @@ const seedDB = async () => {
       const compIdx = i % companies.length;
       const recIdx = compIdx; // Linked recruiter
       const reqList = sampleSkills[i % sampleSkills.length];
-      
+
       jobsData.push({
         title: jobTitles[i],
         description: `We are looking for a highly capable professional to join our fast-paced squad. You will lead development pipelines, participate in architectural design, and write high-efficiency codes.\n\nQualifications:\n- Strong capability with ${reqList.slice(0, 3).join(', ')}\n- Understanding of design patterns\n- Collaborative background.`,
@@ -261,7 +261,7 @@ const seedDB = async () => {
     // 9. Create 40 Applications (Candidates applying to Jobs)
     console.log('📝 Seeding 40 Applications with AI Scores...');
     const applicationsData = [];
-    
+
     // Choose 40 candidates to apply to some jobs
     for (let i = 0; i < 40; i++) {
       const cand = candidates[i % candidates.length];
@@ -279,7 +279,7 @@ const seedDB = async () => {
     }
 
     const applications = await Application.insertMany(applicationsData);
-    
+
     // Update Jobs with applications arrays
     console.log('🔗 Linking Applications back to Jobs...');
     for (let i = 0; i < applications.length; i++) {
@@ -334,14 +334,14 @@ const seedDB = async () => {
     // 11. Create 10 Real/Scheduled Interviews (Shortlisted Candidate Applications)
     console.log('📅 Seeding 10 Real Recruiter Interviews...');
     const interviewsData = [];
-    
+
     // Filter out some interviewing/shortlisted applications
     const activeApps = applications.filter(app => app.status === 'interviewing' || app.status === 'shortlisted').slice(0, 10);
-    
+
     for (let i = 0; i < activeApps.length; i++) {
       const app = activeApps[i];
       const job = await Job.findById(app.jobId);
-      
+
       const interviewDate = new Date();
       interviewDate.setDate(interviewDate.getDate() + (i + 1)); // Next few days
 
@@ -351,7 +351,7 @@ const seedDB = async () => {
         companyId: job.companyId,
         date: interviewDate,
         time: `${10 + (i % 5)}:00 AM`,
-        mode: i % 3 === 0 ? 'Zoom' : i % 3 === 1 ? 'In-person' : 'Google Meet',
+        mode: 'Google Meet',
         meetingLink: `https://meet.google.com/abc-defg-hij`,
         status: i % 5 === 0 ? 'completed' : 'scheduled',
         feedback: i % 5 === 0 ? 'Strong engineering skills and impressive live coding performance.' : '',
@@ -360,6 +360,25 @@ const seedDB = async () => {
     }
     await Interview.insertMany(interviewsData);
     console.log(`✅ 10 Recruiter Interviews scheduled and seeded.`);
+
+    // 12. Seed Super Admin
+    console.log('👤 Seeding Super Admin...');
+    const adminEmail = process.env.SUPER_ADMIN_EMAIL || 'kuldeepkumawat2383@gmail.com';
+    const adminPassword = process.env.SUPER_ADMIN_PASSWORD || 'Admin@123';
+    
+    const superAdmin = new User({
+      fullname: 'Super Admin',
+      email: adminEmail,
+      countryCode: '+91',
+      phoneNumber: '9876543210',
+      password: adminPassword,
+      role: ROLES.ADMIN,
+      isOtpVerified: true,
+      isHiringOtpVerified: true,
+      isActive: true,
+    });
+    await superAdmin.save();
+    console.log('✅ Super Admin seeded.');
 
     console.log('\n🌟 DATABASE SEEDING COMPLETED SUCCESSFULY! 🌟');
     console.log(`📊 TOTAL SEEDED RECORDS:`);
@@ -370,7 +389,8 @@ const seedDB = async () => {
     console.log(`   - 📄 Resumes:     30`);
     console.log(`   - 📝 Applications:40`);
     console.log(`   - 🎤 Practice Mocks:15`);
-    console.log(`   - 📅 Recruiter Live:10\n`);
+    console.log(`   - 📅 Recruiter Live:10`);
+    console.log(`   - 👤 Super Admin: 1\n`);
 
     // Exit
     process.exit(0);
