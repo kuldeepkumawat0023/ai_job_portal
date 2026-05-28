@@ -23,7 +23,7 @@ const seedSuperAdmin = async () => {
         countryCode: '+91',
         phoneNumber: '9876543210',
         password: adminPassword,
-        role: 'admin',
+        role: 'super_admin',
         isOtpVerified: true,
         isHiringOtpVerified: true,
         isActive: true,
@@ -32,8 +32,8 @@ const seedSuperAdmin = async () => {
       console.log('✅ Super Admin seeded successfully.');
     } else {
       let isModified = false;
-      if (admin.role !== 'admin') {
-        admin.role = 'admin';
+      if (admin.role !== 'super_admin') {
+        admin.role = 'super_admin';
         isModified = true;
       }
       const isMatch = await admin.matchPassword(adminPassword);

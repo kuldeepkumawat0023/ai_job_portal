@@ -372,7 +372,7 @@ const seedDB = async () => {
       countryCode: '+91',
       phoneNumber: '9876543210',
       password: adminPassword,
-      role: ROLES.ADMIN,
+      role: ROLES.SUPER_ADMIN,
       isOtpVerified: true,
       isHiringOtpVerified: true,
       isActive: true,
