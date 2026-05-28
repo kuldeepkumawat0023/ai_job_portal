@@ -83,7 +83,12 @@ const initSocket = (server) => {
 
 const getIO = () => {
   if (!io) {
-    throw new Error('Socket.io not initialized!');
+    console.warn('⚠️ Socket.io not initialized! Using mock socket interface.');
+    return {
+      to: () => ({
+        emit: () => {}
+      })
+    };
   }
   return io;
 };
