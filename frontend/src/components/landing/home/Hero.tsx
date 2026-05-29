@@ -10,16 +10,24 @@ const Hero = () => {
   const [isInstalled, setIsInstalled] = React.useState(false);
 
   React.useEffect(() => {
-    const checkIsInstalled = () => {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
-      setIsInstalled(isStandalone);
+    // Check localStorage first (persists across browser/PWA sessions)
+    const savedInstalled = localStorage.getItem('pwa_installed') === 'true';
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+
+    if (savedInstalled || isStandalone) {
+      setIsInstalled(true);
+      localStorage.setItem('pwa_installed', 'true');
+    }
+
+    // Listen for the native install event
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      localStorage.setItem('pwa_installed', 'true');
     };
 
-    checkIsInstalled();
-
-    window.addEventListener('appinstalled', checkIsInstalled);
+    window.addEventListener('appinstalled', handleAppInstalled);
     return () => {
-      window.removeEventListener('appinstalled', checkIsInstalled);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
@@ -85,31 +93,33 @@ const Hero = () => {
         >
 
 
-          <Button
-            variant={isInstalled ? "outline" : "gradient"}
-            size="lg"
-            glow={!isInstalled}
-            onClick={() => {
-              if (!isInstalled) {
+          {isInstalled ? (
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto gap-2 cursor-default opacity-80"
+              aria-label="App Installed"
+              title="App Installed"
+            >
+              <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />
+              App Installed
+            </Button>
+          ) : (
+            <Button
+              variant="gradient"
+              size="lg"
+              glow
+              onClick={() => {
                 window.dispatchEvent(new Event('showInstallModal'));
-              }
-            }}
-            className={`w-full sm:w-auto gap-2 ${isInstalled ? "opacity-80 cursor-default" : ""}`}
-            aria-label={isInstalled ? "App Installed" : "Install AI JobFit App"}
-            title={isInstalled ? "App Installed" : "Download App"}
-          >
-            {isInstalled ? (
-              <>
-                <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />
-                App Installed
-              </>
-            ) : (
-              <>
-                <Download className="w-5 h-5" aria-hidden="true" />
-                Download App
-              </>
-            )}
-          </Button>
+              }}
+              className="w-full sm:w-auto gap-2"
+              aria-label="Install AI JobFit App"
+              title="Download App"
+            >
+              <Download className="w-5 h-5" aria-hidden="true" />
+              Download App
+            </Button>
+          )}
 
           <Button
             variant="outline"

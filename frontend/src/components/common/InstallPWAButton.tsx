@@ -102,6 +102,7 @@ export default function InstallPWAButton() {
       const { outcome } = await promptEvent.userChoice;
       if (outcome === 'accepted') {
         console.log('User accepted the PWA install prompt');
+        localStorage.setItem('pwa_installed', 'true');
       }
       // Clear it so it cannot be reused
       setDeferredPrompt(null);
