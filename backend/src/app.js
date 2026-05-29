@@ -14,8 +14,23 @@ app.disable('etag');
 app.set('trust proxy', 1);
 
 // 2. CORS config (Must be first to avoid generic Network Errors on rate limit hits/errors)
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_URL,
+  'http://localhost:3000',
+  'http://localhost:3001',
+].filter(Boolean); // Remove undefined/null values
+
 const corsOptions = {
-  origin: [process.env.FRONTEND_URL, process.env.ADMIN_URL, 'http://localhost:3000'], // Added localhost for testing
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+    // Allow if in explicit list or if it's a Vercel preview URL
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 };
 app.use(cors(corsOptions));
