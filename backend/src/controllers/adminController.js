@@ -44,10 +44,11 @@ exports.importBulkJobs = async (req, res, next) => {
       return res.status(400).json({ success: false, statusCode: 400, message: 'Please upload a CSV file', data: null });
     }
 
+    const { Readable } = require('stream');
     const results = [];
-    const filePath = req.file.path;
 
-    fs.createReadStream(filePath)
+    const stream = Readable.from(req.file.buffer.toString());
+    stream
       .pipe(csv())
       .on('data', (data) => results.push(data))
       .on('end', async () => {
@@ -66,9 +67,6 @@ exports.importBulkJobs = async (req, res, next) => {
           }));
 
           await Job.insertMany(jobsToInsert);
-
-          // Delete temp file
-          fs.unlinkSync(filePath);
 
           res.status(201).json({
             success: true,

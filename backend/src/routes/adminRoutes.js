@@ -2,7 +2,7 @@ const express = require('express');
 const { getAllUsers, suspendUser, activateUser, updateUser, deleteUser, getDashboardStats, importBulkJobs, getTransactions } = require('../controllers/adminController');
 const { protect, authorize } = require('../middleware/auth');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
 
