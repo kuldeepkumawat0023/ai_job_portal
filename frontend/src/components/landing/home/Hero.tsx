@@ -3,10 +3,26 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { Sparkles, FileText, TrendingUp, Download } from 'lucide-react';
+import { Sparkles, FileText, TrendingUp, Download, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 
 const Hero = () => {
+  const [isInstalled, setIsInstalled] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkIsInstalled = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+      setIsInstalled(isStandalone);
+    };
+
+    checkIsInstalled();
+
+    window.addEventListener('appinstalled', checkIsInstalled);
+    return () => {
+      window.removeEventListener('appinstalled', checkIsInstalled);
+    };
+  }, []);
+
   return (
     <section
       className="hero-gradient relative min-h-[90vh] flex flex-col justify-center items-center px-6 text-center overflow-hidden py-13 md:py-24"
@@ -70,21 +86,29 @@ const Hero = () => {
 
 
           <Button
-            variant="gradient"
+            variant={isInstalled ? "outline" : "gradient"}
             size="lg"
-            glow
+            glow={!isInstalled}
             onClick={() => {
-              window.dispatchEvent(new Event('showInstallModal'));
+              if (!isInstalled) {
+                window.dispatchEvent(new Event('showInstallModal'));
+              }
             }}
-            className="w-full sm:w-auto gap-2"
-            aria-label="Install AI JobFit App"
-            title="Download App"
+            className={`w-full sm:w-auto gap-2 ${isInstalled ? "opacity-80 cursor-default" : ""}`}
+            aria-label={isInstalled ? "App Installed" : "Install AI JobFit App"}
+            title={isInstalled ? "App Installed" : "Download App"}
           >
-            <Download
-              className="w-5 h-5"
-              aria-hidden="true"
-            />
-            Download App
+            {isInstalled ? (
+              <>
+                <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />
+                App Installed
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5" aria-hidden="true" />
+                Download App
+              </>
+            )}
           </Button>
 
           <Button
