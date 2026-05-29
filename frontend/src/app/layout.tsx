@@ -1,4 +1,4 @@
-import type { Viewport } from "next";
+import type { Viewport, Metadata } from "next";
 import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/provider/ThemeProvider";
@@ -20,6 +20,20 @@ const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
 });
+
+export const metadata: Metadata = {
+  title: "AI JobFit",
+  description: "AI-powered job matching and career platform.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "AI JobFit",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
 
 export const viewport: Viewport = {
   width: "device-width",
