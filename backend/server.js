@@ -5,7 +5,6 @@ const os = require('os');
 
 const app = require('./src/app');
 const connectDB = require('./src/config/db');
-const { initSocket } = require('./src/config/socket');
 const User = require('./src/models/User');
 
 let isConnected = false;
@@ -18,7 +17,7 @@ const seedSuperAdmin = async () => {
     const adminEmail = process.env.SUPER_ADMIN_EMAIL || 'kuldeepkumawat2383@gmail.com';
     const adminPassword = process.env.SUPER_ADMIN_PASSWORD || 'Admin@123';
 
-    let admin = await User.findOne({ email: adminEmail });
+    let admin = await User.findOne({ email: adminEmail }).select('+password');
 
     if (!admin) {
       console.log(`👤 Seeding new Super Admin user: ${adminEmail}`);
@@ -99,6 +98,7 @@ if (process.env.VERCEL) {
       try {
         await ensureConnection();
 
+        const { initSocket } = require('./src/config/socket');
         const server = http.createServer(app);
         initSocket(server);
 
