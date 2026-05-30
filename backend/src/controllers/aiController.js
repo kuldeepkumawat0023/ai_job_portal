@@ -1059,7 +1059,7 @@ const optimizeProfileOffline = (profile, parsedResumeData = {}) => {
     if (parsedResumeData.bio && !isGibberish(parsedResumeData.bio)) {
       optimized.bio = parsedResumeData.bio;
     } else {
-      optimized.bio = `Highly motivated and detail-oriented Full Stack Developer with hands-on experience designing, developing, and deploying modern web applications. Proficient in a comprehensive suite of technologies, including ${skillsList}. Proven track record of writing clean, maintainable, and optimized code, integrating robust RESTful APIs, and implementing responsive, user-friendly frontend interfaces. Strong problem-solving skills and a passion for engineering high-performance systems and collaborative software solutions.`;
+      optimized.bio = '';
     }
   }
 
@@ -1069,20 +1069,7 @@ const optimizeProfileOffline = (profile, parsedResumeData = {}) => {
     if (parsedResumeData.workExperience && parsedResumeData.workExperience.length > 0) {
       optimized.workExperience = parsedResumeData.workExperience;
     } else {
-      optimized.workExperience = [
-        {
-          role: 'Full Stack Developer',
-          company: 'Artifact Geeks',
-          duration: '2024 - Present',
-          description: '• Spearheaded design and implementation of highly scalable web applications using React.js, Next.js, and Node.js.\n• Engineered secure authentication mechanisms and integrated third-party RESTful APIs, reducing transaction response latency by 25%.\n• Optimized MongoDB schema structures and SQL queries to enhance data retrieval speeds by 35%.\n• Collaborated with UX/UI design and product management teams to deliver responsive interfaces and modern user experiences.'
-        },
-        {
-          role: 'Software Engineer Intern',
-          company: 'Tech Solutions Corp',
-          duration: '2023 - 2024',
-          description: '• Developed reusable component modules in React.js and TypeScript, improving development efficiency across the engineering department.\n• Wrote comprehensive unit and integration test suites using Jest, increasing test coverage by 40%.\n• Maintained code quality standards through strict review cycles, performance auditing, and continuous integration (CI/CD) pipelines.'
-        }
-      ];
+      optimized.workExperience = [];
     }
   } else {
     optimized.workExperience = workExp.map((item, idx) => {
@@ -1147,8 +1134,8 @@ exports.enhanceResumeData = async (req, res, next) => {
         If the content is poorly written, grammatically incorrect, or too basic, completely transform it into a highly advanced, professional, and impact-driven format.
         
         Guidelines:
-        1. Professional Bio: Rewrite to be a powerful executive summary. Highlight core expertise, leadership qualities, and career objectives. IF the original bio is gibberish, random letters, or very short (like "dsvsxfvb"), completely GENERATE a brand new, highly professional Full Stack Developer summary.
-        2. Work Experience: Transform basic descriptions into strong, action-oriented bullet points focusing on quantifiable achievements and impact. Fix any grammar issues. IF the description is gibberish or random letters, GENERATE professional bullet points matching the role.
+        1. Professional Bio: Rewrite to be a powerful executive summary. Highlight core expertise, leadership qualities, and career objectives. IF the original bio is gibberish, random letters, or very short (like "dsvsxfvb"), return an empty string. DO NOT generate fake bios.
+        2. Work Experience: Transform basic descriptions into strong, action-oriented bullet points focusing on quantifiable achievements and impact. Fix any grammar issues. IF the original work experience array is empty, keep it empty. DO NOT generate fake work experience.
         3. Projects: Enhance the project descriptions to highlight the problem solved, technical complexity, and the final outcome/impact. IF the description is gibberish or random letters, GENERATE a realistic, professional project description. If the projects array is empty, keep it empty and DO NOT generate fake projects.
         
         Do not change the factual data (names, titles, dates, skills) UNLESS they are clearly gibberish, in which case generate realistic professional placeholders. Drastically improve the phrasing, vocabulary, and professional tone of the descriptive text.
