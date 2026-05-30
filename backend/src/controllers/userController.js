@@ -57,7 +57,7 @@ exports.updateProfile = async (req, res, next) => {
       return res.status(403).json({ success: false, statusCode: 403, message: 'Unauthorized update request', data: null });
     }
 
-    const { fullname, bio, categorizedSkills, experience, education, workExperience, projects, certificates, personalDetail, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences } = req.body;
+    const { fullname, bio, categorizedSkills, experience, education, workExperience, projects, certificates, personalDetail, role, location, phoneNumber, countryCode, isFresher, jobRole, department, twoFactorEnabled, notificationPreferences, resumeUrl } = req.body;
 
     let user = await User.findById(req.params.id);
 
@@ -65,7 +65,7 @@ exports.updateProfile = async (req, res, next) => {
       return res.status(404).json({ success: false, statusCode: 404, message: 'User not found', data: null });
     }
 
-    // Handle file uploads (Buffer Streaming to Cloudinary)
+    // Handle file uploads (Buffer Streaming to Cloudinary) — for profile photos only
     if (req.file) {
       if (req.file.fieldname === 'profilePhoto') {
         // 1. Delete old photo if exists
@@ -75,15 +75,15 @@ exports.updateProfile = async (req, res, next) => {
         // 2. Upload new photo
         const result = await uploadToCloudinary(req.file.buffer, 'ai_job_portal/profiles', 'image');
         user.profilePhoto = result.secure_url;
-      } else if (req.file.fieldname === 'resume') {
-        // 1. Delete old resume if exists
-        if (user.resume) {
-          await deleteFromCloudinary(user.resume);
-        }
-        // 2. Upload new resume
-        const result = await uploadToCloudinary(req.file.buffer, 'ai_job_portal/resumes', 'raw');
-        user.resume = result.secure_url;
       }
+    }
+
+    // Handle resume uploaded directly to Cloudinary from the browser (bypasses Vercel's 4.5MB body limit)
+    if (resumeUrl) {
+      if (user.resume) {
+        await deleteFromCloudinary(user.resume);
+      }
+      user.resume = resumeUrl;
     }
 
     // Update text fields

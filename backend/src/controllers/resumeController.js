@@ -1,6 +1,6 @@
 const Resume = require('../models/Resume');
 const User = require('../models/User');
-const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
+const { deleteFromCloudinary } = require('../config/cloudinary');
 const OpenAI = require('openai');
 const axios = require('axios');
 const pdf = require('pdf-parse');
@@ -27,24 +27,23 @@ const skillKeywords = {
   'agile': 'Agile', 'scrum': 'Scrum', 'jira': 'JIRA', 'postman': 'Postman', 'selenium webdriver': 'Selenium WebDriver', 'selenium': 'Selenium', 'jest': 'Jest', 'cypress': 'Cypress', 'vs code': 'VS Code', 'xampp': 'XAMPP', 'ui/ux automation': 'UI/UX Automation', 'ui/ux': 'UI/UX', 'xpath': 'XPath'
 };
 
-// @desc    Upload a new resume
+// @desc    Save a resume uploaded directly to Cloudinary from the browser
 // @route   POST /api/v1/resume/upload
 // @access  Private
 exports.uploadResume = async (req, res, next) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, statusCode: 400, message: 'Please upload a file', data: null });
+    const { fileUrl } = req.body;
+
+    if (!fileUrl) {
+      return res.status(400).json({ success: false, statusCode: 400, message: 'Please provide a fileUrl from the Cloudinary upload', data: null });
     }
 
     // Set all previous resumes as NOT default
     await Resume.updateMany({ userId: req.user.id }, { isDefault: false });
 
-    // Upload to Cloudinary using advanced streaming
-    const result = await uploadToCloudinary(req.file.buffer, 'ai_job_portal/resumes', 'raw');
-
     const resume = await Resume.create({
       userId: req.user.id,
-      fileUrl: result.secure_url,
+      fileUrl: fileUrl,
       isDefault: true
     });
 

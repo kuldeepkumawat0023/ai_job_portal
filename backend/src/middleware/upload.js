@@ -22,7 +22,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max limit
+  limits: { fileSize: 4 * 1024 * 1024 }, // 4MB max — stays under Vercel's 4.5MB serverless body limit
   fileFilter: fileFilter
 });
 

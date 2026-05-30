@@ -84,18 +84,17 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB Limit
-      toast.error('File size must be under 5MB');
+    if (file.size > 10 * 1024 * 1024) { // 10MB Limit
+      toast.error('File size must be under 10MB');
       return;
     }
 
     setUploadingResume(true);
     const uploadToast = toast.loading('Uploading resume...');
     try {
-      const formDataUpload = new FormData();
-      formDataUpload.append('resume', file);
-
-      const res = await userService.updateResume(user?._id || '', formDataUpload);
+      const res = await userService.updateResume(user?._id || '', file, (percent) => {
+        toast.loading(`Uploading resume... ${percent}%`, { id: uploadToast });
+      });
       if (res.success) {
         setUploadedResumeName(file.name);
         if (res.data) {
@@ -106,7 +105,7 @@ const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
         toast.error('Failed to upload resume', { id: uploadToast });
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Resume upload failed', { id: uploadToast });
+      toast.error(error.message || error.response?.data?.message || 'Resume upload failed', { id: uploadToast });
     } finally {
       setUploadingResume(false);
     }

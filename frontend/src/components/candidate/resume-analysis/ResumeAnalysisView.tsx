@@ -38,6 +38,7 @@ const ResumeAnalysisView = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
   const [history, setHistory] = useState<Resume[]>([]);
   const [currentResume, setCurrentResume] = useState<Resume | null>(null);
@@ -383,19 +384,21 @@ const ResumeAnalysisView = () => {
     if (!file) return;
     try {
       setUploading(true);
-      const formData = new FormData();
-      formData.append('resume', file);
+      setUploadProgress(0);
 
-      const res = await resumeService.uploadResume(formData);
+      const res = await resumeService.uploadResume(file, (percent) => {
+        setUploadProgress(percent);
+      });
       if (res.success) {
         toast.success('Resume uploaded successfully!');
         setCurrentResume(res.data);
         handleStartAnalysis(res.data._id);
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Upload failed');
+      toast.error(error.message || error.response?.data?.message || 'Upload failed');
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -525,11 +528,22 @@ const ResumeAnalysisView = () => {
                 onClick={(e) => { e.stopPropagation(); if (file) handleUpload(); else fileInputRef.current?.click(); }}
                 disabled={uploading}
               >
-                {uploading ? "Uploading..." : file ? "Analyze Now" : "Select File"}
+                {uploading ? `Uploading${uploadProgress > 0 ? ` ${uploadProgress}%` : '...'}` : file ? "Analyze Now" : "Select File"}
                 <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
               </Button>
             </div>
-            <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/40">Supported: PDF, DOCX (Max 5MB)</p>
+            {uploading && uploadProgress > 0 && (
+              <div className="w-full max-w-xs mt-4">
+                <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+                <p className="text-[10px] font-bold text-on-surface-variant/60 mt-1 text-center">{uploadProgress}% uploaded</p>
+              </div>
+            )}
+            <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/40">Supported: PDF, DOCX (Max 10MB)</p>
           </motion.section>
         )}
 

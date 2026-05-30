@@ -1,5 +1,6 @@
 import apiClient from '../apiClient';
 import { AuthUser, ApiResponse } from '../apiClient';
+import { resumeService } from './resume.services';
 
 /**
  * 👤 User Service
@@ -35,11 +36,30 @@ export const userService = {
   },
 
   /**
-   * Update resume
+   * Update resume — uploads directly to Cloudinary from the browser,
+   * then sends the resulting URL to the backend.
    * PUT /api/v1/user/profile/resume/:id
    */
-  updateResume: async (id: string, formData: FormData): Promise<ApiResponse<AuthUser>> => {
-    const response = await apiClient.put(`/user/profile/resume/${id}`, formData);
+  updateResume: async (
+    id: string,
+    file: File,
+    onProgress?: (percent: number) => void
+  ): Promise<ApiResponse<AuthUser>> => {
+    let finalFile = file;
+
+    // 1. Client-side file size validation & compression
+    if (file.type === 'application/pdf' && file.size > 5 * 1024 * 1024) {
+      finalFile = await resumeService.compressPDF(file);
+    }
+
+    // 2. Get signed upload params from backend
+    const signData = await resumeService.getCloudinarySignature();
+
+    // 3. Upload file directly to Cloudinary (bypasses Vercel's body limit)
+    const resumeUrl = await resumeService.uploadToCloudinary(finalFile, signData, onProgress);
+
+    // 4. Send the Cloudinary URL to backend (tiny JSON request)
+    const response = await apiClient.put(`/user/profile/resume/${id}`, { resumeUrl });
     return response.data;
   },
 

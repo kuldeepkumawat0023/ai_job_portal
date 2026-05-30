@@ -1,7 +1,7 @@
 const express = require('express');
 const { getProfile, updateProfile, deleteProfile, getUsers, getTeamMembers, inviteTeamMember, removeTeamMember, getBillingUsage } = require('../controllers/userController');
 const { protect } = require('../middleware/auth');
-const { uploadImage, uploadResume } = require('../middleware/upload');
+const { uploadImage } = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ router.use(protect);
 
 router.get('/profile/:id', getProfile);
 router.put('/profile/update/:id', uploadImage.single('profilePhoto'), updateProfile);
-router.put('/profile/resume/:id', uploadResume.single('resume'), updateProfile);
+router.put('/profile/resume/:id', updateProfile);     // Now accepts JSON { resumeUrl } instead of multipart file
 router.delete('/profile/delete/:id', deleteProfile);
 
 router.get('/team/all', getTeamMembers);
