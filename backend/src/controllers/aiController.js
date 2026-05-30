@@ -1109,20 +1109,7 @@ const optimizeProfileOffline = (profile, parsedResumeData = {}) => {
     if (parsedResumeData.projects && parsedResumeData.projects.length > 0) {
       optimized.projects = parsedResumeData.projects;
     } else {
-      optimized.projects = [
-        {
-          title: 'AI-Powered Job Portal',
-          stack: ['Next.js', 'Express.js', 'MongoDB', 'TailwindCSS'],
-          description: 'Developed an end-to-end recruitment platform featuring automated resume screening, semantic candidate matching, and dynamic PDF resume generation. Integrated secure OAuth Google social logins and built interactive administrative dashboards.',
-          link: 'https://github.com/profile/ai-job-portal'
-        },
-        {
-          title: 'Real-time Chat Application',
-          stack: ['React.js', 'Node.js', 'Socket.io', 'Redis'],
-          description: 'Built a collaborative messaging client supporting instant chat, online status notifications, and channel creation. Leveraged Socket.io for persistent websocket links and Redis as a message broker for pub/sub operations.',
-          link: 'https://github.com/profile/chat-app'
-        }
-      ];
+      optimized.projects = [];
     }
   } else {
     optimized.projects = projs.map((p, idx) => {
@@ -1162,7 +1149,7 @@ exports.enhanceResumeData = async (req, res, next) => {
         Guidelines:
         1. Professional Bio: Rewrite to be a powerful executive summary. Highlight core expertise, leadership qualities, and career objectives. IF the original bio is gibberish, random letters, or very short (like "dsvsxfvb"), completely GENERATE a brand new, highly professional Full Stack Developer summary.
         2. Work Experience: Transform basic descriptions into strong, action-oriented bullet points focusing on quantifiable achievements and impact. Fix any grammar issues. IF the description is gibberish or random letters, GENERATE professional bullet points matching the role.
-        3. Projects: Enhance the project descriptions to highlight the problem solved, technical complexity, and the final outcome/impact. IF the description is gibberish or random letters, GENERATE a realistic, professional project description.
+        3. Projects: Enhance the project descriptions to highlight the problem solved, technical complexity, and the final outcome/impact. IF the description is gibberish or random letters, GENERATE a realistic, professional project description. If the projects array is empty, keep it empty and DO NOT generate fake projects.
         
         Do not change the factual data (names, titles, dates, skills) UNLESS they are clearly gibberish, in which case generate realistic professional placeholders. Drastically improve the phrasing, vocabulary, and professional tone of the descriptive text.
 
