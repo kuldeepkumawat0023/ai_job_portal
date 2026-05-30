@@ -1,3 +1,5 @@
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://ai-job-portal-lime.vercel.app";
+
 export const defaultSEO = {
     // ================= BASIC GLOBAL =================
     author: "AIJobFit",
@@ -12,8 +14,8 @@ export const defaultSEO = {
     url: "/",
 
     // ================= DOMAIN =================
-    metadataBase: new URL("https://aijobfit.com"),
-    baseUrl: "https://aijobfit.com",
+    metadataBase: new URL(BASE_URL),
+    baseUrl: BASE_URL,
 
     // ================= LANGUAGE =================
     language: "en",
@@ -24,11 +26,11 @@ export const defaultSEO = {
     email: "support@aijobfit.com",
 
     // ================= IMAGES =================
-    image: "https://aijobfit.com/images/logo/logo.png",
+    image: `${BASE_URL}/images/logo/logo.png`,
     imageAlt: "AIJobFit",
     imageType: "image/png",
 
-    ogImage: "https://aijobfit.com/images/logo/logo.png",
+    ogImage: `${BASE_URL}/images/logo/logo.png`,
     ogImageAlt: "AIJobFit",
     ogImageType: "image/png",
 
@@ -74,14 +76,14 @@ export const defaultSEO = {
     // ================= SEO ADVANCED =================
     canonical: "",
     alternateLanguages: [
-        { hrefLang: "en-IN", href: "https://aijobfit.com" },
+        { hrefLang: "en-IN", href: BASE_URL },
     ],
 
     // ================= STRUCTURED =================
     organization: {
         name: "AIJobFit",
-        url: "https://aijobfit.com",
-        logo: "https://aijobfit.com/images/logo/logo.png",
+        url: BASE_URL,
+        logo: `${BASE_URL}/images/logo/logo.png`,
 
         sameAs: [
             "https://twitter.com/aijobfit",
