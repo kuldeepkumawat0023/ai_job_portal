@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.use(protect);
 
-router.get('/candidate', authorize('candidate', 'admin'), getCandidateStats);
-router.get('/recruiter', authorize('recruiter', 'admin'), getRecruiterStats);
-router.get('/analytics', authorize('recruiter', 'admin'), getRecruiterAnalytics);
+router.get('/candidate', authorize('candidate', 'admin', 'super_admin'), getCandidateStats);
+router.get('/recruiter', authorize('recruiter', 'admin', 'super_admin'), getRecruiterStats);
+router.get('/analytics', authorize('recruiter', 'admin', 'super_admin'), getRecruiterAnalytics);
 
 module.exports = router;

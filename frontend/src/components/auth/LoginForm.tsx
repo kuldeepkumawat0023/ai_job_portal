@@ -129,11 +129,17 @@ const LoginForm = () => {
       });
 
       if (response.success) {
+        const role = response.data.user.role;
+
+        // Prevent admin/super_admin from logging in here
+        if (role === 'admin' || role === 'super_admin') {
+          toast.error('Admins must log in via the Admin Portal', { id: toastId });
+          return;
+        }
+
         login(response.data.user, response.data.token);
 
         toast.success('Welcome back!', { id: toastId });
-
-        const role = response.data.user.role;
 
         router.push(
           role === 'recruiter'
@@ -237,13 +243,18 @@ const LoginForm = () => {
                       );
 
                     if (response.success) {
+                      const role = response.data.user.role;
+
+                      if (role === 'admin' || role === 'super_admin') {
+                        toast.error('Admins must log in via the Admin Portal', { id: toastId });
+                        return;
+                      }
+
                       login(response.data.user, response.data.token);
 
                       toast.success('Welcome back!', {
                         id: toastId
                       });
-
-                      const role = response.data.user.role;
 
                       router.push(
                         role === 'recruiter'

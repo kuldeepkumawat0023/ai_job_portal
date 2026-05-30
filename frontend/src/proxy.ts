@@ -4,7 +4,7 @@ import { NextResponse, NextRequest } from 'next/server';
  * 🛡️ Next.js Middleware
  * Handles persistent session redirection and route protection.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Get token and role from cookies

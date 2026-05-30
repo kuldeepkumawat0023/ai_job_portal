@@ -18,7 +18,7 @@ router.post('/optimize-portfolio', protect, aiController.optimizePortfolioConten
 router.post('/enhance-resume', protect, aiController.enhanceResumeData);
 
 // Recruiter & Admin
-router.post('/generate-job-desc', authorize('recruiter', 'admin'), aiController.generateJobDescription);
-router.post('/refine-feedback', authorize('recruiter', 'admin'), aiController.refineFeedback);
+router.post('/generate-job-desc', authorize('recruiter', 'admin', 'super_admin'), aiController.generateJobDescription);
+router.post('/refine-feedback', authorize('recruiter', 'admin', 'super_admin'), aiController.refineFeedback);
 
 module.exports = router;

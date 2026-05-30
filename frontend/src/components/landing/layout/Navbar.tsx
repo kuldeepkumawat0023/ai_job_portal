@@ -33,9 +33,7 @@ const Navbar = () => {
       >
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary/20 group-hover:rotate-12 transition-all duration-300">
-              A
-            </div>
+            <img src="/images/logo/websitelogo.png" alt="AI JobFit Logo" className="w-10 h-10 rounded-md object-contain  transition-all duration-300 drop-shadow-md shadow-sm shadow-primary/20" />
             <span className="font-bold text-2xl tracking-tight text-gradient">
               AI JobFit
             </span>

@@ -8,8 +8,10 @@ import { Button } from '@/components/common/Button';
 
 const Hero = () => {
   const [isInstalled, setIsInstalled] = React.useState(false);
+  const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {
+    setIsMounted(true);
     // Check localStorage first (persists across browser/PWA sessions)
     const savedInstalled = localStorage.getItem('pwa_installed') === 'true';
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
@@ -93,32 +95,36 @@ const Hero = () => {
         >
 
 
-          {isInstalled ? (
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full sm:w-auto gap-2 cursor-default opacity-80"
-              aria-label="App Installed"
-              title="App Installed"
-            >
-              <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />
-              App Installed
-            </Button>
+          {isMounted ? (
+            isInstalled ? (
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full sm:w-auto gap-2 cursor-default opacity-80"
+                aria-label="Download Completed"
+                title="Download Completed"
+              >
+                <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />
+                Download Completed
+              </Button>
+            ) : (
+              <Button
+                variant="gradient"
+                size="lg"
+                glow
+                onClick={() => {
+                  window.dispatchEvent(new Event('showInstallModal'));
+                }}
+                className="w-full sm:w-auto gap-2"
+                aria-label="Install AI JobFit App"
+                title="Download App"
+              >
+                <Download className="w-5 h-5" aria-hidden="true" />
+                Download App
+              </Button>
+            )
           ) : (
-            <Button
-              variant="gradient"
-              size="lg"
-              glow
-              onClick={() => {
-                window.dispatchEvent(new Event('showInstallModal'));
-              }}
-              className="w-full sm:w-auto gap-2"
-              aria-label="Install AI JobFit App"
-              title="Download App"
-            >
-              <Download className="w-5 h-5" aria-hidden="true" />
-              Download App
-            </Button>
+            <div className="w-[180px] h-[52px]"></div>
           )}
 
           <Button

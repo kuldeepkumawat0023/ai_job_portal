@@ -23,6 +23,10 @@ const errorHandler = (err, req, res, next) => {
     statusCode = 400; // Bad Request
   }
 
+  try {
+    require('fs').appendFileSync('error_log.txt', new Date().toISOString() + ' ' + req.originalUrl + ' ' + (err.stack || err.message) + '\\n');
+  } catch (e) {}
+
   // Enforce no 500 or 300 series error codes (strictly 400 series)
   if (statusCode >= 500 || statusCode < 400) {
     statusCode = 400;
